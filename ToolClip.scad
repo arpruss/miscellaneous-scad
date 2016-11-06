@@ -9,6 +9,7 @@ upperCatchThickness = 1.5;
 lowerArmHorizontalInset = 2;
 upperArmMainLength = 44.5;
 upperArmGusset = 3;
+
 // for meshing with remixed penholder
 mountingBumpDiameter = 8;
 mountingBumpThickness = 4;
@@ -33,7 +34,7 @@ difference() {
     for (z = [0:mountingBumpPairsCount-1]) {
         for (sign = [-1:2:1]) {
         translate([-plateThickness-nudge,sign*mountingBumpHorizontalSpacing/2,mountingBumpsHeight+z*mountingBumpVerticalSpacing])
-        rotate([90,0,90])
+        rotate([90,180*((z%2)),90])
         linear_extrude(height=2*nudge+plateThickness)
          union() {
             translate([0,mountingBumpDiameter/2,0])
