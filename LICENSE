@@ -1,7 +1,19 @@
-Licensed under either the MIT License or Creative Commons Attribution 3.0 or higher (your choice).
+Unless marked otherwise, all files are licensed under your choice of the MIT License or 
+the Creative Commons Attribution 3.0 or higher license (https://creativecommons.org/licenses/by/3.0/).
 
+EXCEPTIONS:
 
-MIT License
+penholder_mod.scad: 
+    Licensed under the Creative Commons - Attribution - Non-Commercial 3.0 license.
+    https://creativecommons.org/licenses/by-nc/3.0/
+    
+    Remix of Pen holder for Shapeoko CNC by EGoe:
+    http://www.thingiverse.com/thing:261162
+
+    
+
+    
+MIT LICENSE TEXT:
 
 Copyright (c) 2016 Alexander R. Pruss
 
