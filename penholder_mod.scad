@@ -6,14 +6,22 @@
 
 
 platform_screw_hole_diameter = 5.15;
+mounting_bump_thickness = 0;
+mounting_bump_diameter = 8;
 pen_screw_hole_diameter = 2.977;
 pen_screw_nut_thickness = 2.6;
 pen_screw_nut_width = 5.5; 
-mounting_bump_thickness = 0;
-mounting_bump_diameter = 8;
 scale_width = 1.2;
 scale_depth = 1.2;
 scale_height = 1;
+
+// My settings: 
+// mounting_bump_thickness = 3.5;
+// mounting_bump_diamater = 7.9;
+// pen_screw_hole_diameter = 2.9;
+// pen_screw_nut_thickness = 2.3;
+// pen_screw_nut_width = 5.33;
+
 
 module originalSTL() {polyhedron(
  points=[
