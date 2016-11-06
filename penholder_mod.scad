@@ -9,6 +9,8 @@ platform_screw_hole_diameter = 5.15;
 pen_screw_hole_diameter = 2.977;
 pen_screw_nut_thickness = 2.6;
 pen_screw_nut_width = 5.5; 
+mounting_bump_thickness = 0; // recommended: 3.5; replaces platform screws
+mounting_bump_diameter = 8;
 scale_width = 1.2;
 scale_depth = 1.2;
 scale_height = 1;
@@ -2904,11 +2906,31 @@ module withNoHoles() {
 
 nudge = 0.01;
 rotate([90,0,0]) difference() {
-    scale([scale_width,scale_height,scale_depth]) withNoHoles();
-        translate([10*scale_width,11*scale_height,-4*scale_depth-nudge]) linear_extrude(height=2*nudge+4*scale_depth) circle(d=platform_screw_hole_diameter, $fn=10);
-        translate([-10,11*scale_height,-4*scale_depth-nudge]) linear_extrude(height=2*nudge+4*scale_depth) circle(d=platform_screw_hole_diameter, $fn=10);
+    scale([scale_width,scale_height,scale_depth])
+        withNoHoles();
+    
+    if (mounting_bump_thickness == 0) {
+        for (sign = [-1:2:1]) {
+            translate([sign*10,11*scale_height,-4*scale_depth-nudge]) linear_extrude(height=2*nudge+4*scale_depth) circle(d=platform_screw_hole_diameter, $fn=10);
+        }
+    }
+
         // original top hole at height (0,9.1867,37.1) diameter 2.977 length 1.9
         translate([0,9.1867*scale_height,34.5*scale_depth+pen_screw_nut_thickness]) linear_extrude(height=nudge+(4.5*scale_depth-pen_screw_nut_thickness)) circle(d=pen_screw_hole_diameter, $fn=10);
         // original top hexagon at (0,9.1868,34.5) inner diameter 5.5
         translate([0,9.1867*scale_height,34.5*scale_depth-nudge]) linear_extrude(height=nudge+pen_screw_nut_thickness) rotate([0,0,30]) circle(d=(pen_screw_nut_width*2/sqrt(3)),$fn=6);
+}
+
+
+if(mounting_bump_thickness > 0) {
+    for (sign = [-1:2:1]) {
+        translate([sign*10,mounting_bump_thickness+4*scale_depth,0])
+        rotate([90,0,0])
+        linear_extrude(height=mounting_bump_thickness)
+         union() {
+            translate([0,mounting_bump_diameter/2,0])
+            circle(d=mounting_bump_diameter);
+            translate([-mounting_bump_diameter/2,0,0]) square([mounting_bump_diameter,mounting_bump_diameter/2]);
+         }
+     }
 }
