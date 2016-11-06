@@ -2903,7 +2903,7 @@ module withNoHoles() {
 }
 
 nudge = 0.01;
-difference() {
+rotate([90,0,0]) difference() {
     scale([scale_width,scale_height,scale_depth]) withNoHoles();
         translate([10*scale_width,11*scale_height,-4*scale_depth-nudge]) linear_extrude(height=2*nudge+4*scale_depth) circle(d=platform_screw_hole_diameter, $fn=10);
         translate([-10,11*scale_height,-4*scale_depth-nudge]) linear_extrude(height=2*nudge+4*scale_depth) circle(d=platform_screw_hole_diameter, $fn=10);
