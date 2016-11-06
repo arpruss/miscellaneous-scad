@@ -9,8 +9,8 @@ platform_screw_hole_diameter = 5.15;
 pen_screw_hole_diameter = 2.977;
 pen_screw_nut_thickness = 2.6;
 pen_screw_nut_width = 5.5; 
-scale_width = 1;
-scale_depth = 1;
+scale_width = 1.2;
+scale_depth = 1.2;
 scale_height = 1;
 
 module originalSTL() {polyhedron(
