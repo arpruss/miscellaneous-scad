@@ -39,8 +39,10 @@ def loadMesh(filename):
                     r = 0
                     g = 0
                     b = 0
-
-    return triangles
+                    
+    # reverse triangles for openSCAD benefit
+    
+    return [(t[2],t[1],t[0]) for t in triangles]
         
 def project(polygons, xAxis, yAxis):
     return [tuple( (v[xAxis], v[yAxis]) for v in polygon ) for polygon in polygons]

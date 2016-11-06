@@ -18,7 +18,7 @@ def toSCAD(polygons):
         p = '  ['
         for v in polygon:
             vv = tuple(v)
-            p += '%f,' % (points.index(vv),)
+            p += '%d,' % (points.index(vv),)
         scad.append(p+'],')
     scad.append(' ]);')
     scad.append('}')
