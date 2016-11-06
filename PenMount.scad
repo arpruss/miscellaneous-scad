@@ -1,12 +1,12 @@
-plateThickness = 4;
-upperArmThickness = 2;
+plateThickness = 3.5;
+upperArmThickness = 1.75;
 lowerArmThickness = 11;
 upperArmSpacing = 58.8;
 plateHeight = 80;
 bumpSize = 2;
 upperArmHorizontalSpacing = 58.9;
 upperCatchLength = 3;
-upperCatchThickness = 2;
+upperCatchThickness = 1.5;
 lowerArmHorizontalInset = 2;
 upperArmMainLength = 44.5;
 upperArmGusset = 3;
