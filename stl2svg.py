@@ -7,7 +7,7 @@ def loadMesh(filename):
     with open(filename, "rb") as f:
          header = f.read(5)
          
-         if header.startswith(b"solid"):
+         if not header.startswith(b"solid"):
              triangle = None
              for line in f:
                 line = line.strip()
@@ -19,7 +19,9 @@ def loadMesh(filename):
                     triangle = []
                 elif triangle is not None and line.startswith('vertex'):
                     triangle.append(tuple(float(x) for x in line.split()[1:4]))
-         else:
+             if not triangles:
+                f.seek(5)
+         if not triangles:
              header = f.read(75)
              assert len(header) == 75
          
