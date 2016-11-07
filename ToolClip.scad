@@ -13,9 +13,9 @@ upperArmGusset = 2;
 plateWidth = upperArmHorizontalSpacing + 2 * upperArmThickness;
 
 rodDiameter = 8.15;
-rodInset = 11.4 + rodDiameter/2;
 rodCatchDiameter = 17.92;
-lowerArmLength = rodInset+rodCatchDiameter;
+rodInset = 7 + rodCatchDiameter/2;
+lowerArmLength = rodInset+rodCatchDiameter/2;
 lowerArmHeight = 2*7.3+rodCatchDiameter;
 rodTopZ = lowerArmHeight - rodCatchDiameter / 2 + rodDiameter / 2;
 
@@ -74,7 +74,7 @@ for (i=[0:1]) {
     translate([0,sign*(upperArmHorizontalSpacing/2-lowerArmHorizontalInset-lowerArmThickness/2),0]) rotate([90,0,0]) translate([0,0,-lowerArmThickness/2]) linear_extrude(height=lowerArmThickness) 
     difference() {
         square([lowerArmLength, lowerArmHeight-armHeightAdjustment]);
-        translate([rodInset+rodCatchDiameter/2,lowerArmHeight/2]) union() {
+        translate([rodInset,lowerArmHeight/2]) union() {
             circle(r=rodCatchDiameter/2);
             translate([rodCatchDiameter/2,0]) square([rodCatchDiameter,rodCatchDiameter],center=true);
         }
