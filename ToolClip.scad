@@ -8,15 +8,7 @@ upperCatchLength = 3;
 upperCatchThickness = 1.5;
 lowerArmHorizontalInset = 2;
 upperArmMainLength = 44.5;
-upperArmGusset = 3;
-
-// for meshing with remixed penholder
-mountingBumpDiameter = 8;
-mountingBumpThickness = 4;
-mountingBumpPairsCount = 2;
-mountingBumpsHeight = 10;
-mountingBumpVerticalSpacing = 50;
-mountingBumpHorizontalSpacing = 20;
+upperArmGusset = 2;
 
 plateWidth = upperArmHorizontalSpacing + 2 * upperArmThickness;
 
@@ -27,13 +19,22 @@ lowerArmLength = rodInset+rodCatchDiameter;
 lowerArmHeight = 2*7.3+rodCatchDiameter;
 rodTopZ = lowerArmHeight - rodCatchDiameter / 2 + rodDiameter / 2;
 
+// for meshing with remixed penholder
+mountingBumpDiameter = 8;
+mountingBumpThickness = 4;
+mountingBumpPairsCount = 2;
+mountingBumpsHeight = lowerArmHeight/2-rodCatchDiameter/2;
+mountingBumpVerticalSpacing = 42;
+mountingBumpHorizontalSpacing = 20;
+
 nudge = 0.01;
 // backplate
 difference() {
     translate([0,-plateWidth/2,0]) rotate([0,-90,0]) linear_extrude(height=plateThickness) square([plateHeight,plateWidth]);
     for (z = [0:mountingBumpPairsCount-1]) {
         for (sign = [-1:2:1]) {
-        translate([-plateThickness-nudge,sign*mountingBumpHorizontalSpacing/2,mountingBumpsHeight+z*mountingBumpVerticalSpacing])
+        verticalAdjust = z%2 != 0 ? mountingBumpDiameter : 0;
+        translate([-plateThickness-nudge,sign*mountingBumpHorizontalSpacing/2,mountingBumpsHeight+z*mountingBumpVerticalSpacing+verticalAdjust])
         rotate([90,180*((z%2)),90])
         linear_extrude(height=2*nudge+plateThickness)
          union() {
