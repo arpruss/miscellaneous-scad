@@ -2900,7 +2900,7 @@ module originalSTL() {polyhedron(
 
 module withNoHoles() {
     union() {
-        originalSTL();
+        render(convexity=6) originalSTL();
         // hole removal
         // original bottom hole at (+-10,11,-4) diameter 5.15
         translate([10,11,-4]) linear_extrude(height=4) circle(d=(1+5.15));
@@ -2942,3 +2942,4 @@ if(mounting_bump_thickness > 0) {
          }
      }
 }
+
