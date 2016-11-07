@@ -2899,8 +2899,9 @@ module originalSTL() {polyhedron(
 }
 
 module withNoHoles() {
+    render(convexity=10) 
     union() {
-        render(convexity=6) originalSTL();
+        originalSTL();
         // hole removal
         // original bottom hole at (+-10,11,-4) diameter 5.15
         translate([10,11,-4]) linear_extrude(height=4) circle(d=(1+5.15));
@@ -2913,6 +2914,7 @@ module withNoHoles() {
 }
 
 nudge = 0.01;
+render(convexity=10) 
 rotate([90,0,0]) difference() {
     scale([scale_width,scale_height,scale_depth])
         withNoHoles();

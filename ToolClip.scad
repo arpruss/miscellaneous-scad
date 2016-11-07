@@ -3,8 +3,8 @@ upperArmThickness = 3;
 lowerArmThickness = 7;
 upperArmSpacing = 58.8;
 upperArmHorizontalSpacing = 58.9;
-upperCatchLength = 3;
-upperCatchThickness = 2.5;
+upperCatchLength = 3.1;
+upperCatchThickness = 1.75;
 upperShelfLength = 24;
 upperShelfThickness = 2;
 lowerArmHorizontalSpacing = 39.5;
@@ -74,7 +74,7 @@ for (i=[0:1]) {
         union() {
         linear_extrude(height=upperArmThickness) 
             union() {
-                square([upperArmMainLength+upperCatchLength, upperArmHeight]);
+                square([upperArmMainLength, upperArmHeight]);
                 if (left) {
                 square([upperShelfLength, upperArmHeight+shelfAreaHeightAdjust]);
                 }
@@ -82,7 +82,8 @@ for (i=[0:1]) {
         translate([upperArmMainLength,0,0])
             rotate([-90,0,0])
             linear_extrude(height=upperArmHeight)
-            polygon(points=[[0,upperCatchThickness],[upperCatchLength,0],[0,0]]);
+            translate([0,-upperArmThickness])
+            square([upperCatchThickness,upperCatchLength+upperArmThickness]);
         rotate([-90,0,0])
             linear_extrude(height=upperArmHeight+shelfAreaHeightAdjust)
             polygon(points=[[0,upperArmGusset],[upperArmGusset,0],[0,0]]);
