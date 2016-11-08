@@ -15,8 +15,8 @@ def toSCAD(polygons):
     
     points = []
     for polygon in polygons:
-        for i in range(len(polygon)):
-            vv = fix3(v[i])
+        for v in polygon:
+            vv = fix3(v)
             if vv not in points:
                 points.append(vv)
                 scad.append('  [%.7g,%.7g,%.7g]' % vv)
