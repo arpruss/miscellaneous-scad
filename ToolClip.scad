@@ -1,4 +1,16 @@
+// for meshing with remixed penholder
+//  http://www.thingiverse.com/thing:1873991
+// The penholder should have mounting_bump_thickness = 3.5
+// and mounting_bump_diameter = 8
+
+mountingBumpDiameter = 8.5;
+mountingBumpThickness = 4;
+mountingBumpPairsCount = 2;
+mountingBumpVerticalSpacing = 42;
+mountingBumpHorizontalSpacing = 20;
 plateThickness = 3.5;
+
+module object() {
 upperArmThickness = 3;
 lowerArmThickness = 7;
 upperArmSpacing = 58.8;
@@ -25,22 +37,18 @@ rightUpperArmHeight = 28;
 leftUpperArmHeight = 16.4;
 
 plateHeight = rodTopZ+rightUpperArmStartFromRod+rightUpperArmHeight+upperShelfThickness;
-
-// for meshing with remixed penholder
-mountingBumpDiameter = 8.5;
-mountingBumpThickness = 4;
-mountingBumpPairsCount = 2;
 mountingBumpsHeight = lowerArmHeight/2-rodCatchDiameter/2;
-mountingBumpVerticalSpacing = 42;
-mountingBumpHorizontalSpacing = 20;
 
-
-module object() {
 nudge = 0.01;
 
 // backplate
 difference() {
-    translate([nudge,-plateWidth/2,0]) rotate([0,-90,0]) linear_extrude(height=plateThickness) square([plateHeight,plateWidth]);
+    translate([nudge,-plateWidth/2,0]) rotate([0,-90,0]) linear_extrude(height=plateThickness) difference() {
+       corner = (plateWidth - lowerArmHorizontalSpacing)/2-lowerArmThickness;
+       square([plateHeight,plateWidth]);
+       polygon(points=[[0,0],[0,corner],[corner,0]]);
+       polygon(points=[[0,plateWidth],[0,plateWidth-corner],[corner,plateWidth]]);
+    }
     for (z = [0:mountingBumpPairsCount-1]) {
         for (sign = [-1:2:1]) {
         verticalAdjust = z%2 != 0 ? mountingBumpDiameter : 0;
@@ -76,16 +84,20 @@ for (i=[0:1]) {
         union() {
         linear_extrude(height=upperArmThickness) 
             union() {
-                square([upperArmMainLength+upperCatchThickness, upperArmHeight]);
                 if (left) {
                 square([upperShelfLength, upperArmHeight+shelfAreaHeightAdjust]);
                 }
+                else {
+                square([upperArmMainLength+upperCatchThickness, upperArmHeight]);
+                }
             }
-        translate([upperArmMainLength,0,0])
-            rotate([-90,0,0])
-            linear_extrude(height=upperArmHeight)
-            translate([0,-upperArmThickness])
-            square([upperCatchThickness,upperCatchLength+upperArmThickness]);
+        if (!left) { 
+            translate([upperArmMainLength,0,0])
+                rotate([-90,0,0])
+                linear_extrude(height=upperArmHeight)
+                translate([0,-upperArmThickness])
+                square([upperCatchThickness,upperCatchLength+upperArmThickness]);
+        }
         rotate([-90,0,0])
             linear_extrude(height=upperArmHeight+shelfAreaHeightAdjust)
             polygon(points=[[-nudge,upperArmGusset],[upperArmGusset,-nudge],[-nudge,-nudge]]);
