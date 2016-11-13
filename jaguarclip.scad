@@ -1,13 +1,15 @@
 n = 2;
 
-center_guide_height = 16;
+cylinder_diameter_correction = 0.35;
+center_guide_height = 0; // should be 16;
 
-chamber_wall_thickness = 1.05;
+chamber_wall_thickness = 0.8; //should be 1.05;
 guide_thickness = 1.5;
 
 nudge = 0.001;
 
 chamber_spacing = 84.95/5;
+total_height = 50.3;
 
 module guide(upper) {
     translate([0,0.89-2.36,0])
@@ -25,14 +27,15 @@ module guide(upper) {
 }
 
 module pusher() {
-   translate([0,15.4/2,4.29]) rotate([90,0,0]) translate([-5.13/2,0,-3.02]) linear_extrude(height=5.02) polygon(points=[[0,0],[5.13,0],[5.13,5.38],[0,9.45]]);
+   translate([0,15.4/2,4.29]) rotate([90,0,0]) translate([-5.13/2,0,(0.2-3.02)]) linear_extrude(height=5.02) polygon(points=[[0,0],[5.13,0],[5.13,5.38],[0,9.45]]);
 }
 
 module chamberShape(i, inward) {
     translate([i*chamber_spacing,0,inward]) union() {
         cylinder(h=20.5, d=15.4-inward*2);
-        translate([0,0,20.5-nudge]) cylinder(h=1.25+2*nudge, d1=15.4-inward*2, d2=16.4-inward*2);
-        translate([0,0,20.5+1.25-nudge]) cylinder(h=21.5+nudge, d=16.4-inward*2);
+        translate([0,0,20.5-nudge]) 
+        cylinder(h=1.25+2*nudge, d1=15.4-inward*2, d2=16.4-inward*2);
+        translate([0,0,20.5+1.25-nudge]) cylinder(h=total_height-(20.5+1.25)+2*nudge, d=16.4-inward*2);
     }
 }
 
@@ -48,13 +51,20 @@ module side_hole() {
 }
 
 module bump_hole() {
-    translate([0,-(15.4/2-0.6+0.53),0]) rotate([90,0,0])
-    linear_extrude(height=0.6+nudge, scale=5.03/1.91) circle(d=1.91, $fn=10);
+    translate([0,-(15.4/2-1.16+0.53),0]) rotate([90,0,0])
+    linear_extrude(height=1.16+nudge, scale=5.03/1.91) circle(d=1.91, $fn=10);
 }
 
 module bump_guides() {
     translate([-5.03/2,0,0]) rotate([90,0,0])
-    linear_extrude(height=0.53+15.4/2) square([chamber_spacing*(n-1)+5.03,24.24+nudge]);
+    linear_extrude(height=0.53+15.4/2) 
+        square([chamber_spacing*(n-1)+5.03,24.24+nudge]);
+}
+
+module blocker() {
+    // 3.03 vs 6.13
+    // diameter is 16.3
+    translate([chamber_spacing*(n-1)-7.1/2+(6.13-3.03)/2,-2.22-16.4/2,total_height-14.73]) cube([7.1, 6, 5.35]);
 }
 
 module chambers() {
@@ -63,11 +73,12 @@ module chambers() {
         union() {
             difference() {
                 union() {
+                    blocker();
                     bump_guides();
                     guide(false);
                     translate([0,0,24.24])
                         guide(true);
-                    linear_extrude(height=20.5+21.5) square([(n-1)*chamber_spacing,chamber_wall_thickness]);
+                    linear_extrude(height=total_height) square([(n-1)*chamber_spacing,chamber_wall_thickness]);
                     for (i=[0:n-1]) {
                         chamberShape(i,0);
                         translate([i*chamber_spacing,0,0]) pusher();
@@ -84,7 +95,7 @@ module chambers() {
                 translate([i*chamber_spacing,0,0]) cylinder(h=19.5+center_guide_height, d=3.9+2*chamber_wall_thickness, $fn=8);
             }
         }
-        for (i=[0:n-1]) {                    translate([i*chamber_spacing,0,-nudge]) cylinder(h=19.5+center_guide_height+2*nudge, d=3.9, $fn=8);
+        for (i=[0:n-1]) {                    translate([i*chamber_spacing,0,-nudge]) cylinder(h=19.5+center_guide_height+2*nudge, d=3.9+0.35, $fn=8);
             translate([i*chamber_spacing,0,19.5+center_guide_height/2]) cube(size=[3.9+2*chamber_wall_thickness,3,center_guide_height+nudge*2], center=true);
         }
     }
