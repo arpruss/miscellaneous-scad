@@ -1,5 +1,7 @@
 n = 2;
 
+center_guide_height = 16;
+
 chamber_wall_thickness = 1.05;
 guide_thickness = 1.5;
 
@@ -79,11 +81,12 @@ module chambers() {
                 }
             }
             for (i=[0:n-1]) {
-                translate([i*chamber_spacing,0,0]) cylinder(h=19.5, d=3.9+2*chamber_wall_thickness, $fn=8);
+                translate([i*chamber_spacing,0,0]) cylinder(h=19.5+center_guide_height, d=3.9+2*chamber_wall_thickness, $fn=8);
             }
         }
-        for (i=[0:n-1])                     translate([i*chamber_spacing,0,-nudge]) cylinder(h=19.5+2*nudge, d=3.9, $fn=8);
-
+        for (i=[0:n-1]) {                    translate([i*chamber_spacing,0,-nudge]) cylinder(h=19.5+center_guide_height+2*nudge, d=3.9, $fn=8);
+            translate([i*chamber_spacing,0,19.5+center_guide_height/2]) cube(size=[3.9+2*chamber_wall_thickness,3,center_guide_height+nudge*2], center=true);
+        }
     }
 }
 //pusher();
