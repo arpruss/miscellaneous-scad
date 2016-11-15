@@ -1,9 +1,21 @@
 n = 15;
-
+lockable = false;
+pusher_width_correction = 0.21;
+guide_upper_thickness_correction = 0.5;
+guide_lower_thickness_correction = 0.2;
 cylinder_diameter_correction = 0.35;
+chamber_wall_correction = 0.13;
+pusher_lower_height_correction = 0.4;
+
+// The corrections are for printing with:
+// 0.4mm nozzle, using 0.3mm layers, 
+// bottom layer squashed down a bit with a z-offset adjustment.
+
+module dummy() {}
+
 center_guide_height = 0; // should be 16;
 
-chamber_wall_thickness = 0.92; //should be 1.05 ideally
+chamber_wall_thickness = 1.05-chamber_wall_correction; //should be 1.05 ideally
 guide_thickness = 1.5;
 
 nudge = 0.001;
@@ -12,12 +24,13 @@ chamber_spacing = 84.95/5;
 total_height = 50.3;
 
 module guide(upper) {
+    h = upper ? guide_thickness - guide_upper_thickness_correction : guide_thickness - guide_lower_thickness_correction;
     translate([0,0.89-2.36,0])
-    linear_extrude(height=guide_thickness) {
+    linear_extrude(height=h) {
         difference() {
             union() {
-                circle(d=18.4);
-                translate([(n-1)*chamber_spacing,0,0]) circle(d=18.4);
+                translate([1,0,0]) circle(d=18.4);
+                translate([(n-1)*chamber_spacing-1.,0,0]) circle(d=18.4);
                 translate([0,-18.4/2,0]) square([(n-1)*chamber_spacing, 18.4]);
             }
             if (upper)
@@ -26,8 +39,10 @@ module guide(upper) {
     }
 }
 
-module pusher() {
-   translate([0,15.4/2,4.29]) rotate([90,0,0]) translate([-5.13/2,0,(0.5+0.2-3.02)]) linear_extrude(height=5.02) polygon(points=[[0,0],[5.13,0],[5.13,5.38],[0,9.45]]);
+module pusher(first) {
+    dh = (first && lockable) ? 2.36 : 0;
+   width = 5.06 - pusher_width_correction;
+   translate([0,15.4/2,4.29-dh]) rotate([90,0,0]) translate([-width/2,0,(0.5+0.2-3.02)]) linear_extrude(height=5.02) polygon(points=[[0,0],[width,0],[width,dh+5.19-pusher_lower_height_correction],[0,dh+9.45]]);
 }
 
 module chamberShape(i, inward) {
@@ -52,7 +67,7 @@ module side_hole() {
 
 module bump_hole() {
     translate([0,-(15.4/2-1.16+0.53+0.35),0]) rotate([90,0,0])
-    linear_extrude(height=1.16+nudge, scale=5.03/1.91) circle(d=1.91, $fn=10);
+    linear_extrude(height=1.16+nudge, scale=5.03/2.4) circle(d=2.4, $fn=10);
 }
 
 module bump_guides() {
@@ -64,7 +79,7 @@ module bump_guides() {
 module blocker() {
     // 3.03 vs 6.13
     // diameter is 16.3
-    translate([chamber_spacing*(n-1)-7.1/2+(6.13-3.03)/2,-2.22-16.4/2,total_height-14.73+1]) cube([7.1, 6-1, 5.35]);
+    translate([chamber_spacing*(n-1)-7.1/2+(6.13-3.03)/2,-2.22-16.4/2,total_height-14.73+1]) cube([7.1, 6-1, 5.35-.5]);
 }
 
 module chambers() {
@@ -81,7 +96,7 @@ module chambers() {
                     linear_extrude(height=total_height) square([(n-1)*chamber_spacing,chamber_wall_thickness]);
                     for (i=[0:n-1]) {
                         chamberShape(i,0);
-                        translate([i*chamber_spacing,0,0]) pusher();
+                        translate([i*chamber_spacing,0,0]) pusher(i==0);
                     }
                 }
                 for (i=[0:n-1]) {
