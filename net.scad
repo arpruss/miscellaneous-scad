@@ -7,7 +7,7 @@ radius = 20;
 rim = 10;
 
 base_thickness = 1.5;
-net_thickness = 0.5;
+net_thickness = 0.35;
 layer_height = 0.35;
 xsize = outerwidth;
 ysize = outerheight;
