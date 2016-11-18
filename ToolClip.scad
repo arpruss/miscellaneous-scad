@@ -4,7 +4,6 @@
 // and mounting_bump_diameter = 8
 
 mountingBumpDiameter = 8.5;
-mountingBumpThickness = 4;
 mountingBumpPairsCount = 2;
 mountingBumpVerticalSpacing = 42;
 mountingBumpHorizontalSpacing = 20;
