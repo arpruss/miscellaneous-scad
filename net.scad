@@ -1,4 +1,4 @@
-xspacing = 3*1.4;
+xspacing = 8*1.4;
 yspacing = 1.6;
 
 outerwidth = 200;
@@ -8,7 +8,7 @@ rim = 10;
 
 base_thickness = 1.5;
 net_thickness = 0.5;
-net_offset = 0.4;
+layer_height = 0.35;
 xsize = outerwidth;
 ysize = outerheight;
 nudge = 0.01;
@@ -17,12 +17,18 @@ wall_height = 15;
 catch_size = 10;
 
 module netRectangle() {
+    render(convexity=12)
+    linear_extrude(height=net_thickness*3) 
     for (i=[0:xsize/xspacing]) {
-        translate([xspacing*i,0]) square([net_thickness,ysize]);
+        translate([xspacing*i,0,0]) square([layer_height*3,ysize]);
     }
 
+    render(convexity=12)
+    translate([0,0,net_thickness-nudge])
+    linear_extrude(height=net_thickness+nudge) 
     for (i=[0:ysize/yspacing]) {
-        translate([0,yspacing*i]) square([xsize,net_thickness]);
+        translate([0,yspacing*i,layer_height]) 
+        square([xsize,net_thickness]);
     }
 }
 
@@ -45,13 +51,9 @@ module oval(inset) {
 module netOval() {
     intersection() {
         netRectangle();
-        oval(rim-nudge);
+        translate([0,0,-nudge]) linear_extrude(height=wall_height) oval(rim-nudge);
     }
 }
-
-module net() {
-    translate([0,0,net_offset]) linear_extrude(height=net_thickness) netOval();
-}  
 
 module base() {
     linear_extrude(height=base_thickness) difference() {
@@ -105,8 +107,9 @@ module topRim() {
 }
 
 
-net();
+netOval();
 base();
 sides();
 catches();
 topRim();
+//netRectangle();
