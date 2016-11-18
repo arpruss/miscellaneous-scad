@@ -4,7 +4,7 @@ yspacing = 1.6;
 outerwidth = 200;
 outerheight = 100;
 radius = 20;
-rim = 5;
+rim = 10;
 
 base_thickness = 1.5;
 net_thickness = 0.5;
@@ -13,7 +13,7 @@ xsize = outerwidth;
 ysize = outerheight;
 nudge = 0.01;
 wall_thickness = 1;
-wall_height = 20;
+wall_height = 15;
 catch_size = 10;
 
 module netRectangle() {
@@ -26,17 +26,20 @@ module netRectangle() {
     }
 }
 
-module oval(inset) {
+/*module oval(inset) {
    translate([outerheight/2,outerheight/2]) circle(d=outerheight-2*inset);
    translate([outerwidth-outerheight/2,outerheight/2]) circle(d=outerheight-2*inset);
    translate([outerheight/2,inset]) square(size=[outerwidth-outerheight,outerheight-inset*2]);
-}
+}*/
 
-module betterOval(inset) {
-    translate([radius+inset,radius+inset]) circle(r=radius);
-    translate([radius+inset,outerheight-radius-inset]) circle(r=radius);
-    translate([inset,radius+inset])
-    square([radius*2,outerheight-2*inset-2*radius]);
+module oval(inset) {
+    for (i=[0:1]) {
+        dx = (outerwidth-2*radius-2*inset)*i;
+        translate([dx+radius+inset,radius+inset]) circle(r=radius);
+        translate([dx+radius+inset,outerheight-radius-inset]) circle(r=radius);
+        translate([dx+inset,radius+inset]) square([radius*2,outerheight-2*inset-2*radius]);
+    }
+    translate([radius+inset,inset]) square([outerwidth-2*inset-2*radius,outerheight-2*inset]);
 }
 
 module netOval() {
@@ -69,7 +72,7 @@ module filled() {
 }
 
 module catch1() {
-    rotate([-90,0,0]) linear_extrude(height=4*catch_size) polygon(points=[[0,0],[0,catch_size],[catch_size,0]]);
+    rotate([-90,0,0]) linear_extrude(height=outerheight) polygon(points=[[0,0],[0,catch_size],[catch_size,0]]);
 }
 
 module catches() {
@@ -77,16 +80,33 @@ module catches() {
     {
         filled();
         union() {
-            translate([0,outerheight/2-catch_size*2,wall_height])
+            translate([0,0,wall_height])
             catch1();
-            translate([outerwidth,outerheight/2+catch_size*2,wall_height])
+            translate([outerwidth,outerheight,wall_height])
             rotate([0,0,180]) catch1();
         }
     }
 }
 
-//net();
-//base();
-//sides();
-//catches();
-betterOval(0);
+module topRim() {
+    difference() {
+        translate([0,0,wall_height-2])
+        minkowski()
+        {
+            linear_extrude(height=0.01)
+            difference() {
+                oval(0);
+                oval(1);
+            }
+            cylinder(h=2,r1=0,r2=2);
+        }
+        linear_extrude(height=wall_height+0.01+nudge) oval(0);
+    }
+}
+
+
+net();
+base();
+sides();
+catches();
+topRim();
