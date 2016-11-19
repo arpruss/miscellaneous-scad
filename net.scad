@@ -22,6 +22,7 @@ catch_separation = 1.6;
 catch_cutaway_start = 2;
 
 shim_tolerance = 0.4;
+shim_size = 4;
 
 module dummy() {} // for customizer
 
@@ -171,10 +172,10 @@ if (print_shim) {
                 oval(wall_thickness+shim_tolerance);
                 oval(wall_thickness+shim_tolerance+nudge);
             }
-            cylinder(r1=net_rim, r2=0, h=net_rim);
+            cylinder(r1=shim_size, r2=0, h=shim_size);
         }
         render(convexity=10)
-        translate([0,0,-nudge]) linear_extrude(height=net_rim+nudge*2) oval(wall_thickness+tolerance);
+        translate([0,0,-nudge]) linear_extrude(height=shim_size+nudge*2) oval(wall_thickness+tolerance);
     }
 }
 else {
