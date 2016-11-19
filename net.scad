@@ -1,12 +1,19 @@
-xspacing = 8*1.4;
+xspacing = 11.2;
 yspacing = 1.6;
-
 tolerance = 0.7;
+rim = 6;
+net_thickness = 0.35;
+layer_height = 0.35;
+wall_thickness = 1;
+wall_height = 12;
+tab_size = 12;
+base_thickness = 1.5;
+
+module dummy() {}
 
 outerwidth = 192-tolerance*2;
 outerheight = 71.8-tolerance*2;
 radius = 28.5;
-rim = 6;
 
 catch_width = 11;
 catch_height = 5;
@@ -15,15 +22,9 @@ catch_from_top = 1;
 catch_separation = 1.6;
 catch_cutaway_start = 2;
 
-base_thickness = 1.5;
-net_thickness = 0.35;
-layer_height = 0.35;
 xsize = outerwidth;
 ysize = outerheight;
 nudge = 0.01;
-wall_thickness = 1;
-wall_height = 15;
-tab_size = 12;
 
 module netRectangle() {
     render(convexity=12)
