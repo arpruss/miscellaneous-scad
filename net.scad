@@ -1,19 +1,16 @@
-xspacing = 11.2;
-yspacing = 1.6;
+horizontal_spacing = 11.2;
+vertical_spacing = 1.6;
 tolerance = 0.7;
-rim = 6;
+net_rim = 6;
 net_thickness = 0.35;
 layer_height = 0.35;
 wall_thickness = 1;
 wall_height = 12;
 tab_size = 12;
 base_thickness = 1.5;
-
-module dummy() {}
-
-outerwidth = 192-tolerance*2;
-outerheight = 71.8-tolerance*2;
-radius = 28.5;
+base_width = 192;
+base_height = 71.8;
+corner_radius = 28.5;
 
 catch_width = 11;
 catch_height = 5;
@@ -22,53 +19,58 @@ catch_from_top = 1;
 catch_separation = 1.6;
 catch_cutaway_start = 2;
 
-xsize = outerwidth;
-ysize = outerheight;
+module dummy() {}
+
+width = base_width-tolerance*2;
+height = base_height-tolerance*2;
+
+xsize = width;
+ysize = height;
 nudge = 0.01;
 
 module netRectangle() {
     render(convexity=12)
     linear_extrude(height=net_thickness*3) 
-    for (i=[0:xsize/xspacing]) {
-        translate([xspacing*i,0,0]) square([layer_height*3,ysize]);
+    for (i=[0:xsize/horizontal_spacing]) {
+        translate([horizontal_spacing*i,0,0]) square([layer_height*3,ysize]);
     }
 
     render(convexity=12)
     translate([0,0,net_thickness-nudge])
     linear_extrude(height=net_thickness+nudge) 
-    for (i=[0:ysize/yspacing]) {
-        translate([0,yspacing*i,layer_height]) 
+    for (i=[0:ysize/vertical_spacing]) {
+        translate([0,vertical_spacing*i,layer_height]) 
         square([xsize,net_thickness]);
     }
 }
 
 /*module oval(inset) {
-   translate([outerheight/2,outerheight/2]) circle(d=outerheight-2*inset);
-   translate([outerwidth-outerheight/2,outerheight/2]) circle(d=outerheight-2*inset);
-   translate([outerheight/2,inset]) square(size=[outerwidth-outerheight,outerheight-inset*2]);
+   translate([height/2,height/2]) circle(d=height-2*inset);
+   translate([width-height/2,height/2]) circle(d=height-2*inset);
+   translate([height/2,inset]) square(size=[width-height,height-inset*2]);
 }*/
 
 module oval(inset) {
     for (i=[0:1]) {
-        dx = (outerwidth-2*radius-2*inset)*i;
-        translate([dx+radius+inset,radius+inset]) circle(r=radius);
-        translate([dx+radius+inset,outerheight-radius-inset]) circle(r=radius);
-        translate([dx+inset,radius+inset]) square([radius*2,outerheight-2*inset-2*radius]);
+        dx = (width-2*corner_radius-2*inset)*i;
+        translate([dx+corner_radius+inset,corner_radius+inset]) circle(r=corner_radius, $fn=50);
+        translate([dx+corner_radius+inset,height-corner_radius-inset]) circle(r=corner_radius, $fn=50);
+        translate([dx+inset,corner_radius+inset]) square([corner_radius*2,height-2*inset-2*corner_radius]);
     }
-    translate([radius+inset,inset]) square([outerwidth-2*inset-2*radius,outerheight-2*inset]);
+    translate([corner_radius+inset,inset]) square([width-2*inset-2*corner_radius,height-2*inset]);
 }
 
 module netOval() {
     intersection() {
         netRectangle();
-        translate([0,0,-nudge]) linear_extrude(height=wall_height) oval(rim-nudge);
+        translate([0,0,-nudge]) linear_extrude(height=wall_height) oval(net_rim-nudge);
     }
 }
 
 module base() {
     linear_extrude(height=base_thickness) difference() {
         oval(0);
-        oval(rim);
+        oval(net_rim);
     }
 }
 
@@ -83,10 +85,10 @@ module sides() {
             oval(0);
             oval(wall_thickness);
         }
-        translate([0,outerheight/2-catch_width/2-catch_separation,0]) catchCut();
-        translate([0,outerheight/2+catch_width/2,0]) catchCut();
-        translate([outerwidth-3*wall_thickness-nudge,outerheight/2-catch_width/2-catch_separation,0]) catchCut();
-        translate([outerwidth-3*wall_thickness-nudge,outerheight/2+catch_width/2,0]) catchCut();
+        translate([0,height/2-catch_width/2-catch_separation,0]) catchCut();
+        translate([0,height/2+catch_width/2,0]) catchCut();
+        translate([width-3*wall_thickness-nudge,height/2-catch_width/2-catch_separation,0]) catchCut();
+        translate([width-3*wall_thickness-nudge,height/2+catch_width/2,0]) catchCut();
     }
 }
 
@@ -95,28 +97,29 @@ module filled() {
 }
 
 module tab1() {
-    rotate([-90,0,0]) linear_extrude(height=outerheight) polygon(points=[[0,0],[0,tab_size],[tab_size,0]]);
+    rotate([-90,0,0]) linear_extrude(height=height) polygon(points=[[0,0],[0,tab_size],[tab_size,0]]);
 }
 
 module tabs() {
-    inset=(sqrt(2)-1)*radius/sqrt(2);
+    inset=(sqrt(2)-1)*corner_radius/sqrt(2);
     render(convexity=10)
     intersection() 
     {
         filled();
         union() {
             rotate([0,0,45])
-            translate([inset,-outerheight/2,wall_height])
+            translate([inset,-height/2,wall_height])
             tab1();
-            translate([outerwidth,outerheight-inset,0])
+            translate([width,height-inset,0])
             rotate([0,0,180+45])
-            translate([0,-outerheight/2,wall_height])
+            translate([0,-height/2,wall_height])
             tab1();
         }
     }
 }
 
-module topRim() {
+/*
+module topnet_rim() {
     difference() {
         translate([0,0,wall_height-2])
         minkowski()
@@ -130,7 +133,7 @@ module topRim() {
         }
         linear_extrude(height=wall_height+0.01+nudge) oval(0);
     }
-}
+}*/
 
 module catch() {
     b = catch_height/2;
@@ -138,21 +141,21 @@ module catch() {
     // b^2 + r^2 + cs^2 - 2 r cs = r^2
     // b^2 + cs^2 = 2r cs
     // r = (b^2 + cs^2) / 2cs
-    radius = (b*b + catch_stickout*catch_stickout) / (2*catch_stickout);
+    corner_radius = (b*b + catch_stickout*catch_stickout) / (2*catch_stickout);
     translate([0,0,catch_height/2+wall_height-catch_height-catch_from_top])
     rotate([90,0,0])
     intersection() {
     render(convexity=10)
-        translate([radius-catch_stickout,0,0]) cylinder(r=radius, h=catch_width, $fn=16);
+        translate([corner_radius-catch_stickout,0,0]) cylinder(r=corner_radius, h=catch_width, $fn=16);
     render(convexity=10)
-        translate([-radius*2,-radius,0]) cube([radius*2, radius*2, catch_width]); 
+        translate([-corner_radius*2,-corner_radius,0]) cube([corner_radius*2, corner_radius*2, catch_width]); 
     }
 }
 
 module catches() {
-    translate([0,outerheight/2+catch_width/2,0])
+    translate([0,height/2+catch_width/2,0])
     catch();
-    translate([outerwidth,outerheight/2-catch_width/2,0]) rotate([0,0,180]) catch();
+    translate([width,height/2-catch_width/2,0]) rotate([0,0,180]) catch();
 }
 
 
@@ -161,4 +164,3 @@ base();
 sides();
 tabs();
 catches();
-//topRim();
