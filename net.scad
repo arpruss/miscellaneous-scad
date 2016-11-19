@@ -1,3 +1,5 @@
+print_shim = false;
+
 horizontal_spacing = 11.2;
 vertical_spacing = 1.6;
 tolerance = 0.7;
@@ -10,16 +12,18 @@ tab_size = 12;
 base_thickness = 1.5;
 base_width = 192;
 base_height = 71.8;
-corner_radius = 28.5;
+corner_radius = 29.2;
 
-catch_width = 11;
+catch_width = 9;
 catch_height = 5;
-catch_stickout = 1.5;
+catch_stickout = 1.25;
 catch_from_top = 1;
 catch_separation = 1.6;
 catch_cutaway_start = 2;
 
-module dummy() {}
+shim_tolerance = 0.4;
+
+module dummy() {} // for customizer
 
 width = base_width-tolerance*2;
 height = base_height-tolerance*2;
@@ -77,6 +81,7 @@ module base() {
 module catchCut() {
     translate([0,0,base_thickness+catch_cutaway_start]) cube([wall_thickness*4, catch_separation, wall_height-(base_thickness+catch_cutaway_start)+nudge]);
 }
+
 
 module sides() {
     render(convexity=10)
@@ -158,9 +163,24 @@ module catches() {
     translate([width,height/2-catch_width/2,0]) rotate([0,0,180]) catch();
 }
 
-
-netOval();
-base();
-sides();
-tabs();
-catches();
+if (print_shim) {
+    intersection() {
+        minkowski() 
+        {
+            linear_extrude(height=nudge) difference() {
+                oval(wall_thickness+shim_tolerance);
+                oval(wall_thickness+shim_tolerance+nudge);
+            }
+            cylinder(r1=net_rim, r2=0, h=net_rim);
+        }
+        render(convexity=10)
+        translate([0,0,-nudge]) linear_extrude(height=net_rim+nudge*2) oval(wall_thickness+tolerance);
+    }
+}
+else {
+    netOval();
+    base();
+    sides();
+    tabs();
+    catches();
+}
