@@ -14,14 +14,14 @@ base_width = 192;
 base_height = 71.8;
 corner_radius = 29.2;
 
-catch_width = 9;
+catch_width = 8;
 catch_height = 5;
 catch_stickout = 1.25;
 catch_from_top = 1;
 catch_separation = 1.6;
 catch_cutaway_start = 2;
 
-shim_tolerance = 0.4;
+shim_tolerance = 0.0;
 shim_size = 4;
 
 module dummy() {} // for customizer
