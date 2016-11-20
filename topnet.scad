@@ -2,6 +2,7 @@ horizontal_spacing = 11.2;
 vertical_spacing = 1.6;
 tolerance = 0;
 net_rim = 12;
+outer_rim = 6;
 
 base_width = 270+net_rim*2;
 base_height = 95+net_rim*2;
@@ -10,7 +11,7 @@ net_thickness = 0.35;
 layer_height = 0.35;
 wall_thickness = net_rim;
 wall_height = 12;
-base_thickness = 1.5;
+base_thickness = 1.8;
 
 corner_radius = 95./2-5;
 
@@ -62,7 +63,7 @@ module netOval() {
 
 module base() {
     linear_extrude(height=base_thickness) difference() {
-        oval(0);
+        oval(-outer_rim);
         oval(net_rim);
     }
 }
@@ -92,7 +93,7 @@ module cut() {
     render(convexity=10)
     difference() {
         union() {
-         translate([0,0,-nudge]) cube([width/2+nudge, height, wall_height+2*nudge]);
+         translate([-outer_rim,-outer_rim,-nudge]) cube([width/2+nudge+outer_rim, height+2*outer_rim, wall_height+2*nudge]);
             translate([width/2, net_rim/3, 0]) cube([10, net_rim/3, wall_height+2*nudge]);
         }
         color("red") translate([width/2-10, height-net_rim+net_rim/3, -2*nudge]) cube([10+2*nudge, net_rim/3, wall_height+4*nudge]);
