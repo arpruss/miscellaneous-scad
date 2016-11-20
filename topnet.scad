@@ -1,7 +1,7 @@
 horizontal_spacing = 11.2;
 vertical_spacing = 1.6;
 tolerance = 0;
-net_rim = 10;
+net_rim = 12;
 
 base_width = 270+net_rim*2;
 base_height = 95+net_rim*2;
@@ -9,7 +9,7 @@ base_height = 95+net_rim*2;
 net_thickness = 0.35;
 layer_height = 0.35;
 wall_thickness = net_rim;
-wall_height = 10;
+wall_height = 12;
 base_thickness = 1.5;
 
 corner_radius = 95./2-5;
@@ -29,6 +29,8 @@ module netRectangle() {
     for (i=[0:xsize/2/horizontal_spacing]) {
         translate([width/2 - layer_height*3 - horizontal_spacing*i,0,0]) square([layer_height*3,ysize]);
     }
+    linear_extrude(height=net_thickness*5) 
+        translate([width/2 - layer_height*3,0,0]) square([layer_height*3,ysize]);
 
     render(convexity=12)
     translate([0,0,net_thickness-nudge])
