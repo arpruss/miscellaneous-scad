@@ -1,4 +1,4 @@
-n = 15;
+n = 3;
 lockable = false;
 pusher_width_correction = 0.21;
 guide_upper_thickness_correction = 0.5;
@@ -44,7 +44,7 @@ module pusher(first) {
    extra_width = 2.5;
    width = extra_width + 5.06 - pusher_width_correction;
     // dz = 4.66, dx = 4.98
-   translate([-extra_width,15.4/2,4.29-dh]) rotate([90,0,0]) translate([-width/2,0,(0.5+0.2-3.02)]) linear_extrude(height=5.02+3) polygon(points=[[0,0],[width,0],[width,dh+5.19-pusher_lower_height_correction-extra_width*1.25],[0,dh+9.45]]);
+   translate([-extra_width,15.4/2,4.29-dh]) rotate([90,0,0]) translate([-width/2,0,(0.5+0.2-3.02)]) linear_extrude(height=5.02+3) polygon(points=[[0,0],[width+1.5,0],[width+1.5,-1.5+1.5+dh+5.19-pusher_lower_height_correction-extra_width*1.25],[2,dh+9.45-.5],[1.5,dh+9.45-.25],[0,dh+9.45]]);
 }
 
 module chamberShape(i, inward) {
