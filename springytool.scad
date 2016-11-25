@@ -12,7 +12,7 @@ triangle_thickness = 3;
 
 clearance_factor = 1.75;
 
-wavelength = width - tool_holder_width * 2;
+wavelength = width - tool_holder_width * 2-spring_thickness/2;
 amplitude = wavelength / (2*pi);
 dh = (2+clearance_factor)*amplitude;
 
@@ -38,7 +38,7 @@ module ribbon_base() {
         translate([width - wavelength-spring_thickness,0]) spring(wavelength, -amplitude);
     }
 
-    for (i=[0:3]) ribbon(triangles[i], closed=true);
+    for (i=[0:3]) ribbon(triangles[i], closed=true, thickness=spring_thickness);
 
     polygon([[0,amplitude], [edge_thickness,amplitude-edge_thickness*.75], [edge_thickness,height-amplitude+edge_thickness*.75], [0,height-amplitude]]);
     
