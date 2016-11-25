@@ -116,11 +116,17 @@ module stretched_hexagon(h) {
      }
  }
  
-linear_extrude(height=spring_width) ribbon_base();
-linear_extrude(height=base_thickness) base();
-linear_extrude(height=triangle_thickness) {
-    for(i=[0:3]) polygon(triangles[i]);
+module full_holder() {
+    linear_extrude(height=spring_width) ribbon_base();
+    linear_extrude(height=base_thickness) base();
+    linear_extrude(height=triangle_thickness) {
+        for(i=[0:3]) polygon(triangles[i]);
+     }
+     
+     tool_holder_with_holes();
+     translate([0,height-tool_holder_height,0]) tool_holder_with_holes();
  }
  
- tool_holder_with_holes();
- translate([0,height-tool_holder_height,0]) tool_holder_with_holes();
+// projection(cut=true)
+// translate([0,0,-10])
+ full_holder();
