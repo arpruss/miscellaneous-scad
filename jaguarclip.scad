@@ -1,3 +1,7 @@
+//  THIS DOES NOT WORK. SOME MINOR ADJUSTMENTS
+// TO THE ADVANCEMENT PUSHERS WILL BE NEEDED TO
+// MAKE IT WORK.
+
 n = 3;
 lockable = false;
 pusher_width_correction = 0.21;
