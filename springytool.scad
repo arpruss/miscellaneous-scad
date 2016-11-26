@@ -7,11 +7,12 @@ edge_thickness = 3;
 spring_thickness = 2.5;
 base_thickness = 2;
 
-tool_holder_thickness = 2.3;
+tool_holder_thickness = 2.1;
 tool_holder_inner_diameter = 16;
 tool_holder_height = 15;
 
-mini_support_thickness = 0.3;
+// if this is >0, the pen holes will need to be drilled through
+mini_support_thickness = 0.4;
 
 // M3
 pen_screw_hole_diameter = 2.9;
@@ -26,6 +27,7 @@ base_screw_nut_width = 5.33;
 triangle_thickness = base_screw_nut_thickness+base_thickness;
 
 tool_screw_head_area = pen_screw_nut_width * 2 / sqrt(3)*1.1;
+tool_screw_head_area_extra_thickness = 1;
 
 tool_holder_width = tool_holder_inner_diameter+tool_holder_thickness*2;
 
@@ -101,8 +103,8 @@ module stretched_hexagon(h) {
     r = h / sqrt(3);
     points = [for(i=[0:5]) i == 4 ? [0,-r/2-r/2*sqrt(2)] : [r*cos(30+60*i),(i==0 || i==2) ? r : r*sin(30+60*i)]];
     polygon(points=points);
-    translate([-tool_screw_head_area/2, -r/2-r/2*sqrt(2)]) 
-    square([tool_screw_head_area,tool_holder_thickness*sqrt(2)]);
+    translate([-tool_screw_head_area/2, -tool_screw_head_area_extra_thickness-r/2-r/2*sqrt(2)]) 
+    square([tool_screw_head_area,tool_holder_thickness*sqrt(2)+tool_screw_head_area_extra_thickness]);
 }
  
  module tool_holder() {
@@ -138,7 +140,7 @@ module base_holes() {
      difference() {
          tool_holder();
          
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_holder_thickness*2+nudge, $fn=12);
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_screw_head_area_extra_thickness+tool_holder_thickness*2+nudge, $fn=12);
          translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
          }
          if (mini_support_thickness>0) {
