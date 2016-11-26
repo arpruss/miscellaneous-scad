@@ -7,9 +7,11 @@ edge_thickness = 3;
 spring_thickness = 2.5;
 base_thickness = 2;
 
-tool_holder_thickness = 2;
+tool_holder_thickness = 2.3;
 tool_holder_inner_diameter = 16;
 tool_holder_height = 15;
+
+mini_support_thickness = 0.3;
 
 // M3
 pen_screw_hole_diameter = 2.9;
@@ -136,9 +138,14 @@ module base_holes() {
      difference() {
          tool_holder();
          
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_holder_thickness*2, $fn=12);
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_holder_thickness*2+nudge, $fn=12);
          translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
          }
+         if (mini_support_thickness>0) {
+                      translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)+pen_screw_nut_thickness])
+         cylinder(d=pen_screw_hole_diameter+2*nudge, h=mini_support_thickness+nudge, $fn=12);
+         }
+         
      }
  
 module full_holder() {
