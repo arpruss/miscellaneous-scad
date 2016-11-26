@@ -2,11 +2,10 @@ use <ribbon.scad>;
 
 pi = 3.141592653589793;
 width = 64.9;
-height = 72.575;
+height = 48;
 edge_thickness = 3;
-spring_thickness = 2;
+spring_thickness = 2.5;
 base_thickness = 2;
-triangle_thickness = 3;
 
 tool_holder_thickness = 2;
 tool_holder_inner_diameter = 16;
@@ -16,6 +15,13 @@ tool_holder_height = 15;
 pen_screw_hole_diameter = 2.9;
 pen_screw_nut_thickness = 2.3;
 pen_screw_nut_width = 5.33;
+
+//
+base_screw_hole_diameter = 2.9;
+base_screw_nut_thickness = 2.3;
+base_screw_nut_width = 5.33;
+
+triangle_thickness = base_screw_nut_thickness+base_thickness;
 
 tool_screw_head_area = pen_screw_nut_width * 2 / sqrt(3)*1.1;
 
@@ -44,6 +50,14 @@ triangles = [
 [[width-spring_thickness,height-amplitude+spring_thickness/2],[width-wavelength*.75, height-dh], [width-spring_thickness, height-(2*dh-amplitude)]]
 ];
 
+function sumTo(v,n) = n<0 ? [for (i=[0:len(v[0])]) 0] : v[n]+sumTo(v,n-1);
+function sum(v,n) = sumTo(v,len(v)-1);
+function center(points) = sum(points)/len(points);
+
+triangleCenters0 = [for (i=[0:len(triangles)-1]) center(triangles[i])];
+triangleCenters = [for (i=[0:len(triangles)-1]) [for (j=[0:1]) round(triangleCenters0[i][j])]];
+echo("triangle centers", triangleCenters);
+
 module ribbon_base() {
     translate([spring_thickness/2,amplitude]) {
         spring(wavelength, -amplitude);
@@ -63,8 +77,8 @@ module ribbon_base() {
 }
 
 module base() {
-    bottom = [[spring_thickness/2,height/2+nudge],[spring_thickness/2,amplitude],[wavelength*.75,dh],[wavelength*.75,tool_holder_height+2*amplitude],
-    [width-wavelength*.75,tool_holder_height+2*amplitude],
+    bottom = [[spring_thickness/2,height/2+nudge],[spring_thickness/2,amplitude],[wavelength*.75,dh],[wavelength*.75,tool_holder_height+1.25*amplitude],
+    [width-wavelength*.75,tool_holder_height+1.25*amplitude],
     [width-wavelength*.75,dh],[width-spring_thickness/2,amplitude],[width-spring_thickness/2,height/2+nudge]];
     
     top = [for (i=[0:len(bottom)-1]) [width,height]-bottom[i]];
@@ -101,32 +115,49 @@ module stretched_hexagon(h) {
          stretched_hexagon(tool_holder_inner_diameter);
      }
  }
+
+module base_holes() {
+    render(convexity=10)
+    union() {
+        for (i=[0:len(triangleCenters)-1]) {
+         translate(0,0,-nudge) linear_extrude(height=10+triangle_thickness+2*nudge) translate(triangleCenters[i]) circle(d=base_screw_hole_diameter, $fn=12);
+            translate([0,0,triangle_thickness-base_screw_nut_thickness])
+         linear_extrude(height=base_screw_nut_thickness+nudge) translate(triangleCenters[i]) circle(d=base_screw_nut_width*2/sqrt(3), $fn=6);
+    }
+}
+}
  
  module tool_holder_with_holes() {
      h2 = tool_holder_inner_diameter+2*tool_holder_thickness;
      
      topZ = h2 / sqrt(3) * (1 + 1/2 + sqrt(2)/2 );
 
-    render(convexity=5)
+    render(convexity=10)
      difference() {
          tool_holder();
-        translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_holder_thickness*2, $fn=12);
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness])
-         cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
+         
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_holder_thickness*2, $fn=12);
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
+         }
      }
- }
  
 module full_holder() {
     linear_extrude(height=spring_width) ribbon_base();
-    linear_extrude(height=base_thickness) base();
-    linear_extrude(height=triangle_thickness) {
-        for(i=[0:3]) polygon(triangles[i]);
+    difference() {
+        union() {
+            linear_extrude(height=base_thickness) base();
+            linear_extrude(height=triangle_thickness) {
+                for(i=[0:3]) polygon(triangles[i]);
+             }
+         }
+         base_holes();
      }
      
      tool_holder_with_holes();
      translate([0,height-tool_holder_height,0]) tool_holder_with_holes();
- }
+}
  
 // projection(cut=true)
 // translate([0,0,-10])
  full_holder();
+ //base_holes();
