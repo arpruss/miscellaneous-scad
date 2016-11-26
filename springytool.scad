@@ -3,11 +3,11 @@ use <ribbon.scad>;
 pi = 3.141592653589793;
 width = 64.9;
 height = 48;
-edge_thickness = 3;
-spring_thickness = 2.5;
+edge_thickness = 2.5; // must exceed spring_thickness
+spring_thickness = 1.5;
 base_thickness = 2;
 
-tool_holder_thickness = 2.1;
+tool_holder_thickness = 2;
 tool_holder_inner_diameter = 16;
 tool_holder_height = 15;
 
@@ -16,18 +16,18 @@ mini_support_thickness = 0.4;
 
 // M3
 pen_screw_hole_diameter = 2.9;
-pen_screw_nut_thickness = 2.3;
+pen_screw_nut_thickness = 2.3+0.5;
 pen_screw_nut_width = 5.33;
 
 //
 base_screw_hole_diameter = 2.9;
-base_screw_nut_thickness = 2.3;
+base_screw_nut_thickness = 2.3+0.5;
 base_screw_nut_width = 5.33;
 
 triangle_thickness = base_screw_nut_thickness+base_thickness;
 
-tool_screw_head_area = pen_screw_nut_width * 2 / sqrt(3)*1.1;
-tool_screw_head_area_extra_thickness = 1;
+tool_screw_head_area = pen_screw_nut_width * 2 / sqrt(3)*1.5;
+tool_screw_head_area_extra_thickness = 1+0.5;
 
 tool_holder_width = tool_holder_inner_diameter+tool_holder_thickness*2;
 
@@ -103,21 +103,39 @@ module stretched_hexagon(h) {
     r = h / sqrt(3);
     points = [for(i=[0:5]) i == 4 ? [0,-r/2-r/2*sqrt(2)] : [r*cos(30+60*i),(i==0 || i==2) ? r : r*sin(30+60*i)]];
     polygon(points=points);
-    translate([-tool_screw_head_area/2, -tool_screw_head_area_extra_thickness-r/2-r/2*sqrt(2)]) 
-    square([tool_screw_head_area,tool_holder_thickness*sqrt(2)+tool_screw_head_area_extra_thickness]);
 }
  
  module tool_holder() {
      h2 = tool_holder_inner_diameter+2*tool_holder_thickness;
-     translate([width/2,0,0])
-     rotate([-90,0,0])
-     linear_extrude(height=tool_holder_height)
-     translate([0, -h2  / sqrt(3)])
-     render(convexity=2)
+     
+     topZ = h2 / sqrt(3) * (1 + 1/2 + sqrt(2)/2 );
+     
+    screwAreaZ = topZ - tool_holder_thickness*sqrt(2);
+    screwAreaH = tool_holder_thickness*sqrt(2)+tool_screw_head_area_extra_thickness;
+    
+     render(convexity=8) 
      difference() {
-         outer_hexagon(h2);
-         stretched_hexagon(tool_holder_inner_diameter);
+         union() {
+             translate([width/2,0,0])
+             rotate([-90,0,0])
+             linear_extrude(height=tool_holder_height)
+             translate([0, -h2  / sqrt(3)]) 
+                 outer_hexagon(h2);
+    translate([width/2,tool_holder_height/2,screwAreaZ-h2/4]) cylinder(d=tool_screw_head_area, h=screwAreaH+h2/4, $fn=20); 
+         }
+
+         translate([width/2,-nudge,0])
+         rotate([-90,0,0])
+         linear_extrude(height=tool_holder_height+2*nudge)
+         translate([0, -h2  / sqrt(3)])
+             stretched_hexagon(tool_holder_inner_diameter);
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_screw_head_area_extra_thickness+tool_holder_thickness*2+nudge, $fn=12);
+         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
      }
+         if (mini_support_thickness>0) {
+                      translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)+pen_screw_nut_thickness])
+         cylinder(d=pen_screw_hole_diameter+2*nudge, h=mini_support_thickness+nudge, $fn=12);
+         }
  }
 
 module base_holes() {
@@ -131,25 +149,6 @@ module base_holes() {
 }
 }
  
- module tool_holder_with_holes() {
-     h2 = tool_holder_inner_diameter+2*tool_holder_thickness;
-     
-     topZ = h2 / sqrt(3) * (1 + 1/2 + sqrt(2)/2 );
-
-    render(convexity=10)
-     difference() {
-         tool_holder();
-         
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_screw_head_area_extra_thickness+tool_holder_thickness*2+nudge, $fn=12);
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
-         }
-         if (mini_support_thickness>0) {
-                      translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)+pen_screw_nut_thickness])
-         cylinder(d=pen_screw_hole_diameter+2*nudge, h=mini_support_thickness+nudge, $fn=12);
-         }
-         
-     }
- 
 module full_holder() {
     linear_extrude(height=spring_width) ribbon_base();
     difference() {
@@ -162,8 +161,8 @@ module full_holder() {
          base_holes();
      }
      
-     tool_holder_with_holes();
-     translate([0,height-tool_holder_height,0]) tool_holder_with_holes();
+     tool_holder();
+     translate([0,height-tool_holder_height,0]) tool_holder();
 }
  
 // projection(cut=true)
