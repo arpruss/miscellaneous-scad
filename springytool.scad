@@ -1,10 +1,13 @@
 use <ribbon.scad>;
 
+// TODO: make top of holder thicker
+
 pi = 3.141592653589793;
 width = 64.9;
 height = 48;
 edge_thickness = 2.5; // must exceed spring_thickness
 spring_thickness = 1.5;
+triangle_wall_thickness = 1.5;
 base_thickness = 2;
 
 tool_holder_thickness = 2;
@@ -26,7 +29,6 @@ base_screw_nut_width = 5.33;
 
 triangle_thickness = base_screw_nut_thickness+base_thickness;
 
-tool_screw_head_area = pen_screw_nut_width * 2 / sqrt(3)*1.5;
 tool_screw_head_area_extra_thickness = 1+0.5;
 
 tool_holder_width = tool_holder_inner_diameter+tool_holder_thickness*2;
@@ -35,6 +37,8 @@ clearance_factor = 1.75;
 
 h2 = tool_holder_inner_diameter + 2 * tool_holder_thickness;
 spring_width = h2 / sqrt(3)*1.5;
+
+tool_screw_head_area = min(tool_holder_height, max(tool_holder_inner_diameter*0.75,pen_screw_nut_width+4));//pen_screw_nut_width * 2 / sqrt(3)*1.5;
 
 wavelength = (width - tool_holder_width)/2;
 
@@ -73,7 +77,7 @@ module ribbon_base() {
         translate([width - wavelength-spring_thickness,0]) spring(wavelength, -amplitude);
     }
     
-    for (i=[0:3]) ribbon(triangles[i], closed=true, thickness=spring_thickness);
+    for (i=[0:3]) ribbon(triangles[i], closed=true, thickness=triangle_wall_thickness);
 
     polygon([[0,amplitude], [edge_thickness,amplitude-edge_thickness*.75], [edge_thickness,height-amplitude+edge_thickness*.75], [0,height-amplitude]]);
     
@@ -97,7 +101,21 @@ module stretched_hexagon(h) {
     r = h / sqrt(3);
     points = [for(i=[0:5]) i == 4 ? [0,-r/2-r/2*sqrt(2)] : [r*cos(30+60*i),r*sin(30+60*i)]];
     polygon(points=points);
- }
+}
+
+//holder_inside_apex_multiplier = (0.75+0.75*1/sqrt(3)*1/sqrt(2))/sqrt(3);
+holder_inside_apex_multiplier = 1/sqrt(2);
+ 
+module holder_inside(h) {
+    r = h / sqrt(3);
+    p1 = [for(i=[0:2]) [r*cos(30+60*i),r*sin(30+60*i)]]; // angles 30->150
+    p2 = [for(i=[180:5:180+45]) [h/2*cos(i),h/2*sin(i)]];
+    p3 = [[0,-h * holder_inside_apex_multiplier]];
+    p4 = [for(i=[-45:5:0]) [h/2*cos(i),h/2*sin(i)]];
+    echo(p4[0]/h);
+    polygon(points=concat(concat(concat(p1,p2),p3),p4));
+    
+}
  
  module outer_hexagon(h) {
     r = h / sqrt(3);
@@ -108,10 +126,11 @@ module stretched_hexagon(h) {
  module tool_holder() {
      h2 = tool_holder_inner_diameter+2*tool_holder_thickness;
      
-     topZ = h2 / sqrt(3) * (1 + 1/2 + sqrt(2)/2 );
+     outsideTopZ = h2 / sqrt(3) * (1 + 1/2 + sqrt(2)/2 ) + 1.5;
      
-    screwAreaZ = topZ - tool_holder_thickness*sqrt(2);
-    screwAreaH = tool_holder_thickness*sqrt(2)+tool_screw_head_area_extra_thickness;
+     insideTopZ = h2 / sqrt(3)+holder_inside_apex_multiplier*tool_holder_inner_diameter;
+     
+     centerZ = h2 / sqrt(3);
     
      render(convexity=8) 
      difference() {
@@ -121,19 +140,20 @@ module stretched_hexagon(h) {
              linear_extrude(height=tool_holder_height)
              translate([0, -h2  / sqrt(3)]) 
                  outer_hexagon(h2);
-    translate([width/2,tool_holder_height/2,screwAreaZ-h2/4]) cylinder(d=tool_screw_head_area, h=screwAreaH+h2/4, $fn=20); 
+    translate([width/2,tool_holder_height/2,centerZ]) cylinder(d=tool_screw_head_area, h=outsideTopZ-centerZ, $fn=20); 
          }
 
          translate([width/2,-nudge,0])
          rotate([-90,0,0])
          linear_extrude(height=tool_holder_height+2*nudge)
          translate([0, -h2  / sqrt(3)])
-             stretched_hexagon(tool_holder_inner_diameter);
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*2]) cylinder(d=pen_screw_hole_diameter, h=tool_screw_head_area_extra_thickness+tool_holder_thickness*2+nudge, $fn=12);
-         translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)-tool_holder_thickness]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+tool_holder_thickness, $fn=6);
+             holder_inside(tool_holder_inner_diameter);
+
+         translate([width/2,tool_holder_height/2,centerZ]) cylinder(d=pen_screw_hole_diameter, h=outsideTopZ-centerZ+nudge, $fn=16);
+         translate([width/2,tool_holder_height/2,centerZ]) cylinder(d=(pen_screw_nut_width*2/sqrt(3)), h=pen_screw_nut_thickness+(insideTopZ-centerZ), $fn=6);
      }
          if (mini_support_thickness>0) {
-                      translate([width/2,tool_holder_height/2,topZ-tool_holder_thickness*sqrt(2)+pen_screw_nut_thickness])
+                      translate([width/2,tool_holder_height/2,pen_screw_nut_thickness+insideTopZ])
          cylinder(d=pen_screw_hole_diameter+2*nudge, h=mini_support_thickness+nudge, $fn=12);
          }
  }

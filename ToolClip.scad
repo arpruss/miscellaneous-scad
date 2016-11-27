@@ -1,15 +1,25 @@
+plateThickness = 3.5;
+
 // for meshing with remixed penholder
 //  http://www.thingiverse.com/thing:1873991
 // The penholder should have mounting_bump_thickness = 3.5
 // and mounting_bump_diameter = 8
 
-mountingBumpDiameter = 8.5;
+
+mountingBumpDiameter = 0; //8.5;
 mountingBumpPairsCount = 2;
 mountingBumpVerticalSpacing = 42;
 mountingBumpHorizontalSpacing = 20;
-plateThickness = 3.5;
 
-module object() {
+screwHorizontalSpacing = 51; // matches springtool.scad
+screwVerticalSpacing = 22;
+firstScrewHeight = 16;
+screw_hole_diameter = 2.9; // M3
+screw_countersink_diameter = 6.3;
+screw_countersink_depth = 2.17;
+screw_countersink_sides = 16;
+
+module dummy() {}
 upperArmThickness = 3;
 lowerArmThickness = 7;
 upperArmSpacing = 58.8;
@@ -21,8 +31,6 @@ upperShelfThickness = 2;
 lowerArmHorizontalSpacing = 39.5;
 upperArmMainLength = 45;
 upperArmGusset = 2;
-
-plateWidth = upperArmHorizontalSpacing + 2 * upperArmThickness;
 
 rodDiameter = 8.15;
 rodCatchDiameter = 19;
@@ -39,6 +47,15 @@ plateHeight = rodTopZ+rightUpperArmStartFromRod+rightUpperArmHeight+upperShelfTh
 mountingBumpsHeight = lowerArmHeight/2-rodCatchDiameter/2;
 
 nudge = 0.01;
+plateWidth = upperArmHorizontalSpacing + 2 * upperArmThickness;
+
+screw_positions = [[-screwHorizontalSpacing/2., firstScrewHeight],
+[screwHorizontalSpacing/2., firstScrewHeight],
+[-screwHorizontalSpacing/2., firstScrewHeight+screwVerticalSpacing],
+[screwHorizontalSpacing/2., firstScrewHeight+screwVerticalSpacing]];
+
+
+module clip() {
 
 // backplate
 difference() {
@@ -119,8 +136,14 @@ translate([0,-plateWidth/2,rodTopZ+rightUpperArmStartFromRod+rightUpperArmHeight
 
 }
 
-//minkowski() {
-rotate([0,-90,0])
-    object();
-//    cube([0.001,0.001,0.001]);
-//}
+render(convexity=10)
+difference() {
+    rotate([0,-90,-90])
+        clip();
+    for (i=[0:len(screw_positions)-1]) {
+        translate([screw_positions[i][0],screw_positions[i][1],-screw_countersink_depth]) {
+            cylinder(h=30, d=screw_countersink_diameter, $fn=16);
+            translate([0,0,-10]) cylinder(h=30, d=screw_hole_diameter, $fn=16);        
+    }
+}
+}
