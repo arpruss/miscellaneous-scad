@@ -19,6 +19,8 @@ hole_outer_thickness = hole_desired_outer_thickness + 2*tolerance;
 
 cylinder_radius = wall_thickness + sqrt(pow(hole_outer_thickness / 2,2) +pow(hole_width/2,2));
 
+module dummy(){}
+
 nudge = 0.01;
 
 module main() {

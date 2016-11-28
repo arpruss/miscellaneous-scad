@@ -16,7 +16,7 @@ screwVerticalSpacing = 22;
 firstScrewHeight = 16;
 screw_hole_diameter = 2.9; // M3
 screw_countersink_diameter = 6.3;
-screw_countersink_depth = 2.17;
+screw_countersink_depth = 1.5; // 2.17;
 screw_countersink_sides = 16;
 
 module dummy() {}
