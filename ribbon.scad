@@ -1,13 +1,14 @@
 
 module ribbon(points, thickness=1, closed=false) {
-    p = (closed && points[0] != points[len(points)-1]) ? concat(points, [points[0]]) : points;
-    n = len(p);
+    p = closed ? concat(points, [points[0]]) : points;
     
     union() {
-        xOffset = concat(p, [for (i=[0:n-1]) p[n-1-i]+[.002,0]]);
-        offset(r=thickness/2, $fn=8) polygon(points=xOffset);
-        yOffset = concat(p, [for (i=[0:n-1]) p[n-1-i]+[0,.002]]);
-        offset(r=thickness/2, $fn=8) polygon(points=yOffset);
+        for (i=[1:len(p)-1]) {
+            hull() {
+                translate(p[i-1]) circle(d=thickness, $fn=8);
+                translate(p[i]) circle(d=thickness, $fn=8);
+            }
+        }
     }
 }
 
