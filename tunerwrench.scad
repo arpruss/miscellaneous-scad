@@ -37,11 +37,13 @@ module hole() {
     intersection() {
     translate([r-delta-hole_outer_thickness/2,0,0]) cylinder(r=r, h=hole_height+nudge,$fn=60);
     translate([-r+delta+hole_outer_thickness/2,0,0]) cylinder(r=r, h=hole_height+nudge,$fn=60);
-    translate([0,0,hole_height/2]) cube(center=true,[hole_middle_thickness,hole_width,hole_height]);
+    translate([0,0,hole_height/2]) cube(center=true,[hole_middle_thickness,hole_width,hole_height+nudge]);
     }
 }
 
 difference() {
+render(convexity=15)
     main();
+render(convexity=15)
     hole();
 }
