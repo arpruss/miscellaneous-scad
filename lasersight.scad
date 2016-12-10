@@ -1,25 +1,22 @@
-adjustmentRatio = 1/14.;
 laserDiameter = 10;
-laserButtonStickout = 1.85;
-auxButtonStickout = 1.19;
-laserButtonDistanceFromBottomOfLaser = 29.3;
-auxButtonDistanceFromBottomOfLaser = 22.65;
-adjustmentScrewDistance = 44.5;
 wallThickness = 1.5;
-attachmentLength = 30;
-attachmentWallThickness = 1;
-blowgunDiameter = 15.9;
-bottomStickout = 2;
-adjustmentScrewDiameter = 2.4; 
-laserButtonScrewDiameter = 3.06; 
-auxButtonScrewDiameter = 0; // FIX?
-
-laserButtonDistance = laserButtonDistanceFromBottomOfLaser - bottomStickout;
-auxButtonDistance = auxButtonDistanceFromBottomOfLaser - bottomStickout;
-totalLength = adjustmentScrewDistance + 6;
 lowerLipThickness = 1.5;
+laserButtonStickout = 1.85; // distance button sticks out of tube
+laserButtonDistanceFromBottomOfLaser = 29.3;
+laserButtonScrewDiameter = 3.06; 
+backStickout = 2; // how far laser will stick out of tube
+clipLength = 30; 
+clipWallThickness = 1;
+blowgunDiameter = 15.9;
 
-tubeInnerRadius = laserDiameter/2 + max(laserButtonStickout + laserButtonDistance * adjustmentRatio, auxButtonStickout + auxButtonDistance * adjustmentRatio);
+adjustmentRatio = 0.072;
+adjustmentScrewDistance = 44.5;
+adjustmentScrewDiameter = 2.4; 
+
+laserButtonDistance = laserButtonDistanceFromBottomOfLaser - backStickout;
+totalLength = adjustmentScrewDistance + 6;
+
+tubeInnerRadius = laserDiameter/2 + laserButtonStickout + laserButtonDistance * adjustmentRatio;
 
 
 nudge = 0.01;
@@ -61,20 +58,21 @@ module tube() {
     }
 }
 
-module attachment() {
+module clip() {
     render(convexity=5)
-    translate([0,blowgunDiameter/2+attachmentWallThickness,0])
+    translate([0,blowgunDiameter/2+clipWallThickness,0])
     difference() {
-                cylinder(h=attachmentLength,d=blowgunDiameter+2*attachmentWallThickness);
-        #cube(center=true,blowgunDiameter+2*attachmentWallThickness);
-translate([0,0,attachmentLength-attachmentWallThickness+nudge]) cylinder(h=attachmentWallThickness,d1=blowgunDiameter,d2=blowgunDiameter+2*attachmentWallThickness);
+                cylinder(h=clipLength,d=blowgunDiameter+2*clipWallThickness);
+        translate([0,blowgunDiameter*.85,clipLength]) rotate([-45,0,0])
+        cube(center=true,blowgunDiameter+2*clipWallThickness);
+translate([0,0,clipLength-clipWallThickness+nudge]) cylinder(h=clipWallThickness,d1=blowgunDiameter,d2=blowgunDiameter+2*clipWallThickness);
         translate([0,0,-nudge]) {
-            cylinder(h=attachmentLength+2*nudge,d=blowgunDiameter);
-            translate([0,1.4*(attachmentWallThickness+blowgunDiameter/2),0]) linear_extrude(height=attachmentLength+2*nudge) square(center=true, blowgunDiameter+2*attachmentWallThickness+2*nudge);
+            cylinder(h=clipLength+2*nudge,d=blowgunDiameter);
+            translate([0,1.5*(clipWallThickness+blowgunDiameter/2),0]) linear_extrude(height=clipLength+2*nudge) square(center=true, blowgunDiameter+2*clipWallThickness+2*nudge);
         }
     }
 }
 
 tube();
-translate([0,tubeInnerRadius+wallThickness-attachmentWallThickness,0])
-attachment();
+translate([0,tubeInnerRadius+wallThickness-clipWallThickness,0])
+clip();
