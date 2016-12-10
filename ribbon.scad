@@ -1,4 +1,3 @@
-
 module ribbon(points, thickness=1, closed=false) {
     p = closed ? concat(points, [points[0]]) : points;
     

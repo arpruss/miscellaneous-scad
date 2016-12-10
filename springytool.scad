@@ -1,14 +1,13 @@
 use <ribbon.scad>;
 
-// TODO: make top of holder thicker
-
-pi = 3.141592653589793;
 width = 64.9;
 height = 48;
 edge_thickness = 2.5; // must exceed spring_thickness
-spring_thickness = 1.5;
+spring_thickness = 1;
 triangle_wall_thickness = 1.5;
 base_thickness = 2;
+
+wave_fraction = 0.5;
 
 tool_holder_thickness = 2;
 tool_holder_inner_diameter = 16;
@@ -17,15 +16,22 @@ tool_holder_height = 15;
 // if this is >0, the pen holes will need to be drilled through
 mini_support_thickness = 0.4;
 
+nut_tolerance = 0.3;
+
 // M3
 pen_screw_hole_diameter = 2.9;
-pen_screw_nut_thickness = 2.3+0.5;
-pen_screw_nut_width = 5.33;
+pen_screw_nut_thickness = 2.8;
+pen_screw_nut_desired_width = 5.33;
 
 //
 base_screw_hole_diameter = 2.9;
-base_screw_nut_thickness = 2.3+0.5;
-base_screw_nut_width = 5.33;
+base_screw_nut_thickness = 2.8; // 2.3?
+base_screw_nut_desired_width = 5.33;
+
+module dummy() {}
+
+pen_screw_nut_width = pen_screw_nut_desired_width + nut_tolerance;
+base_screw_nut_width = base_screw_nut_desired_width + nut_tolerance;
 
 triangle_thickness = base_screw_nut_thickness+base_thickness;
 
@@ -38,24 +44,47 @@ clearance_factor = 1.75;
 h2 = tool_holder_inner_diameter + 2 * tool_holder_thickness;
 spring_width = h2 / sqrt(3)*1.5;
 
+
 tool_screw_head_area = min(tool_holder_height, max(tool_holder_inner_diameter*0.75,pen_screw_nut_width+4));//pen_screw_nut_width * 2 / sqrt(3)*1.5;
 
-wavelength = (width - tool_holder_width)/2;
-
-amplitude = wavelength / (2*pi);
+pi = 3.1415926535897932;
+spring_length = (width - tool_holder_width)/2;
+amplitude = spring_length / (2*pi);
 dh = (2+clearance_factor)*amplitude;
 
 nudge = 0.001;
 
-module spring(wavelength, amplitude, thickness=spring_thickness, spring_points=20) {
-    ribbon([for(i=[0:spring_points]) [wavelength*i/spring_points, amplitude*SIN(i*2*pi/spring_points)]], thickness=thickness);       
+module ribbon(points, thickness=1, closed=false) {
+    p = closed ? concat(points, [points[0]]) : points;
+    
+    union() {
+        for (i=[1:len(p)-1]) {
+            hull() {
+                translate(p[i-1]) circle(d=thickness, $fn=8);
+                translate(p[i]) circle(d=thickness, $fn=8);
+            }
+        }
+    }
+}
+
+function SIN(theta) = sin(theta * 180 / pi);
+function COS(theta) = cos(theta * 180 / pi);
+function TAN(theta) = tan(theta * 180 / pi);
+
+module spring(spring_length, amplitude, thickness=spring_thickness, spring_points=20, reverse=false) {
+    if (reverse) {
+    ribbon([for(i=[0:spring_points]) [spring_length*i/spring_points, amplitude*SIN(2*pi*wave_fraction-i*2*pi/spring_points*wave_fraction)]], thickness=thickness);       
+    }
+    else{
+    ribbon([for(i=[0:spring_points]) [spring_length*i/spring_points, amplitude*SIN(i*2*pi/spring_points*wave_fraction)]], thickness=thickness);       
+    }
 }
 
 triangles = [
-[[spring_thickness,amplitude],[wavelength*.75, dh], [spring_thickness, 2*dh-amplitude]],
-[[width-spring_thickness,amplitude],[width-wavelength*.75, dh], [width-spring_thickness, 2*dh-amplitude]],
-[[spring_thickness,height-amplitude+spring_thickness/2],[wavelength*.75, height-dh], [spring_thickness,height-( 2*dh-amplitude)]],
-[[width-spring_thickness,height-amplitude+spring_thickness/2],[width-wavelength*.75, height-dh], [width-spring_thickness, height-(2*dh-amplitude)]]
+[[edge_thickness*0.6,amplitude],[spring_length*.75, dh], [edge_thickness*0.6, 2*dh-amplitude]],
+[[width-edge_thickness*0.6,amplitude],[width-spring_length*.75, dh], [width-edge_thickness*0.6, 2*dh-amplitude]],
+[[edge_thickness*0.6,height-amplitude],[spring_length*.75, height-dh], [edge_thickness*0.6,height-( 2*dh-amplitude)]],
+[[width-edge_thickness*0.6,height-amplitude],[width-spring_length*.75, height-dh], [width-edge_thickness*0.6, height-(2*dh-amplitude)]]
 ];
 
 function sumTo(v,n) = n<0 ? [for (i=[0:len(v[0])]) 0] : v[n]+sumTo(v,n-1);
@@ -68,26 +97,26 @@ echo("triangle centers", triangleCenters);
 
 module ribbon_base() {
     translate([spring_thickness/2,amplitude]) {
-        spring(wavelength, -amplitude);
-        translate([width - wavelength-spring_thickness,0]) spring(wavelength, amplitude);
+        spring(spring_length, -amplitude);
+        translate([width - spring_length-spring_thickness,0]) spring(spring_length, -amplitude, reverse=true);
     }
 
     translate([spring_thickness/2,height-amplitude,0]) {
-        spring(wavelength, amplitude);
-        translate([width - wavelength-spring_thickness,0]) spring(wavelength, -amplitude);
+        spring(spring_length, amplitude);
+        translate([width - spring_length-spring_thickness,0]) spring(spring_length, amplitude, reverse=true);
     }
     
     for (i=[0:3]) ribbon(triangles[i], closed=true, thickness=triangle_wall_thickness);
 
-    polygon([[0,amplitude], [edge_thickness,amplitude-edge_thickness*.75], [edge_thickness,height-amplitude+edge_thickness*.75], [0,height-amplitude]]);
+    polygon([[0,amplitude], [edge_thickness,amplitude-edge_thickness*.75*0], [edge_thickness,height-amplitude+edge_thickness*.75*0], [0,height-amplitude]]);
     
-    polygon([[width,amplitude], [width-edge_thickness,amplitude-edge_thickness*.75], [width-edge_thickness,height-amplitude+edge_thickness*.75], [width,height-amplitude]]);
+    polygon([[width,amplitude], [width-edge_thickness,amplitude-edge_thickness*.75*0], [width-edge_thickness,height-amplitude+edge_thickness*.75*0], [width,height-amplitude]]);
 }
 
 module base() {
-    bottom = [[spring_thickness/2,height/2+nudge],[spring_thickness/2,amplitude],[wavelength*.75,dh],[wavelength*.75,tool_holder_height+1.25*amplitude],
-    [width-wavelength*.75,tool_holder_height+1.25*amplitude],
-    [width-wavelength*.75,dh],[width-spring_thickness/2,amplitude],[width-spring_thickness/2,height/2+nudge]];
+    bottom = [[spring_thickness/2,height/2+nudge],[spring_thickness/2,amplitude],[spring_length*.75,dh],[spring_length*.75,tool_holder_height+1.25*amplitude],
+    [width-spring_length*.75,tool_holder_height+1.25*amplitude],
+    [width-spring_length*.75,dh],[width-spring_thickness/2,amplitude],[width-spring_thickness/2,height/2+nudge]];
     
     top = [for (i=[0:len(bottom)-1]) [width,height]-bottom[i]];
     
@@ -112,7 +141,6 @@ module holder_inside(h) {
     p2 = [for(i=[180:5:180+45]) [h/2*cos(i),h/2*sin(i)]];
     p3 = [[0,-h * holder_inside_apex_multiplier]];
     p4 = [for(i=[-45:5:0]) [h/2*cos(i),h/2*sin(i)]];
-    echo(p4[0]/h);
     polygon(points=concat(concat(concat(p1,p2),p3),p4));
     
 }
