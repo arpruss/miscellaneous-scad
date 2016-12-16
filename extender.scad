@@ -1,4 +1,4 @@
-scale = .8;
+scale = 1;
 thumbAngularWidth = 90;
 otherFingerAngularWidth = 40;
 thumbDistanceRatio = 0.6;
