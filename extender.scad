@@ -1,19 +1,22 @@
+scale = .8;
 thumbAngularWidth = 90;
 otherFingerAngularWidth = 40;
 thumbDistanceRatio = 0.6;
-outerRadius = 60;
+outerRadius = scale*50;
 
 spacing=3;
 thickness=2;
-innerPostHoleDepth=1.5;
-outerPostHoleDepth=1;
+centralPostHoleDepth=1.5;
+innerPostHoleDepth=2.1;
+outerPostHoleDepth=1.5;
 tolerance=0.5;
-postDiameter=6;
+postDiameter=scale*5;
+
+includeTop = true;
+includeBottom = true;
 
 inset1 = 1.5;
 inset2 = inset1 + 1.5;
-
-bottom = false;
 
 nudge = 0.001;
 
@@ -47,25 +50,39 @@ module posts(inset,tolerance=0,thumbTweak=0) {
         r1 = r - inset;
         rotate = i==0 ? -thumbTweak : (i==1 ? thumbTweak : 0);
         rotate(rotate) translate(poly[i]/r*r1) circle(d=postDiameter+tolerance*2,$fn=16);
-    }
+    } 
 }
 
-render(convexity=10)
-if (bottom) {
+module bottom() {
     linear_extrude(height=thickness) base();
     linear_extrude(height=thickness+spacing+outerPostHoleDepth) posts(postDiameter*inset1,thumbTweak=8);
     linear_extrude(height=thickness+spacing+innerPostHoleDepth) posts(postDiameter*inset2,thumbTweak=28);
-    linear_extrude(height=thickness+spacing+innerPostHoleDepth) translate([-outerRadius*.35/2,0,0]) circle(d=outerRadius*0.35);
+    linear_extrude(height=thickness+spacing+centralPostHoleDepth) translate([-outerRadius*.4/2,0,0]) circle(d=outerRadius*0.4); 
 }
-else {
-    scale([-1,-1,-1]) {
+
+module top() {
+    translate([0,0,thickness])
+    rotate([180,0,0])
+    mirror([1,0,0]) 
+    {
         difference() {
             linear_extrude(height=thickness) base();
             translate([0,0,-nudge]) {
                 linear_extrude(height=outerPostHoleDepth+nudge) posts(postDiameter*inset1,thumbTweak=8,tolerance=tolerance);
                 linear_extrude(height=innerPostHoleDepth+nudge) posts(postDiameter*inset2,thumbTweak=28,tolerance=tolerance);
-                linear_extrude(height=innerPostHoleDepth+nudge) translate([-outerRadius*.35/2,0,0]) circle(d=outerRadius*0.35+tolerance*2);
+                linear_extrude(height=centralPostHoleDepth+nudge) translate([-outerRadius*.4/2,0,0]) circle(d=outerRadius*0.4+tolerance*2);
             }
         }
     }
+}
+
+if (includeTop) {
+    render(convexity=5)
+    top();
+}
+
+if (includeBottom) {
+    render(convexity=5)
+    translate([includeTop ? -outerRadius : 0,0,0])
+    bottom();
 }
