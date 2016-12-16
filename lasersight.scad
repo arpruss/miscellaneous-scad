@@ -8,7 +8,7 @@ backStickout = 2; // how far laser will stick out of tube
 
 clipLength = 30; 
 clipWallThickness = 1;
-blowgunDiameter = 15.9;
+blowgunDiameter = 15.9; // for fatter pipe: 21.4
 
 adjustmentRatio = 0.072;
 adjustmentScrewDistance = 44.5;

@@ -6,8 +6,7 @@ def loadMesh(filename):
     
     with open(filename, "rb") as f:
          header = f.read(5)
-         
-         if not header.startswith(b"solid"):
+         if header.startswith(b"solid"):
              triangle = None
              for line in f:
                 line = line.strip()
