@@ -44,6 +44,8 @@ clearance_factor = 1.75;
 h2 = tool_holder_inner_diameter + 2 * tool_holder_thickness;
 spring_width = h2 / sqrt(3)*1.5;
 
+echo(spring_width);
+
 
 tool_screw_head_area = min(tool_holder_height, max(tool_holder_inner_diameter*0.75,pen_screw_nut_width+4));//pen_screw_nut_width * 2 / sqrt(3)*1.5;
 
