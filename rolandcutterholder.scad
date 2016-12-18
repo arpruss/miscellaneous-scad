@@ -37,8 +37,11 @@ wave_fraction = 0.5;
 
 springSupportThickness = 2;
 
-includeHolder = false; // true;
+capTaperStart = 7.75;
+
+includeHolder = true; // true;
 includeStrap = true;
+includeCap = true;
 
 module dummy() {}
 
@@ -199,6 +202,10 @@ module mainCutterHolder() {
     }
 }
 
+module cap() {
+    cylinder(h=capTaperStart,d=cutterDiameter);
+}
+
 if (includeHolder) {
     mainCutterHolder();
 }
@@ -206,4 +213,8 @@ if (includeHolder) {
 if (includeStrap) {
     translate([width/2,-5,0]) rotate([0,0,180])
     strap();
+}
+
+if (includeCap) {
+    translate([0,-cutterDiameter/2-8,0]) cap();
 }
