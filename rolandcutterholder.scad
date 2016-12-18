@@ -178,7 +178,7 @@ module strap() {
         }
    
     for (s=[-1:2:1]) {
-        translate([s*(collarDiameter/2+0.5*widthAroundCollar),strapThickness-nudge,spaceBelowCollar*0.5]) rotate([-90,0,0]) rotate([0,0,22.5]) cylinder(d=screwHoleDiameter,h=strapFlangeThickness+2*nudge,$fn=8);
+        translate([s*(cutterDiameter/2+0.5*widthAroundCutter),strapThickness-nudge,spaceBelowCollar*0.5]) rotate([-90,0,0]) rotate([0,0,22.5]) cylinder(d=screwHoleDiameter,h=strapFlangeThickness+2*nudge,$fn=8);
     }
 }
 }
