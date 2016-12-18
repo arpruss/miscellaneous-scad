@@ -37,10 +37,10 @@ wave_fraction = 0.5;
 
 springSupportThickness = 2;
 
-capTaperStart = 7.75;
+capTaperStart = 2+7.75;
 
-includeHolder = true; // true;
-includeStrap = true;
+includeHolder = false; // true;
+includeStrap = false;
 includeCap = true;
 
 module dummy() {}
@@ -202,8 +202,31 @@ module mainCutterHolder() {
     }
 }
 
+module spike(diameter,cylinderHeight,finalDiameter=0,ratio=0.75) {
+    cylinder(h=cylinderHeight+nudge,d=diameter);
+    translate([0,0,cylinderHeight]) cylinder(h=diameter/2/ratio,d1=diameter,d2=finalDiameter);
+}
+
+module ring(inner,outer,height) {
+    render(convexity=3)
+    difference() {
+        cylinder(h=height,d=outer);
+        translate([0,0,-nudge]) cylinder(h=height+2*nudge,d=inner);
+    }
+}
+
 module cap() {
-    cylinder(h=capTaperStart,d=cutterDiameter);
+    render(convexity=8)
+    difference() {
+        union() {
+            difference() {
+                spike(cutterDesiredDiameter+4,capTaperStart+1,finalDiameter=3);
+                translate([0,0,-nudge]) spike(cutterDesiredDiameter+2,capTaperStart+1);
+            }
+            ring(cutterDesiredDiameter,cutterDesiredDiameter+3,1);
+        }
+        translate([-cutterDesiredDiameter/2-2,-1.5/2,0]) cube([cutterDesiredDiameter+4,1.5,capTaperStart*0.7]);
+    }
 }
 
 if (includeHolder) {
