@@ -1,6 +1,3 @@
-use <ribbon.scad>;
-
-
 width = 64.9;
 cornerSnip = 5.7;
 
@@ -39,8 +36,8 @@ springSupportThickness = 2;
 
 capTaperStart = 2+7.75;
 
-includeHolder = false; // true;
-includeStrap = false;
+includeHolder = true; // true;
+includeStrap = true;
 includeCap = true;
 
 module dummy() {}
