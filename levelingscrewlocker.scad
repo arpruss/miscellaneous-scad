@@ -3,10 +3,17 @@ thick_height = 5;
 diameter = 9.5;
 thick_diameter = 16;
 
-
-hole_diameter = 2.9+0.7;
+hole_diameter_tolerance = 0.7;
+hole_diameter_base_size = 2.9;
 nut_thickness = 2.3;
-nut_width = 5.4+.35;
+nut_width_tolerance = 0.35;
+nut_width_base_size = 5.4;
+
+module dummy() {}
+
+hole_diameter = hole_diameter_base_size + hole_diameter_tolerance;
+nut_width = nut_width_base_size + nut_width_tolerance;
+
 nudge = 0.001;
 
 pi = 3.141592653589793;
