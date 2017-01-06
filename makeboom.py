@@ -11,9 +11,11 @@ if __name__ == '__main__':
     sideView = getPoly(svgTree, colorExtract=(0,0,1), precision=.1)
     print('count=3;')
     print('hubRadius = 8;')
+    print('hubFeather = 3;')
     print('hollowOutFraction=0.5;')
     print('skinThickness=2;')
     print('span = %.3f;\n' % span)
+    print('inwardOffset = 0;\n')
     print('module dummy(){}\n')
     points,faces = makeWingFromPolys(airfoil, topView, sideView, span, slices=30)
     print(('points = span/%.3f * '+stringPointArray(points)+';\n') % span)
@@ -28,9 +30,9 @@ function getMaxZWithin(p, hubRadius) = max([ for(i=[0:len(p)]) if (p[i][0]*p[i][
 
 module boom() {
   for(i=[0:count-1]) {
-    rotate([0,0,360.*i/count]) wing();
+    rotate([0,0,360.*i/count]) translate([-inwardOffset,0,0]) wing();
   }
-  cylinder(h=getMaxZWithin(points,hubRadius),r=hubRadius);
+  cylinder(h=getMaxZWithin(points,hubRadius+inwardOffset),r1=hubRadius+hubFeather,r2=hubRadius);
 }
 
 module insideBoom(offset=1) {
