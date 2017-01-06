@@ -1,7 +1,7 @@
 count=3;
 hubRadius = 8;
 hubFeather = 6;
-hollowOutFraction=0.84;
+hollowOutFraction=0.77;
 skinThickness=2;
 span = 100.000;
 
@@ -42,7 +42,7 @@ if (hollowOutFraction>0) {
         boom();
         intersection() {
             insideBoom(offset=skinThickness);
-            cylinder(r=hollowOutFraction*span,h=height);
+            cylinder(r=hollowOutFraction*(span-inwardOffset),h=height);
         }
     }
 }

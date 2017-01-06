@@ -49,7 +49,7 @@ if (hollowOutFraction>0) {
         boom();
         intersection() {
             insideBoom(offset=skinThickness);
-            cylinder(r=hollowOutFraction*span,h=height);
+            cylinder(r=hollowOutFraction*(span-inwardOffset),h=height);
         }
     }
 }
