@@ -42,7 +42,7 @@ def makeWingFromFormulas(airfoil, y, z, span, slices=100, shave=0.):
     return points,faces
     
 def stringPointArray(points):
-    return '['+','.join((( '[%.3f,%.3f,%.3f]' % tuple(p)) for p in points))+']'
+    return '['+','.join((( '[%.4f,%.4f,%.4f]' % tuple(p)) for p in points))+']'
     
 def stringFaceArray(faces):
     return '['+','.join((('['+','.join(str(p) for p in poly)+']') for poly in faces))+']'
@@ -63,7 +63,7 @@ def toFormula(poly, span):
         poly[i] = tuple( poly[i][j]*scale for j in range(2) )
         
     def findAtX(x,span=span,poly=poly):
-        x = min(max(x,span*.0001),span*.9999)
+        x = min(max(x,span*.001),span*.999)
         
         minY = float("inf")
         maxY = float("-inf")
