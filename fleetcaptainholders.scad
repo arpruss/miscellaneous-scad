@@ -1,14 +1,15 @@
-printModifiers = false;
-test = true;
-saveFilament = false;
+roundModifiers = true;
+testMode = false;
+solidMode = false;
 
+wallThickness = 1.25;
 horizontalTolerance = 0.7;
 verticalExtra = 3;
 diameterMultiplier = 1.4;
 stickOutCircular = 2.2;
 stickOutOther = 3;
-baseVerticalOffset1 = 2;
-baseVerticalOffset2 = 2;
+baseVerticalOffset1 = 1.5;
+baseVerticalOffset2 = 1.5;
 module dummy() {}
 nudge = 0.01;
 
@@ -46,19 +47,20 @@ controlTokenPoints = (controlTokenDiameter/2)*shift([-.5,sin(60)],concat([for (i
 
 triangle_extra_stickOut = 3;
 
-away_team = [ "Away Team", "",10.28,smallSquarePoints, 0, 2 ];
-scan_df = [ "Scan Dominion", "Scan Federation", 20.3, radiusBySide(3,23.07)*shift([0,1],ngon(3,0)), 2, triangle_extra_stickOut ];
-scan_kf = [ "Scan Klingon", "Scan Federation", 20.3, radiusBySide(3,23.07)*shift([0,1],ngon(3,0)), 2, triangle_extra_stickOut ];
-action = [ "Action", "", 30.2, radiusBySide(4,25.6)*shift([0,1],ngon(4,0)), 0, 3 ];
-colony_outpost = [ "Colony", "Outpost", 25.5, smallSquarePoints, 0, 2 ];
-starbase = [ "Starbase", "", 17, smallSquarePoints, 0, 2 ];
-cloak = [ "Cloak", "", 23.21, radiusBySide(5,14.83)*shift([0,1],ngon(5,0)), 0, 0 ];
+away_team = [ "Away Team", "",10.28,smallSquarePoints, -4.2, 2 ];
+scan_df = [ "Scan Dominion", "Scan Federation", 20.3, radiusBySide(3,23.07)*shift([0,1],ngon(3,0)), -0.8, triangle_extra_stickOut ];
+scan_kf = [ "Scan Klingon", "Scan Federation", 20.3, radiusBySide(3,23.07)*shift([0,1],ngon(3,0)), -0.8, triangle_extra_stickOut ];
+action = [ "Action", "", 30.2, radiusBySide(4,25.6)*shift([0,1],ngon(4,0)), -3.8, 3 ];
+colony_outpost = [ "Colony", "Outpost", 25.5, smallSquarePoints, -3, 2 ];
+starbase = [ "Starbase", "", 17, smallSquarePoints, -3, 2 ];
+cloak = [ "Cloak", "", 23.21, radiusBySide(5,14.83)*shift([0,1],ngon(5,0)), -4.2, 0 ];
 vp_3_4 = [ "VP +3", "VP +4", 10.07, vpPoints, 2, 1 ];
-vp_1_2 = [ "VP +1", "VP +2", 16.68, vpPoints, 2, 1 ];
-control_fd = [ "Control Dominion", "Control Federation", 1.664*24, controlTokenPoints, 0, 0 ];
-control_fk = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, 0, 0 ];
+vp_1_2 = [ "VP +1", "VP +2", 16.68, vpPoints, 1.8, 1 ];
+control_fd = [ "Control Dominion", "Control Federation", 1.664*24, controlTokenPoints, -1.5, 0 ];
+control_fk = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -0.6, 0 ];
+control_fk2 = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -1.2, 0 ];
 
-otherPieces = [ away_team, scan_df, scan_kf, action, colony_outpost, starbase, cloak, vp_3_4, vp_1_2, control_fd, control_fk, control_fk ];
+otherPieces = [ away_team, scan_df, scan_kf, action, colony_outpost, starbase, cloak, vp_3_4, vp_1_2, control_fd, control_fk, control_fk2 ];
 
 module holeProfile(points) {
     minkowski() {
@@ -71,37 +73,71 @@ module circularHolder(pieces,stickOut,equalize=false) {
     n = len(pieces);
     
     diameters = [for (i=[0:n-1]) pieces[i][4]+horizontalDiameter(pieces[i][3])];
-    scaledDiameters = diameterMultiplier*shift(horizontalTolerance*2, diameters);
+    scaledDiameters = diameterMultiplier*shift(horizontalTolerance*(solidMode?2:1), diameters);
     circumference = sum(scaledDiameters,n);
     maxHeight = max([for (i=[0:n-1]) pieces[i][2]]);
     heights = equalize ? [for (i=[0:n-1]) maxHeight] : [for (i=[0:n-1]) pieces[i][2]];
+    minHeight = min(heights);
     r = circumference / (2*pi);
     radii = [for (i=[0:n-1]) r+stickOut+pieces[i][5]];
     maxRadii = max(radii);
-    minInset = min( [for (i=[0:n-1]) min([for (j=[0:len(pieces[i][3])-1]) radii[i]-pieces[i][3][j][1]])] ) - horizontalTolerance*2;
+    minInset = min( [for (i=[0:n-1]) min([for (j=[0:len(pieces[i][3])-1]) radii[i]-pieces[i][3][j][1]])] ) - horizontalTolerance - wallThickness;
     baseVerticalOffset = baseVerticalOffset1 + baseVerticalOffset2;
     angles = [for(i=[0:n-1]) sum_(scaledDiameters,i)/circumference*360+scaledDiameters[i]*0.5];
         
-    difference() {
-        union() {
-            cylinder(r = r, h = maxHeight + baseVerticalOffset + verticalExtra, $fn=72);
-            cylinder(r = maxRadii, h = baseVerticalOffset1, $fn=72);
+    module base(addH) {
+        cylinder(r = maxRadii, h = baseVerticalOffset1, $fn=72);
+        linear_extrude(height=baseVerticalOffset+addH)
+        difference() {
+            circle(r=r, $fn=72);
+            circle(r=minInset, $fn=72);
         }
-        for (i=[0:n-1]) {
-           translate([0,0,baseVerticalOffset+maxHeight-heights[i]]) linear_extrude(height=verticalExtra+heights[i]+nudge) translate(radii[i]*[cos(angles[i]),sin(angles[i])]) rotate(angles[i]+90) holeProfile(pieces[i][3]);
-        }
-        translate([0,0,baseVerticalOffset1]) cylinder(r = minInset, h = maxHeight + baseVerticalOffset2 + verticalExtra + 2 * nudge);
     }
     
+    module hole(i) {
+        translate(radii[i]*[cos(angles[i]),sin(angles[i])]) rotate(angles[i]+90) holeProfile(pieces[i][3]);
+    }
+    
+    if (! solidMode) {
+        base(0);
+        difference() {
+            intersection() {
+                base(maxHeight + verticalExtra);
+                union() {
+                    cylinder(h=baseVerticalOffset+minHeight+verticalExtra, r=minInset+wallThickness, $fn=72);
+                    for(i=[0:n-1]) {
+                        linear_extrude(height=heights[i]+verticalExtra+baseVerticalOffset)
+                        difference() {
+                            minkowski() {
+                                hole(i);
+                                circle(r=wallThickness,$fn=16);
+                            }
+                            hole(i);
+                        }
+                    } 
+                }
+            }
+            translate([0,0,baseVerticalOffset])  linear_extrude(height=maxHeight+verticalExtra) for(i=[0:n-1]) hole(i);
+        }
+    }
+    else {
+        difference() {
+            base(maxHeight + verticalExtra);
+            for (i=[0:n-1]) {
+               translate([0,0,baseVerticalOffset+maxHeight-heights[i]]) linear_extrude(height=verticalExtra+heights[i]+nudge) hole(i);
+            }
+        }
+    }    
 }
 
 module go() {
-if (printModifiers) render(convexity=4) circularHolder(circlePieces,stickOutCircular,equalize=true);
-else
-render(convexity=4) circularHolder(otherPieces,stickOutOther,equalize=true);
+    if (roundModifiers) 
+        render(convexity=4) circularHolder(circlePieces,stickOutCircular,equalize=true);
+    else
+        render(convexity=8) circularHolder(otherPieces,stickOutOther,equalize=false);
     }
 
-if (test) {
+if (testMode) {
     intersection() {
         cylinder(r=100,h=7);
         translate([0,0,-1.5])
