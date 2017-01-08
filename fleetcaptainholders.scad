@@ -1,6 +1,6 @@
-roundModifiers = true;
-testMode = false;
+roundModifiers = false;
 solidMode = false;
+testMode = false;
 
 wallThickness = 1.25;
 horizontalTolerance = 0.7;
@@ -56,7 +56,7 @@ starbase = [ "Starbase", "", 17, smallSquarePoints, -3, 2 ];
 cloak = [ "Cloak", "", 23.21, radiusBySide(5,14.83)*shift([0,1],ngon(5,0)), -4.2, 0 ];
 vp_3_4 = [ "VP +3", "VP +4", 10.07, vpPoints, 2, 1 ];
 vp_1_2 = [ "VP +1", "VP +2", 16.68, vpPoints, 1.8, 1 ];
-control_fd = [ "Control Dominion", "Control Federation", 1.664*24, controlTokenPoints, -1.5, 0 ];
+control_fd = [ "Control Dominion", "Control Federation", 1.664*60/2, controlTokenPoints, -1.5, 0 ];
 control_fk = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -0.6, 0 ];
 control_fk2 = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -1.2, 0 ];
 
