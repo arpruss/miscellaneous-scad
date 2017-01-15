@@ -1,12 +1,23 @@
-use <ribbon.scad>;  
+tolerance = 0; // Tolerance for track holder: negative=tighter, positive=looser
+baseExtra = 20; // Distance base sticks out from the sides
+bridgeHeight = 66; // Height of track holder above ground
+bridgeWidth = 40.73; // Track width
+supportDepth = 23; // Support depth
+attachmentHeight = 9.8; // Track attachment height
+thickness = 1.5; // Thickness of edges
 
-tolerance = 0.25;
-baseExtra = 20;
-bridgeHeight = 66; // original supports: 62.21;
-bridgeWidth = 40.73;
-supportDepth = 23;
-attachmentHeight = 9.8;
-thickness = 1.5;
+module ribbon(points, thickness=1, closed=false) {
+    p = closed ? concat(points, [points[0]]) : points;
+    
+    union() {
+        for (i=[1:len(p)-1]) {
+            hull() {
+                translate(p[i-1]) circle(d=thickness, $fn=8);
+                translate(p[i]) circle(d=thickness, $fn=8);
+            }
+        }
+    }
+}
 
 // Public domain Bezier stuff from www.thingiverse.com/thing:8443
 function BEZ03(u) = pow((1-u), 3);
