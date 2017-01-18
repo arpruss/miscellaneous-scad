@@ -92,7 +92,7 @@ main(int argc, char** argv) {
         
         for (i=0;i<nIter;i++) {
             double p = 1+i*(4.-1)/nIter;
-            update(0.0005/N,p); 
+            update(.75*pow(minD,p)/N, p); // 0.0005/N,p); 
             if (minD > bestSoFar) {
                 int j;
                 for(j=0;j<N;j++) {
