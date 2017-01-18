@@ -23,6 +23,7 @@ def toSCAD(polygons):
                 points.append(vv)
     m = [min((v[i] for v in points)) for i in range(3)]
     M = [max((v[i] for v in points)) for i in range(3)]
+    sizes = [M[i]-m[i] for i in range(3)]
     m[0] = .5*(m[0]+M[0]) # center x
     for v in points:
         scad.append('  [%.7g,%.7g,%.7g],' % tuple((v[i]-m[i] for i in range(3))))
@@ -38,6 +39,7 @@ def toSCAD(polygons):
         scad.append(p+'],')
     scad.append(' ]);')
     scad.append('}')
+    scad.append('stlObject1_size=[%.7g,%.7g,%.7g];' % tuple(sizes))
     scad.append('stlObject1();')
     stderr.write("Joining.\n" )
     return '\n'.join(scad)
