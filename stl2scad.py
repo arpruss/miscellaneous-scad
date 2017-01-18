@@ -21,7 +21,12 @@ def toSCAD(polygons):
             if vv not in pointDict:
                 pointDict[vv] = len(points)
                 points.append(vv)
-                scad.append('  [%.7g,%.7g,%.7g],' % vv)
+    m = [min((v[i] for v in points)) for i in range(3)]
+    M = [max((v[i] for v in points)) for i in range(3)]
+    m[0] = .5*(m[0]+M[0]) # center x
+    for v in points:
+        scad.append('  [%.7g,%.7g,%.7g],' % tuple((v[i]-m[i] for i in range(3))))
+
     scad.append(' ],')
     scad.append(' faces=[')
     stderr.write("Getting faces.\n" )

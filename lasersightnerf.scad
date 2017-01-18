@@ -1,3 +1,5 @@
+railTolerance = 0.63;
+
 laserDiameter = 10;
 wallThickness = 1.5;
 lowerLipThickness = 1.5;
@@ -89,7 +91,6 @@ module nerfRail(positive=false,length=40,tolerance=0.25) {
         
     // positive tolerance makes it larger
     module positiveRailProfile(tolerance=0) {
-        echo(tolerance);
     points=[[-outerWidth/2-tolerance+overhang,0],
         [-outerWidth/2-tolerance+overhang,outerDepth-tolerance],
         [-outerWidth/2-tolerance,outerDepth-tolerance],
@@ -150,4 +151,4 @@ module nerfRail(positive=false,length=40,tolerance=0.25) {
 tube();
 translate([0,tubeInnerRadius+wallThickness-clipWallThickness,0])
 rotate([0,0,180])
-nerfRail(tolerance=0.63);
+nerfRail(tolerance=railTolerance);
