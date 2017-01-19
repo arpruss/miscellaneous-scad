@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include <assert.h>
 
 int N;
 double minD = -1;
@@ -33,6 +32,15 @@ double distanceSq(vec3* v1,vec3* v2) {
     return dx*dx+dy*dy+dz*dz;
 }
 
+void *safemalloc(long n) {
+    void* p = malloc(n);
+    if (p == NULL) {
+        fprintf(stderr, "Out of memory (requested %ld).\n", n);
+        exit(3);
+    }
+    return p;
+}
+
 void update(double approxDx,double p,double friction,int vIndepFriction) {
     int i,j;
     
@@ -41,7 +49,7 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
     
     int N0 = (N % 2) ? N : N/2;
 
-    vec3* newV = malloc(sizeof(vec3) * N0);
+    vec3* newV = safemalloc(sizeof(vec3) * N0);
     
     for (i=0;i<N0;i++) {
         thisV = norm(&v[i]);
@@ -66,7 +74,7 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
         }
     }
 
-#pragma omp parallel 
+#pragma omp parallel
 #pragma omp for private(i,j)
     for (i=0;i<N0;i++) {        
         vec3 normalizedV;
@@ -141,26 +149,27 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
     }
     minD = sqrt(minD2);
     free(newV);
-    fprintf(stderr, "%.9f [p=%.5f]\n", minD, p);
 }
 
 int
-main(int argc, char** argv) {
-    int nIter;
+main(int argc, char** argv) {	
+	int nIter = 1000;
     int repeats = 1;
-    double friction = 0.16;
-    assert(argc >= 3);
+    double frictionCoefficient = 0.16;
+    if (argc < 2) {
+        fprintf(stderr, "tammes-newton nPoints [nIterations [frictionCoefficient]]\n");
+        return 1;
+    }
     N = atoi(argv[1]);
-    nIter = atoi(argv[2]);
-    if (argc >= 4) 
-       friction = atof(argv[3]);
-    pos = malloc(sizeof(vec3)*N);
-    assert(pos != NULL);
+    if (argc >= 3) {
+        nIter = atoi(argv[2]);
+        if (argc >= 4) 
+           frictionCoefficient = atof(argv[3]);
+    }
+    pos = safemalloc(sizeof(vec3)*N);
     // we waste a bit of memory when N is even, but memory is cheap
-    v = malloc(sizeof(vec3)*N);
-    assert(v != NULL);
-    best = malloc(sizeof(vec3)*N);
-    assert(best != NULL);
+    v = safemalloc(sizeof(vec3)*N);
+    best = safemalloc(sizeof(vec3)*N);
     srand(time(0));
     vec3 origin;
     origin.x = origin.y = origin.z = 0.;
@@ -187,12 +196,12 @@ main(int argc, char** argv) {
         }
     }
     
-    fprintf(stderr,"friction=%g\n", friction*N);
+    double nextShow = 0;
     for (i=0;i<nIter;i++) {
         double p = 1+i*(7.-1)/nIter;
         if (p>4.5) p=4.5;
         // 7,4.5,3,10,0 : 0.153
-        update(minD/3.+0.00000001, p, friction*N, 0); // 0.0005/N,p); 
+        update(minD/3.+0.00000001, p, frictionCoefficient*N, 0); // 0.0005/N,p); 
         if (minD > bestSoFar) {
             int j;
             for(j=0;j<N;j++) {
@@ -200,8 +209,12 @@ main(int argc, char** argv) {
             }
             bestSoFar = minD;
         }
+        if ((double)i/(nIter-1) >= nextShow || i == nIter-1) {
+            fprintf(stderr, "%.0f%% minD=%.5f bestD=%.5f p=%.5f       \r", 100.*i/(nIter-1), minD, bestSoFar, p);
+            nextShow += 0.05;
+        }
     }
-    fprintf(stderr,"last=%.9f best=%.9f\n",minD,bestSoFar);
+    fprintf(stderr, "\n");
     
     printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
     printf("points = [");
