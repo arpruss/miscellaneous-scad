@@ -26,14 +26,24 @@ double distance(vec3* v1,vec3* v2) {
     return sqrt(dx*dx+dy*dy+dz*dz);
 }
 
+double distanceSq(vec3* v1,vec3* v2) {
+    double dx = v1->x-v2->x;
+    double dy = v1->y-v2->y;
+    double dz = v1->z-v2->z;
+    return dx*dx+dy*dy+dz*dz;
+}
+
 void update(double approxDx,double p,double friction,int vIndepFriction) {
     int i,j;
     
     double maxV = 0;
     double thisV;
-    vec3* newV = malloc(sizeof(vec3) * N);
     
-    for (i=0;i<N;i++) {
+    int N0 = (N % 2) ? N : N/2;
+
+    vec3* newV = malloc(sizeof(vec3) * N0);
+    
+    for (i=0;i<N0;i++) {
         thisV = norm(&v[i]);
         if (thisV > maxV)
             maxV = thisV;
@@ -48,17 +58,17 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
             dt = 0.75 / friction;
     }
     else {
-        for(i=0;i<N;i++) {
+        for(i=0;i<N0;i++) {
             double n;
             n = norm(&v[i]);
             if (dt * friction > 0.75 * n)
                 dt = 0.75 * n / friction;
         }
     }
-    
+
 #pragma omp parallel 
 #pragma omp for private(i,j)
-    for (i=0;i<N;i++) {        
+    for (i=0;i<N0;i++) {        
         vec3 normalizedV;
         double n;
         double d;
@@ -95,11 +105,12 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
     }
     
     double n;
-    for (i=0;i<N;i++) {
+    for (i=0;i<N0;i++) {
+        // Euler-Cromer
         pos[i].x += dt * newV[i].x / 2.;
         pos[i].y += dt * newV[i].y / 2.;
         pos[i].z += dt * newV[i].z / 2.;
-
+        
         n = norm(&pos[i]);
         if (n==0) {
             pos[i].x=1;
@@ -112,18 +123,25 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
             pos[i].z /= n;
             v[i] = newV[i];
         }
-    }
 
-    minD = 2;
-    for (i=0;i<N;i++) {
-        double d;
-        for (j=i+1;j<N;j++) {
-            d = distance(&pos[i],&pos[j]);
-            if (d < minD) minD = d;
+        if (N0 < N) {
+            pos[N0+i].x = -pos[i].x;
+            pos[N0+i].y = -pos[i].y;
+            pos[N0+i].z = -pos[i].z;
         }
     }
+
+    double minD2 = 4;
+    for (i=0;i<N;i++) {
+        double d2;
+        for (j=i+1;j<N;j++) {
+            d2 = distanceSq(&pos[i],&pos[j]);
+            if (d2 < minD2) minD2 = d2;
+        }
+    }
+    minD = sqrt(minD2);
     free(newV);
-    fprintf(stderr, "%.9f [p=%.9f]\n", minD, p);
+    fprintf(stderr, "%.9f [p=%.5f]\n", minD, p);
 }
 
 int
@@ -138,6 +156,7 @@ main(int argc, char** argv) {
        friction = atof(argv[3]);
     pos = malloc(sizeof(vec3)*N);
     assert(pos != NULL);
+    // we waste a bit of memory when N is even, but memory is cheap
     v = malloc(sizeof(vec3)*N);
     assert(v != NULL);
     best = malloc(sizeof(vec3)*N);
@@ -148,7 +167,8 @@ main(int argc, char** argv) {
     int i;
 
 // impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf    
-    for (i=0;i<N;i++) {
+    int N0 = (N+1)/2;
+    for (i=0;i<N0;i++) {
         do {
             pos[i].x = 1-2*rand() / (RAND_MAX+1.);
             pos[i].y = 1-2*rand() / (RAND_MAX+1.);
@@ -157,14 +177,13 @@ main(int argc, char** argv) {
         v[i].x = 0;
         v[i].y = 0;
         v[i].z = 0;
-        if (i+1 < N) {
-            pos[i+1].x = -pos[i].x;
-            pos[i+1].y = -pos[i].y;
-            pos[i+1].z = -pos[i].z;
-            v[i+1].x = 0;
-            v[i+1].y = 0;
-            v[i+1].z = 0;
-            i++;
+        if (N0+i < N) {
+            pos[N0+i].x = -pos[i].x;
+            pos[N0+i].y = -pos[i].y;
+            pos[N0+i].z = -pos[i].z;
+            v[N0+i].x = 0;
+            v[N0+i].y = 0;
+            v[N0+i].z = 0;
         }
     }
     
@@ -182,7 +201,7 @@ main(int argc, char** argv) {
             bestSoFar = minD;
         }
     }
-    fprintf(stderr,"%.9f [%.9f]\n",minD,bestSoFar);
+    fprintf(stderr,"last=%.9f best=%.9f\n",minD,bestSoFar);
     
     printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
     printf("points = [");
@@ -191,7 +210,7 @@ main(int argc, char** argv) {
         if (i+1 < N) putchar(',');
     }
     printf ("];\n");
-    puts("echo(len(points));\ndifference() {sphere(r=1,$fn=2*n);\nfor(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
+    puts("difference() {sphere(r=1,$fn=100);\nfor(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
     free(best);
     free(pos);
     
