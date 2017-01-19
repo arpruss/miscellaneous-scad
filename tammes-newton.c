@@ -174,7 +174,7 @@ main(int argc, char** argv) {
     vec3 origin;
     origin.x = origin.y = origin.z = 0.;
     int i;
-
+    
 // impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf    
     int N0 = (N+1)/2;
     for (i=0;i<N0;i++) {
@@ -217,13 +217,14 @@ main(int argc, char** argv) {
     fprintf(stderr, "\n");
     
     printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
+    //printf("bumpR = 2*sin((1/2)*asin(minD/2));\n");
     printf("points = [");
     for(i=0;i<N;i++) {
         printf("[%.9f,%.9f,%.9f]", best[i].x, best[i].y, best[i].z);
         if (i+1 < N) putchar(',');
     }
     printf ("];\n");
-    puts("difference() {sphere(r=1,$fn=100);\nfor(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
+    puts("difference() {\n sphere(r=1,$fn=36);\n for(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);\n}\n");
     free(best);
     free(pos);
     
