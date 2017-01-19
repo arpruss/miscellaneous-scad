@@ -33,7 +33,7 @@ void update(double delta,double p) {
                 continue;
             d = distance(&v[i],&v[j]);
             if (d == 0) {
-                deltaV[i].x += rand() * 0.001;
+                deltaV[i].x += (rand()/(double)(RAND_MAX+1) - 0.5) * 0.001;
                 fprintf(stderr, "Collision %d %d: %.9f %.9f %.9f\n", i,j,v[i].x,v[i].y,v[i].z);
                 continue;
             }
@@ -60,6 +60,7 @@ void update(double delta,double p) {
             if (d < minD) minD = d;
         }
     }
+    free(deltaV);
     fprintf(stderr, "%.9f [p=%.9f]\n", minD, p);
 }
 
@@ -112,6 +113,8 @@ main(int argc, char** argv) {
     }
     printf ("];\n");
     puts("echo(len(points));\ndifference() {sphere(r=1,$fn=2*n);\nfor(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
+    free(v);
+    free(best);
     
     return 0;
 }
