@@ -132,7 +132,7 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
     }
 
     double minD2 = 4;
-    for (i=0;i<N;i++) {
+    for (i=0;i<N0;i++) {
         double d2;
         for (j=i+1;j<N;j++) {
             d2 = distanceSq(&pos[i],&pos[j]);
