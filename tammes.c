@@ -112,7 +112,7 @@ main(int argc, char** argv) {
         if (i+1 < N) putchar(',');
     }
     printf ("];\n");
-    puts("echo(len(points));\ndifference() {sphere(r=1,$fn=2*n);\nfor(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
+    puts("echo(len(points));\ndifference() {sphere(r=1,$fn=max([2*n,100]));\nfor(i=[0:n-1]) translate(points[i]) sphere(d=minD,$fn=12);}\n");
     free(v);
     free(best);
     

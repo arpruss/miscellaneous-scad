@@ -43,6 +43,18 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
         maxV = 10;
     
     double dt = approxDx / maxV;
+    if (!vIndepFriction) {
+        if (dt * friction > 0.75) 
+            dt = 0.75 / friction;
+    }
+    else {
+        for(i=0;i<N;i++) {
+            double n;
+            n = norm(&v[i]);
+            if (dt * friction > 0.75 * n)
+                dt = 0.75 * n / friction;
+        }
+    }
     
 #pragma omp parallel 
 #pragma omp for private(i,j)
@@ -84,9 +96,9 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
     
     double n;
     for (i=0;i<N;i++) {
-        pos[i].x += dt * (newV[i].x + v[i].x) / 2.;
-        pos[i].y += dt * (newV[i].y + v[i].y) / 2.;
-        pos[i].z += dt * (newV[i].z + v[i].z) / 2.;
+        pos[i].x += dt * newV[i].x / 2.;
+        pos[i].y += dt * newV[i].y / 2.;
+        pos[i].z += dt * newV[i].z / 2.;
 
         n = norm(&pos[i]);
         if (n==0) {
@@ -118,7 +130,7 @@ int
 main(int argc, char** argv) {
     int nIter;
     int repeats = 1;
-    double friction = 10.;
+    double friction = 0.16;
     assert(argc >= 3);
     N = atoi(argv[1]);
     nIter = atoi(argv[2]);
@@ -134,7 +146,8 @@ main(int argc, char** argv) {
     vec3 origin;
     origin.x = origin.y = origin.z = 0.;
     int i;
-    
+
+// impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf    
     for (i=0;i<N;i++) {
         do {
             pos[i].x = 1-2*rand() / (RAND_MAX+1.);
@@ -144,13 +157,23 @@ main(int argc, char** argv) {
         v[i].x = 0;
         v[i].y = 0;
         v[i].z = 0;
+        if (i+1 < N) {
+            pos[i+1].x = -pos[i].x;
+            pos[i+1].y = -pos[i].y;
+            pos[i+1].z = -pos[i].z;
+            v[i+1].x = 0;
+            v[i+1].y = 0;
+            v[i+1].z = 0;
+            i++;
+        }
     }
     
+    fprintf(stderr,"friction=%g\n", friction*N);
     for (i=0;i<nIter;i++) {
         double p = 1+i*(7.-1)/nIter;
         if (p>4.5) p=4.5;
         // 7,4.5,3,10,0 : 0.153
-        update(minD/3.+0.00000001, p, friction, 0); // 0.0005/N,p); 
+        update(minD/3.+0.00000001, p, friction*N, 0); // 0.0005/N,p); 
         if (minD > bestSoFar) {
             int j;
             for(j=0;j<N;j++) {
