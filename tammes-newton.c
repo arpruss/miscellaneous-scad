@@ -59,7 +59,7 @@ void calculateMinD(void) {
     minD = sqrt(minD2);
 }
 
-void update(double approxDx,double p,double friction,int vIndepFriction) {
+void update(double approxDx,double p,double minus,double friction,int vIndepFriction) {
     int i,j;
     
     double maxV = 0;
@@ -123,7 +123,7 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
                 fprintf(stderr, "Collision %d %d: %.9f %.9f %.9f\n", i,j,v[i].x,v[i].y,v[i].z);
                 continue;
             }
-            factor = dt / pow(d,p+1);
+            factor = dt / pow(d-minus,p+1);
             newV[i].x += factor * (pos[i].x - pos[j].x);
             newV[i].y += factor * (pos[i].y - pos[j].y);
             newV[i].z += factor * (pos[i].z - pos[j].z);
@@ -240,7 +240,16 @@ main(int argc, char** argv) {
         double p = 1+i*(7.-1)/nIter;
         if (p>4.5) p=4.5;
         // 7,4.5,3,10,0 : 0.153
-        update(minD/3.+0.00000001, p, frictionCoefficient*N, 0); // 0.0005/N,p); 
+        double minus;
+        if (p >= 2.5) {
+            minus = 0.9 * minD * i / nIter;
+//            if (minus >= 0.9 * minD) 
+//                minus = 0.9 * minD;
+        }
+        else {
+            minus = 0;
+        }
+        update(minD/3.+0.00000001, p, minus, frictionCoefficient*N, 0); // 0.0005/N,p); 
         if (minD > bestSoFar) {
             int j;
             for(j=0;j<N;j++) {
