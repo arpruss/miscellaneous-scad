@@ -5,7 +5,7 @@
 #include <time.h>
 
 int N;
-double minD = -1;
+double minD = 0;
 double bestMinD = 0;
 
 typedef struct {
@@ -87,7 +87,7 @@ double maxMinD(vec3* pos) {
     return sqrt(maxMinD2);
 }
 
-void update(double approxDx,double p,double minus,double friction,int vIndepFriction) {
+void update(double approxDx,double p,double minus,double friction) {
     int i,j;
     
     double maxV = 0;
@@ -107,38 +107,18 @@ void update(double approxDx,double p,double minus,double friction,int vIndepFric
         maxV = 10;
     
     double dt = approxDx / maxV;
-    if (!vIndepFriction) {
-        if (dt * friction > 0.75) 
-            dt = 0.75 / friction;
-    }
-    else {
-        for(i=0;i<N0;i++) {
-            double n;
-            n = norm(&v[i]);
-            if (dt * friction > 0.75 * n)
-                dt = 0.75 * n / friction;
-        }
-    }
+    if (dt * friction > 0.75) 
+        dt = 0.75 / friction;
 
 #pragma omp parallel
 #pragma omp for private(i,j)
     for (i=0;i<N0;i++) {        
-        vec3 normalizedV;
         double n;
         double d;
         double factor;
-        normalizedV = v[i];
-        n = norm(&normalizedV);
-        
-        if (n != 0 && vIndepFriction) {
-            normalizedV.x /= n;
-            normalizedV.y /= n;
-            normalizedV.z /= n;
-        }
-        
-        newV[i].x = v[i].x - dt * friction * normalizedV.x;
-        newV[i].y = v[i].y - dt * friction * normalizedV.y;
-        newV[i].z = v[i].z - dt * friction * normalizedV.z;
+        newV[i].x = v[i].x * (1. - dt * friction);
+        newV[i].y = v[i].y * (1. - dt * friction);
+        newV[i].z = v[i].z * (1. - dt * friction);
         
         for (j=0;j<N;j++) {
             if (i==j)
@@ -191,7 +171,7 @@ void update(double approxDx,double p,double minus,double friction,int vIndepFric
 }
 
 void usage(void) {
-    fprintf(stderr, "tammes-newton [-animate] nPoints [nIterations [frictionCoefficient]]\n");
+    fprintf(stderr, "tammes-newton [-animate] nPoints [nIterations [frictionMultiplier]]\n");
 }
 
 void dumpFrame(int frameCount, vec3* positions, double minD) {
@@ -207,7 +187,7 @@ main(int argc, char** argv) {
 	int nIter = 500;
     int repeats = 1;
     int animation = 0;
-    double frictionCoefficient = 0.16;
+    double frictionMultiplier = 0.16;
     
     if (argc >= 2 && ! strncmp(argv[1], "-a", 2)) {
         animation = 1;
@@ -224,7 +204,7 @@ main(int argc, char** argv) {
     if (argc >= 3) {
         nIter = atoi(argv[2]);
         if (argc >= 4) 
-           frictionCoefficient = atof(argv[3]);
+           frictionMultiplier = atof(argv[3]);
     }
     pos = safemalloc(sizeof(vec3)*N);
     // we waste a bit of memory when N is even, but memory is cheap
@@ -263,9 +243,10 @@ main(int argc, char** argv) {
     
     double nextShow = 0;
 
+    calculateMinD();
+    
     if (animation) {
         printf("n %d\n",N);
-        calculateMinD();
         dumpFrame(0,pos,minD);
     }
 
@@ -274,13 +255,13 @@ main(int argc, char** argv) {
         if (p>4.5) p=4.5;
         // 7,4.5,3,10,0 : 0.153
         double minus;
-        if (p >= 2.5) {
+        if (p >= 1) {
             minus = 0.9 * minD * i / nIter;
         }
         else {
             minus = 0;
         }
-        update(minD/3.+0.00000001, p, minus, frictionCoefficient*N, 0); // 0.0005/N,p); 
+        update(.3*minD+0.00000001, p, minus, frictionMultiplier*N); // 0.0005/N,p); 
         if (minD > bestMinD) {
             int j;
             for(j=0;j<N;j++) {
