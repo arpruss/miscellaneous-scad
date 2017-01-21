@@ -6,7 +6,7 @@
 
 int N;
 double minD = -1;
-double bestSoFar = 0;
+double bestMinD = 0;
 
 typedef struct {
     double x,y,z;
@@ -61,6 +61,30 @@ void calculateMinD(void) {
         }
     }
     minD = sqrt(minD2);
+}
+
+double maxMinD(vec3* pos) {
+    double maxMinD2 = -1;
+    int i;
+
+    int N0 = (N % 2) ? N : N/2;
+
+    for (i=0;i<N0;i++) {
+        double minD2;
+        double d2;
+        int j;
+        minD2 = 4;
+        for (j=0;j<N;j++) {
+            if (j!=i) {
+                d2 = distanceSq(&pos[i],&pos[j]);
+                if (d2 < minD2) minD2 = d2;
+            }
+        }
+        if (minD2 > maxMinD2) {
+            maxMinD2 = minD2;
+        }
+    }
+    return sqrt(maxMinD2);
 }
 
 void update(double approxDx,double p,double minus,double friction,int vIndepFriction) {
@@ -257,15 +281,15 @@ main(int argc, char** argv) {
             minus = 0;
         }
         update(minD/3.+0.00000001, p, minus, frictionCoefficient*N, 0); // 0.0005/N,p); 
-        if (minD > bestSoFar) {
+        if (minD > bestMinD) {
             int j;
             for(j=0;j<N;j++) {
                 best[j] = pos[j];
             }
-            bestSoFar = minD;
+            bestMinD = minD;
         }
         if ((double)i/(nIter-1) >= nextShow || i == nIter-1) {
-            fprintf(stderr, "%.0f%% minD=%.5f bestD=%.5f p=%.5f       \r", 100.*i/(nIter-1), minD, bestSoFar, p);
+            fprintf(stderr, "%.0f%% minD=%.5f maxMinD=%.5f bestD=%.5f bestMaxMinD=%.5f p=%.5f       \r", 100.*i/(nIter-1), minD, maxMinD(pos), bestMinD, maxMinD(best), p);
             nextShow += 0.05;
         }
         if (animation) 
@@ -274,10 +298,10 @@ main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (animation)
-        dumpFrame(nIter+1,best,bestSoFar);
+        dumpFrame(nIter+1,best,bestMinD);
     
     if (!animation) {
-        printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
+        printf("n=%d;\nminD=%.9f;\n", N, bestMinD);
         //printf("bumpR = 2*sin((1/2)*asin(minD/2));\n");
         printf("points = [");
         for(i=0;i<N;i++) {
