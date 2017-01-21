@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -39,6 +40,23 @@ void *safemalloc(long n) {
         exit(3);
     }
     return p;
+}
+
+void calculateMinD(void) {
+    double minD2 = 4;
+    int i;
+
+    int N0 = (N % 2) ? N : N/2;
+
+    for (i=0;i<N0;i++) {
+        double d2;
+        int j;
+        for (j=i+1;j<N;j++) {
+            d2 = distanceSq(&pos[i],&pos[j]);
+            if (d2 < minD2) minD2 = d2;
+        }
+    }
+    minD = sqrt(minD2);
 }
 
 void update(double approxDx,double p,double friction,int vIndepFriction) {
@@ -138,28 +156,42 @@ void update(double approxDx,double p,double friction,int vIndepFriction) {
             pos[N0+i].z = -pos[i].z;
         }
     }
+    
+    calculateMinD();
 
-    double minD2 = 4;
-    for (i=0;i<N0;i++) {
-        double d2;
-        for (j=i+1;j<N;j++) {
-            d2 = distanceSq(&pos[i],&pos[j]);
-            if (d2 < minD2) minD2 = d2;
-        }
-    }
-    minD = sqrt(minD2);
     free(newV);
+}
+
+void usage(void) {
+    fprintf(stderr, "tammes-newton [-animate] nPoints [nIterations [frictionCoefficient]]\n");
+}
+
+void dumpFrame(int frameCount, vec3* positions, double minD) {
+    int i;
+    printf("minD %.9f\n", minD);
+    for(i=0;i<N;i++) 
+        printf("pos %d %.9f %.9f %.9f\n", i, positions[i].x, positions[i].y, positions[i].z);
+    printf("frame %d\n", frameCount);
 }
 
 int
 main(int argc, char** argv) {	
-	int nIter = 1000;
+	int nIter = 500;
     int repeats = 1;
+    int animation = 0;
     double frictionCoefficient = 0.16;
+    
+    if (argc >= 2 && ! strncmp(argv[1], "-a", 2)) {
+        animation = 1;
+        argc--;
+        argv++;
+    }
+    
     if (argc < 2) {
-        fprintf(stderr, "tammes-newton nPoints [nIterations [frictionCoefficient]]\n");
+        usage();
         return 1;
     }
+    
     N = atoi(argv[1]);
     if (argc >= 3) {
         nIter = atoi(argv[2]);
@@ -175,14 +207,14 @@ main(int argc, char** argv) {
     origin.x = origin.y = origin.z = 0.;
     int i;
     
-// impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf    
+// impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf
     int N0 = (N+1)/2;
     for (i=0;i<N0;i++) {
         do {
             pos[i].x = 1-2*rand() / (RAND_MAX+1.);
             pos[i].y = 1-2*rand() / (RAND_MAX+1.);
             pos[i].z = 1-2*rand() / (RAND_MAX+1.);
-        } while (distance(&v[i],&origin) >= 1);
+        } while (norm(&pos[i]) >= 1);
         v[i].x = 0;
         v[i].y = 0;
         v[i].z = 0;
@@ -197,6 +229,13 @@ main(int argc, char** argv) {
     }
     
     double nextShow = 0;
+
+    if (animation) {
+        printf("n %d\n",N);
+        calculateMinD();
+        dumpFrame(0,pos,minD);
+    }
+
     for (i=0;i<nIter;i++) {
         double p = 1+i*(7.-1)/nIter;
         if (p>4.5) p=4.5;
@@ -213,18 +252,27 @@ main(int argc, char** argv) {
             fprintf(stderr, "%.0f%% minD=%.5f bestD=%.5f p=%.5f       \r", 100.*i/(nIter-1), minD, bestSoFar, p);
             nextShow += 0.05;
         }
+        if (animation) 
+            dumpFrame(i+1,pos,minD);
     }
     fprintf(stderr, "\n");
+
+    if (animation)
+        dumpFrame(nIter+1,best,bestSoFar);
     
-    printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
-    //printf("bumpR = 2*sin((1/2)*asin(minD/2));\n");
-    printf("points = [");
-    for(i=0;i<N;i++) {
-        printf("[%.9f,%.9f,%.9f]", best[i].x, best[i].y, best[i].z);
-        if (i+1 < N) putchar(',');
+    if (!animation) {
+        printf("n=%d;\nminD=%.9f;\n", N, bestSoFar);
+        //printf("bumpR = 2*sin((1/2)*asin(minD/2));\n");
+        printf("points = [");
+        for(i=0;i<N;i++) {
+            printf("[%.9f,%.9f,%.9f]", best[i].x, best[i].y, best[i].z);
+            if (i+1 < N) putchar(',');
+        }
+        printf ("];\n");
+        puts("difference() {\n sphere(r=1,$fn=36);\n for(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);\n}\n");
     }
-    printf ("];\n");
-    puts("difference() {\n sphere(r=1,$fn=36);\n for(i=[0:len(points)-1]) translate(points[i]) sphere(d=minD,$fn=12);\n}\n");
+
+    free(v);
     free(best);
     free(pos);
     
