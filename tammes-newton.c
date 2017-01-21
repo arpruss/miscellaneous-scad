@@ -251,7 +251,7 @@ main(int argc, char** argv) {
     }
 
     for (i=0;i<nIter;i++) {
-        double p = 1+i*(7.-1)/nIter;
+        double p = 1+i*(8.-1)/nIter;
         if (p>4.5) p=4.5;
         // 7,4.5,3,10,0 : 0.153
         double minus;
