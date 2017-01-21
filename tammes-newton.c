@@ -15,6 +15,10 @@ vec3* pos;
 vec3* v;
 vec3* best;
 
+double urandom() {
+    return 2. * rand() / (RAND_MAX+1.) - 1.;
+}
+
 double norm(vec3* v) {
     return sqrt(v->x*v->x+v->y*v->y+v->z*v->z);
 }
@@ -117,9 +121,9 @@ void update(double approxDx,double p,double minus,double friction,int vIndepFric
                 continue;
             d = distance(&pos[i],&pos[j]);
             if (d == 0) {
-                newV[i].x += (rand()/(double)(RAND_MAX+1.) - 0.5) * 0.001 * dt;
-                newV[i].y += (rand()/(double)(RAND_MAX+1.) - 0.5) * 0.001 * dt;
-                newV[i].z += (rand()/(double)(RAND_MAX+1.) - 0.5) * 0.001 * dt;
+                newV[i].x += urandom() * 0.001 * dt;
+                newV[i].y += urandom() * 0.001 * dt;
+                newV[i].z += urandom() * 0.001 * dt;
                 fprintf(stderr, "Collision %d %d: %.9f %.9f %.9f\n", i,j,v[i].x,v[i].y,v[i].z);
                 continue;
             }
@@ -210,11 +214,16 @@ main(int argc, char** argv) {
 // impose antipodal symmetry (or almost if N is odd), using idea of https://math.mit.edu/research/highschool/rsi/documents/2012Gautam.pdf
     int N0 = (N+1)/2;
     for (i=0;i<N0;i++) {
+        double n;
         do {
-            pos[i].x = 1-2*rand() / (RAND_MAX+1.);
-            pos[i].y = 1-2*rand() / (RAND_MAX+1.);
-            pos[i].z = 1-2*rand() / (RAND_MAX+1.);
-        } while (norm(&pos[i]) >= 1);
+            pos[i].x = urandom();
+            pos[i].y = urandom();
+            pos[i].z = urandom();
+            n = norm(&pos[i]);
+        } while (n > 1 || n == 0.);
+        pos[i].x /= n;
+        pos[i].x /= n;
+        pos[i].x /= n;
         v[i].x = 0;
         v[i].y = 0;
         v[i].z = 0;
