@@ -10,10 +10,9 @@ centralBall = sphere(pos=(0,0,0), radius=1, color=color.blue)
 
 while True:
     l = stdin.readline()
-    if l is None:
+    if l == "":
 #        scene2.caption = "Best"
-        pause()
-        sys.exit()
+        while True: sleep(1.)
     line = l.strip().split(' ')
     if line[0] == 'n':
         n = int(line[1])
