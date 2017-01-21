@@ -243,8 +243,6 @@ main(int argc, char** argv) {
         double minus;
         if (p >= 2.5) {
             minus = 0.9 * minD * i / nIter;
-//            if (minus >= 0.9 * minD) 
-//                minus = 0.9 * minD;
         }
         else {
             minus = 0;
