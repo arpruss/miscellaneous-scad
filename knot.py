@@ -13,32 +13,40 @@ class Vector(tuple):
             return tuple.__new__(cls, a)
             
     def __add__(self,b):
-        return Vector(self[i]+b[i] for i in range(min(len(self),len(b))))
+        return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
     def __sub__(self,b):
-        return Vector(self[i]-b[i] for i in range(min(len(self),len(b))))
+        return type(self)(self[i]-b[i] for i in range(max(len(self),len(b))))
 
     def __neg__(self,b):
-        return Vector(-comp for comp in self)
+        return type(self)(-comp for comp in self)
 
     def __mul__(self,b):
         if isinstance(b, Number):
-            return Vector(comp*b for comp in self)
-        else:
+            return type(self)(comp*b for comp in self)
+        elif hasattr(b, '__getitem__'):
             return sum(self[i] * b[i] for i in range(min(len(self),len(b))))
+        else:
+            raise NotImplementedError
 
     def __rmul__(self,b):
         if isinstance(b, Number):
-            return Vector(comp*b for comp in self)
+            return type(self)(comp*b for comp in self)
         else:
-            return sum(self[i] * b[i] for i in range(min(len(self),len(b))))
+            raise NotImplementedError
+            
+    def __getitem__(self,key):
+        if key >= len(self):
+            return 0.
+        else:
+            return tuple.__getitem__(self, key)
             
     def norm(self):
         return math.sqrt(sum(comp*comp for comp in self))
         
     def normalize(self):
         n = self.norm()
-        return Vector(comp/n for comp in self)
+        return type(self)(comp/n for comp in self)
             
     def cross(self,b):
         return Vector(self.y * b.z - self.z * b.y, self.z * b.x - self.x * b.z, self.x * b.y - self.y * b.x)
@@ -61,12 +69,15 @@ class Vector(tuple):
             return 0
         return self[2]
         
-class Matrix(tuple):
+class Matrix(Vector):
+    """
+    a Matrix is a Vector of Vectors
+    """
     def __new__(cls, *a):
         if len(a) == 1 and hasattr(a[0], '__iter__'):
-            return tuple.__new__(cls, tuple(Vector(row) for row in a[0]))
+            return Vector.__new__(cls, tuple(Vector(row) for row in a[0]))
         else:
-            return tuple.__new__(cls, tuple(Vector(row) for row in a))
+            return Vector.__new__(cls, tuple(Vector(row) for row in a))
             
     @property
     def rows(self):
@@ -76,34 +87,23 @@ class Matrix(tuple):
     def cols(self):
         return len(self[0])
         
-    def __add__(self,b):
-        if self.rows != b.rows or self.cols != b.cols:
-            raise ValueError
-            
-        return Matrix(self[i]+b[i] for i in range(self.rows))
-
-    def __sub__(self,b):
-        if self.rows != b.rows or self.cols != b.cols:
-            raise ValueError
-            
-        return Matrix(self[i]-b[i] for i in range(self.rows))
-        
-    def __neg__(self):
-        return Matrix(-comp for comp in self)
-        
     def __mul__(self,b):
         if isinstance(b,Number):
             return Matrix(self[i] * b for i in range(self.rows))
         elif isinstance(b,Matrix):
             return Matrix((sum(self[i][j]*b[j][k] for j in range(self.cols)) for k in range(b.cols)) for i in range(self.rows))
+        elif hasattr(b,'__getitem__'):
+            return Vector(sum(self[i][j]*b[j] for j in range(self.cols)) for i in range(self.rows))
         else:
-            return Vector(sum(self[i][j]*b[j] for j in range(len(b))) for i in range(self.rows))
+            raise NotImplementedError
             
     def __rmul__(self,b):
         if isinstance(b,Number):
             return Matrix(self[i] * b for i in range(self.rows))
+        elif hasattr(b,'__getitem__'):
+            return Vector(sum(b[i]*self[j][i] for i in range(self.rows)) for j in range(self.cols))
         else:
-            return __mul__(b,self)
+            raise NotImplementedError
 
     @staticmethod
     def identity(n):
@@ -150,7 +150,7 @@ def saveColorSTL(filename, mesh, swapYZ=False):
                 f.write(pack("<H", color))            
                 
 def face3(a,b,c):
-    return (Vector(b)-Vector(a)).cross(Vector(c)-Vector(a)),(a,b,c)
+    return (Vector(b)-Vector(a)).cross(Vector(c)-Vector(a)).normalize(),(a,b,c)
                 
 def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
     def getCrossSection(t):
@@ -159,8 +159,6 @@ def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
         f2 = Vector(mainPath(t+tstep))
         direction = (f2-f1).normalize()
         m = Matrix.rotateVectorToVector(baseVector, direction)
-        #print m,direction
-        #print "z",m*Vector(0,0,1)-direction
         for v in section(t):
             out.append( m * Vector(v) + f1 )
         return out
