@@ -35,6 +35,9 @@ class Vector(tuple):
         else:
             raise NotImplementedError
             
+    def __div__(self,b):
+        return self*(1./b)
+            
     def __getitem__(self,key):
         if key >= len(self):
             return 0.
