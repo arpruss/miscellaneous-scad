@@ -168,12 +168,12 @@ def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
     monoMesh = []
     nextCrossSection = None
     t = t1
-    while t <= t2:
+    while t < t2:
         if nextCrossSection is not None:
             curCrossSection = nextCrossSection
         else:
             curCrossSection = getCrossSection(t)
-        nextCrossSection = getCrossSection((t+tstep-t1) % (t2-t1) + t1)
+        nextCrossSection = getCrossSection( t+tstep if t+tstep < t2 else t1 )
         n = min(len(curCrossSection),len(nextCrossSection))
         for i in range(n):
             monoMesh.append( face3(curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n]) )
@@ -195,7 +195,7 @@ rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .05, baseVecto
 rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .05, baseVector=Vector(0,0,1)) ) )
 rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .05, baseVector=Vector(0,0,1)) ) )
 
-rings.append( ( (0,0,0), knotMesh( lambda t: (20+math.cos(t),0,2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
-rings.append( ( (0,0,0), knotMesh( lambda t: (0,20+math.cos(t),2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
+#rings.append( ( (0,0,0), knotMesh( lambda t: (20+math.cos(t),0,2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
+#rings.append( ( (0,0,0), knotMesh( lambda t: (0,20+math.cos(t),2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
 
 saveColorSTL("rings.stl", rings)
