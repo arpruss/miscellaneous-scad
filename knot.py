@@ -40,7 +40,10 @@ class Vector(tuple):
             
     def __getitem__(self,key):
         if key >= len(self):
-            return 0.
+            if len(self)>0 and hasattr(self[0],'__getitem__'):
+                return type(self[0])(0. for i in range(len(self[0])))
+            else:
+                return 0.
         else:
             return tuple.__getitem__(self, key)
             
