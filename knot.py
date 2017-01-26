@@ -176,6 +176,40 @@ def saveColorSTL(filename, mesh, swapYZ=False):
                 
 def face3(a,b,c):
     return (Vector(b)-Vector(a)).cross(Vector(c)-Vector(a)).normalize(),(a,b,c)
+    
+class SectionAligner(object):
+    def __init__(self, upright=Vector(0,0,1)):
+        self.upright = upright.normalize()
+        
+        # perp will be perpendicular to upright, and serve as a default direction for the cross-section's normal
+        m = min(abs(comp) for comp in upright)
+        if self.upright.x == m:
+            self.perp1 = (1,0,0) - self.upright.x*self.upright
+        elif upright.y == m:
+            self.perp1 = (0,1,0) - self.upright.y*self.upright
+        else:
+            self.perp1 = (0,0,1) - self.upright.z*self.upright
+        self.perp2 = self.upright.cross(self.perp1)
+        
+    # First, the cross-section will be stood up with x-axis going to perp2, y-axis going to upright and normal going to perp1
+        self.m1 = Matrix( (self.perp2.x, self.upright.x, 0), (self.perp2.y, self.upright.y, 0), (self.perp2.z, self.upright.z, 0) )
+    
+    def align(self, sectionPoints, direction, position):
+        out = []
+        direction = direction.normalize()
+        projDirection = (direction - (direction*self.upright)*self.upright).normalize()
+        
+        # Then it will be rotated to match horizontal angle of the knot direction (which had better not be straight up or down along upright) 
+        m2 = Matrix.rotateVectorToVector(self.perp1, projDirection)
+        
+        # Finally, we will tilt it to match the direction
+        m3 = Matrix.rotateVectorToVector(projDirection, direction)
+        
+        m = m3 * m2 * self.m1
+        
+        for v in sectionPoints:
+            out.append( m * Vector(v) + position )
+        return out
                 
 def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
     """
@@ -184,39 +218,13 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
     horizontal knot, the default (0,0,1) setting should work.
     """
 
-    upright = upright.normalize()
-    
-    # perp will be perpendicular to upright, and serve as a default direction for the cross-section's normal
-    m = min(abs(comp) for comp in upright)
-    if upright.x == m:
-        perp1 = (1,0,0) - upright.x*upright
-    elif upright.y == m:
-        perp1 = (0,1,0) - upright.y*upright
-    else:
-        perp1 = (0,0,1) - upright.z*upright
-    perp2 = upright.cross(perp1)
-    
-# First, the cross-section will be stood up with x-axis going to perp2, y-axis going to upright and normal going to perp1
-    m1 = Matrix( (perp2.x, upright.x, 0), (perp2.y, upright.y, 0), (perp2.z, upright.z, 0) )
+    aligner = SectionAligner(upright=upright)
     
     def getCrossSection(t):
-        out = []
-        f1 = Vector(mainPath(t))
-        f2 = Vector(mainPath(t+tstep))
-        direction = (f2-f1).normalize()
-        projDirection = (direction - (direction*upright)*upright).normalize()
-        
-        # Then it will be rotated to match horizontal angle of the knot direction (which had better not be straight up or down along upright) 
-        m2 = Matrix.rotateVectorToVector(perp1, projDirection)
-        
-        # Finally, we will tilt it to match the direction
-        m3 = Matrix.rotateVectorToVector(projDirection, direction)
-        
-        m = m3 * m2 * m1
-        
-        for v in section(t):
-            out.append( m * Vector(v) + f1 )
-        return out
+        s = section(t)
+        f1 = mainPath(t)
+        direction = mainPath( (t-t1+tstep/2.)%(t2-t1) + t1 ) - f1
+        return aligner.align(section(t), direction, f1)
 
     monoMesh = []
     nextCrossSection = None
