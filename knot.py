@@ -21,8 +21,14 @@ class Vector(tuple):
     def __add__(self,b):
         return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
+    def __radd__(self,b):
+        return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
+
     def __sub__(self,b):
         return type(self)(self[i]-b[i] for i in range(max(len(self),len(b))))
+
+    def __rsub__(self,b):
+        return type(self)(b[i]-self[i] for i in range(max(len(self),len(b))))
 
     def __neg__(self,b):
         return type(self)(-comp for comp in self)
@@ -171,22 +177,40 @@ def saveColorSTL(filename, mesh, swapYZ=False):
 def face3(a,b,c):
     return (Vector(b)-Vector(a)).cross(Vector(c)-Vector(a)).normalize(),(a,b,c)
                 
-def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
+def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
+    """
+    The upright vector specifies the preferred pointing direction for the y-axis in the input sections.
+    The tangent to the mainPain should never be close to parallel to the upright vector. E.g., for a mainly
+    horizontal knot, the default (0,0,1) setting should work.
+    """
+
+    upright = upright.normalize()
+    
+    # perp will be perpendicular to upright, and serve as a default direction for the cross-section's normal
+    m = min(abs(comp) for comp in upright)
+    if upright.x == m:
+        perp1 = (1,0,0) - upright.x*upright
+    elif upright.y == m:
+        perp1 = (0,1,0) - upright.y*upright
+    else:
+        perp1 = (0,0,1) - upright.z*upright
+    perp2 = upright.cross(perp1)
+    
+# First, the cross-section will be stood up with x-axis going to perp2, y-axis going to upright and normal going to perp1
+    m1 = Matrix( (perp2.x, upright.x, 0), (perp2.y, upright.y, 0), (perp2.z, upright.z, 0) )
+    
     def getCrossSection(t):
         out = []
         f1 = Vector(mainPath(t))
         f2 = Vector(mainPath(t+tstep))
         direction = (f2-f1).normalize()
-        xyDirection = Vector(direction.x, direction.y, 0).normalize()
+        projDirection = (direction - (direction*upright)*upright).normalize()
         
-        # First, the cross-section will be stood upright, in the yz plane via (x,y) -> (0,x,y)
-        m1 = Matrix( (0,0,0), (1,0,0), (0,1,0) )
-        
-        # Then it will be rotated to match horizontal angle of the knot direction (which had better not be straight up or down) 
-        m2 = Matrix.rotateVectorToVector(Vector(1,0,0), xyDirection)
+        # Then it will be rotated to match horizontal angle of the knot direction (which had better not be straight up or down along upright) 
+        m2 = Matrix.rotateVectorToVector(perp1, projDirection)
         
         # Finally, we will tilt it to match the direction
-        m3 = Matrix.rotateVectorToVector(xyDirection, direction)
+        m3 = Matrix.rotateVectorToVector(projDirection, direction)
         
         m = m3 * m2 * m1
         
@@ -216,13 +240,13 @@ scale = 5
 path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
 path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
 path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
-spin = 4
-section = lambda t : [cmath.exp(spin*1j*t) * (0+0j),cmath.exp(spin*1j*t) * (0+1j),cmath.exp(spin*1j*t) * (1+1j),cmath.exp(spin*1j*t) * (1+0j)]
+spin = 16
+section = lambda t : [cmath.exp(spin*1j*t) * (-.5-.5j),cmath.exp(spin*1j*t) * (-.5+.5j),cmath.exp(spin*1j*t) * (.5+.5j),cmath.exp(spin*1j*t) * (.5-.5j)]
 
 rings = []
-rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
-rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
-rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
+rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
+rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
+rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
 
 #rings.append( ( (0,0,0), knotMesh( lambda t: (10*math.cos(t),10*math.sin(t),0), section, 0, 2*math.pi, 0.05 ) ) )
 #rings.append( ( (0,0,0), knotMesh( lambda t: (0,20+math.cos(t),2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
