@@ -143,27 +143,29 @@ class Matrix(Vector):
 
 def saveColorSTL(filename, mesh, swapYZ=False):
     minY = float("inf")
+    minVector = Vector(float("inf"),float("inf"),float("inf"))
     numTriangles = 0
+    if swapYZ:
+        matrix = Matrix( (1,0,0), (0,0,-1), (0,1,0) )
+    else:
+        matrix = Matrix.identity(3)
     for rgb,monoMesh in mesh:
         for normal,triangle in monoMesh:
             numTriangles += 1
             for vertex in triangle:
-                if vertex[1] < minY:
-                    minY = vertex[1]
+                vertex = matrix*vertex
+                minVector = Vector(min(minVector[i], vertex[i]) for i in range(3))
+    minVector -= Vector(0.001,0.001,0.001) # make sure all STL coordinates are strictly positive as per Wikipedia
+     
     with open(filename, "wb") as f:
         f.write(pack("80s",''))
         f.write(pack("<I",numTriangles))
         for rgb,monoMesh in mesh:
             color = 0x8000 | ( (rgb[0] >> 3) << 10 ) | ( (rgb[1] >> 3) << 5 ) | ( (rgb[2] >> 3) << 0 )
             for normal,triangle in monoMesh:
-                if swapYZ:
-                    f.write(pack("<3f", normal[0], -normal[2], normal[1]))
-                    for vertex in triangle:
-                        f.write(pack("<3f", vertex[0], -vertex[2], vertex[1]-minY))
-                else:
-                    f.write(pack("<3f", normal[0], normal[1], normal[2]))
-                    for vertex in triangle:
-                        f.write(pack("<3f", vertex[0], vertex[1]-minY, vertex[2]))
+                f.write(pack("<3f", *(matrix*normal)))
+                for vertex in triangle:
+                    f.write(pack("<3f", *(matrix*(vertex-minVector))))
                 f.write(pack("<H", color))            
                 
 def face3(a,b,c):
