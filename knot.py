@@ -214,7 +214,7 @@ scale = 5
 path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
 path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
 path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
-spin = 2
+spin = 4
 section = lambda t : [cmath.exp(spin*1j*t) * (0+0j),cmath.exp(spin*1j*t) * (0+1j),cmath.exp(spin*1j*t) * (1+1j),cmath.exp(spin*1j*t) * (1+0j)]
 
 rings = []
