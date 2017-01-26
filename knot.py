@@ -133,6 +133,7 @@ class Matrix(Vector):
         return Matrix(Vector(1 if i==j else 0 for i in range(n)) for j in range(n))
 
     @staticmethod
+    
     def rotateVectorToVector(a,b):
         """
         inputs must be normalized
