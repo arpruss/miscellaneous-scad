@@ -4,6 +4,12 @@ import cmath
 from numbers import Number 
 
 class Vector(tuple):
+    """
+    Three ways of initializing:
+        Vector(a,b,c,...) -> vector with components a,b,c,...
+        Vector(iterable) -> vector whose components are given by the iterable
+        Vector(cx) -> 2D vector with components cx.real,cx.imag where cx is complex numbers
+    """
     def __new__(cls, *a):
         if len(a) == 1 and hasattr(a[0], '__iter__'):
             return tuple.__new__(cls, a[0])
@@ -77,7 +83,12 @@ class Vector(tuple):
         
 class Matrix(Vector):
     """
-    a Matrix is a Vector of Vectors
+    a Matrix is a Vector of Vectors.
+    Two ways of initializing:
+        Matrix(iterable1,iterable2,...)
+        Matrix((iterable1,iterable2,...))
+    where each iterable is a row. This could be ambiguous if setting a one-row matrix.
+    In that case, use the second notation: Matrix(((x,y,z))).
     """
     def __new__(cls, *a):
         if len(a) == 1 and hasattr(a[0], '__iter__'):
@@ -121,7 +132,7 @@ class Matrix(Vector):
         inputs must be normalized
         """
         # http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-        v = a.cross(b)
+        v = Vector(a).cross(b)
         s = v.norm()
         c = a*b # dot product
         if c == -1:
@@ -164,7 +175,19 @@ def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
         f1 = Vector(mainPath(t))
         f2 = Vector(mainPath(t+tstep))
         direction = (f2-f1).normalize()
-        m = Matrix.rotateVectorToVector(baseVector, direction)
+        xyDirection = Vector(direction.x, direction.y, 0).normalize()
+        
+        # First, the cross-section will be stood upright, in the yz plane via (x,y) -> (0,x,y)
+        m1 = Matrix( (0,0,0), (1,0,0), (0,1,0) )
+        
+        # Then it will be rotated to match horizontal angle of the knot direction (which had better not be straight up or down) 
+        m2 = Matrix.rotateVectorToVector(Vector(1,0,0), xyDirection)
+        
+        # Finally, we will tilt it to match the direction
+        m3 = Matrix.rotateVectorToVector(xyDirection, direction)
+        
+        m = m3 * m2 * m1
+        
         for v in section(t):
             out.append( m * Vector(v) + f1 )
         return out
@@ -188,18 +211,18 @@ def knotMesh(mainPath, section, t1, t2, tstep, baseVector=Vector(0,0,1)):
 
 r = math.sqrt(3)/3.
 scale = 5
-path1 = lambda t: scale*Vector( math.cos(t), -math.cos(3*t)/3., math.sin(t)+r )
-path2 = lambda t: scale*Vector( math.cos(t)+0.5, -math.cos(3*t)/3., math.sin(t)-r/2. )
-path3 = lambda t: scale*Vector( math.cos(t)-0.5, -math.cos(3*t)/3., math.sin(t)-r/2 )
-spin = 0
+path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
+path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
+path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
+spin = 2
 section = lambda t : [cmath.exp(spin*1j*t) * (0+0j),cmath.exp(spin*1j*t) * (0+1j),cmath.exp(spin*1j*t) * (1+1j),cmath.exp(spin*1j*t) * (1+0j)]
 
 rings = []
-rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .05, baseVector=Vector(0,0,1)) ) )
-rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .05, baseVector=Vector(0,0,1)) ) )
-rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .05, baseVector=Vector(0,0,1)) ) )
+rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
+rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
+rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, baseVector=Vector(0,0,1)) ) )
 
-#rings.append( ( (0,0,0), knotMesh( lambda t: (20+math.cos(t),0,2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
+#rings.append( ( (0,0,0), knotMesh( lambda t: (10*math.cos(t),10*math.sin(t),0), section, 0, 2*math.pi, 0.05 ) ) )
 #rings.append( ( (0,0,0), knotMesh( lambda t: (0,20+math.cos(t),2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
 
 saveColorSTL("rings.stl", rings)
