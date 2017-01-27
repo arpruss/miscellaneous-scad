@@ -1,3 +1,7 @@
+# TODO:
+#   1. open curves
+#   2. non-convex sections (need triangulation code)
+
 from struct import pack
 import sys
 import math
@@ -251,6 +255,7 @@ class SectionAligner(object):
         
         for v in sectionPoints:
             out.append( m * Vector(v) + position )
+
         return out
                 
 def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), polyhedron=False):
@@ -258,6 +263,8 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), polyhedron
     The upright vector specifies the preferred pointing direction for the y-axis in the input sections.
     The tangent to the mainPain should never be close to parallel to the upright vector. E.g., for a mainly
     horizontal knot, the default (0,0,1) setting should work.
+    
+    In polyhedron mode, each little piece of the knot is a separate polyhedron, appropriate for dumping into OpenSCAD.
     """
 
     aligner = SectionAligner(upright=upright)
