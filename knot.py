@@ -153,8 +153,8 @@ class Matrix(Vector):
             return Matrix((-1,0,0),(0,-1,0),(0,0,-1))
         vx = Matrix((0,-v.z,v.y),(v.z,0,-v.x),(-v.y,v.x,0))
         return Matrix.identity(3) + vx + (1./(1+c)) * vx * vx
-        
-def saveColorSCAD(filename, polys):
+
+def toColorSCAD(polys, moduleName="object1"):
     def polyToSCAD(poly):
         pointsDict = {}
         i = 0
@@ -172,14 +172,18 @@ def saveColorSCAD(filename, polys):
         out += ");"
         return out
 
+    out = "module " +moduleName+ " {\n"
+    for rgb,monoPolys in polys:
+        for poly in monoPolys:
+            out += "  color([%.3f,%.3f,%.3f]) " % ( rgb[0]/255., rgb[1]/255., rgb[2]/255. ) 
+            out += "%s\n" % polyToSCAD(poly)
+    out += "}\n"
+    return out
+        
+def saveColorSCAD(filename, polys, moduleName="object1"):
     with open(filename, "w") as f:
-        f.write("module object1() {\n")
-        for rgb,monoPolys in polys:
-            for poly in monoPolys:
-                f.write("  color([%.3f,%.3f,%.3f]) " % ( rgb[0]/255., rgb[1]/255., rgb[2]/255. ) )
-                f.write("%s\n" % polyToSCAD(poly))
-        f.write("}\n\n")
-        f.write("object1();")
+        f.write(toColorSCAD(polys, moduleName=moduleName))
+        f.write("\n" + moduleName + "();")
 
 def saveColorSTL(filename, mesh, swapYZ=False):
     minY = float("inf")
