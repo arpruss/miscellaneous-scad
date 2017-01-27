@@ -1,4 +1,5 @@
 from struct import pack
+import sys
 import math
 import cmath
 from numbers import Number 
@@ -19,10 +20,16 @@ class Vector(tuple):
             return tuple.__new__(cls, a)
             
     def __add__(self,b):
-        return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
+        if isinstance(b, Number) and b==0.:
+            return self
+        else:
+            return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
     def __radd__(self,b):
-        return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
+        if isinstance(b, Number) and b==0.:
+            return self
+        else:
+            return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
     def __sub__(self,b):
         return type(self)(self[i]-b[i] for i in range(max(len(self),len(b))))
@@ -133,7 +140,6 @@ class Matrix(Vector):
         return Matrix(Vector(1 if i==j else 0 for i in range(n)) for j in range(n))
 
     @staticmethod
-    
     def rotateVectorToVector(a,b):
         """
         inputs must be normalized
@@ -147,6 +153,33 @@ class Matrix(Vector):
             return Matrix((-1,0,0),(0,-1,0),(0,0,-1))
         vx = Matrix((0,-v.z,v.y),(v.z,0,-v.x),(-v.y,v.x,0))
         return Matrix.identity(3) + vx + (1./(1+c)) * vx * vx
+        
+def saveColorSCAD(filename, polys):
+    def polyToSCAD(poly):
+        pointsDict = {}
+        i = 0
+        out = "polyhedron(points=["
+        points = []
+        for face in poly:
+            for v in face:
+                if tuple(v) not in pointsDict:
+                    pointsDict[tuple(v)] = i
+                    points.append( "[%.9f,%.9f,%.9f]" % tuple(v) )
+                    i += 1
+        out += ",".join(points)
+        out += "], faces=["
+        out += ",".join( "[" + ",".join(str(pointsDict[tuple(v)]) for v in face) + "]" for face in poly ) + "]"
+        out += ");"
+        return out
+
+    with open(filename, "w") as f:
+        f.write("module object1() {\n")
+        for rgb,monoPolys in polys:
+            for poly in monoPolys:
+                f.write("  color([%.3f,%.3f,%.3f]) " % ( rgb[0]/255., rgb[1]/255., rgb[2]/255. ) )
+                f.write("%s\n" % polyToSCAD(poly))
+        f.write("}\n\n")
+        f.write("object1();")
 
 def saveColorSTL(filename, mesh, swapYZ=False):
     minY = float("inf")
@@ -212,7 +245,7 @@ class SectionAligner(object):
             out.append( m * Vector(v) + position )
         return out
                 
-def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
+def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), polyhedron=False):
     """
     The upright vector specifies the preferred pointing direction for the y-axis in the input sections.
     The tangent to the mainPain should never be close to parallel to the upright vector. E.g., for a mainly
@@ -226,7 +259,7 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
         f1 = mainPath(t)
         direction = mainPath( (t-t1+tstep/2.)%(t2-t1) + t1 ) - f1
         return aligner.align(section(t), direction, f1)
-
+        
     monoMesh = []
     nextCrossSection = None
     t = t1
@@ -237,27 +270,53 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1)):
             curCrossSection = getCrossSection(t)
         nextCrossSection = getCrossSection( t+tstep if t+tstep < t2 else t1 )
         n = min(len(curCrossSection),len(nextCrossSection))
-        for i in range(n):
-            monoMesh.append( face3(curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n]) )
-            monoMesh.append( face3(nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i]) )
+        
+        def triangulate(i):
+            return [ [ curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n] ], 
+                     [ nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i] ] ]
+                     
+        def sectionToTriangles(section):
+            n = len(section)
+            center = sum(section) / float(n)
+            out = []
+            for i in range(n):
+                out.append([center,section[i],section[(i+1)%n]])
+            return out
+
+        if polyhedron:
+            poly = []
+            poly += sectionToTriangles(list(reversed(curCrossSection[:n])))
+            poly += sectionToTriangles(nextCrossSection[:n])
+            
+            for i in range(n):
+                for tri in triangulate(i):
+                    poly.append(list(reversed(tri)))
+            monoMesh.append(poly)
+        else:
+            for i in range(n):
+                for tri in triangulate(i):
+                    monoMesh.append( face3(*tri) )
         t += tstep
         
     return monoMesh
+    
+if __name__ == '__main__':    
+    polyhedron = len(sys.argv) > 1
 
-r = math.sqrt(3)/3.
-scale = 5
-path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
-path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
-path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
-spin = 16
-section = lambda t : [cmath.exp(spin*1j*t) * (-.5-.5j),cmath.exp(spin*1j*t) * (-.5+.5j),cmath.exp(spin*1j*t) * (.5+.5j),cmath.exp(spin*1j*t) * (.5-.5j)]
+    r = math.sqrt(3)/3.
+    scale = 5
+    path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
+    path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
+    path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
+    spin = 0
+    section = lambda t : [cmath.exp(spin*1j*t) * (-.5-.5j),cmath.exp(spin*1j*t) * (-.5+.5j),cmath.exp(spin*1j*t) * (.5+.5j),cmath.exp(spin*1j*t) * (.5-.5j)]
 
-rings = []
-rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
-rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
-rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1)) ) )
+    rings = []
+    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
+    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
+    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
 
-#rings.append( ( (0,0,0), knotMesh( lambda t: (10*math.cos(t),10*math.sin(t),0), section, 0, 2*math.pi, 0.05 ) ) )
-#rings.append( ( (0,0,0), knotMesh( lambda t: (0,20+math.cos(t),2*math.sin(t)), section, 0, 2*math.pi, 0.05 ) ) )
-
-saveColorSTL("rings.stl", rings)
+    if polyhedron:
+        saveColorSCAD("rings.scad", rings)
+    else:
+        saveColorSTL("rings.stl", rings)
