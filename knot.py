@@ -20,14 +20,20 @@ class Vector(tuple):
             return tuple.__new__(cls, a)
             
     def __add__(self,b):
-        if isinstance(b, Number) and b==0.:
-            return self
+        if isinstance(b, Number):
+            if b==0.:
+                return self
+            else:
+                raise NotImplementedError
         else:
             return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
     def __radd__(self,b):
-        if isinstance(b, Number) and b==0.:
-            return self
+        if isinstance(b, Number):
+            if b==0.:
+                return self
+            else:
+                raise NotImplementedError
         else:
             return type(self)(self[i]+b[i] for i in range(max(len(self),len(b))))
 
@@ -172,7 +178,7 @@ def toColorSCAD(polys, moduleName="object1"):
         out += ");"
         return out
 
-    out = "module " +moduleName+ " {\n"
+    out = "module() " +moduleName+ " {\n"
     for rgb,monoPolys in polys:
         for poly in monoPolys:
             out += "  color([%.3f,%.3f,%.3f]) " % ( rgb[0]/255., rgb[1]/255., rgb[2]/255. ) 
@@ -194,7 +200,7 @@ def saveColorSTL(filename, mesh, swapYZ=False):
     else:
         matrix = Matrix.identity(3)
     for rgb,monoMesh in mesh:
-        for normal,triangle in monoMesh:
+        for triangle in monoMesh:
             numTriangles += 1
             for vertex in triangle:
                 vertex = matrix*vertex
@@ -206,15 +212,13 @@ def saveColorSTL(filename, mesh, swapYZ=False):
         f.write(pack("<I",numTriangles))
         for rgb,monoMesh in mesh:
             color = 0x8000 | ( (rgb[0] >> 3) << 10 ) | ( (rgb[1] >> 3) << 5 ) | ( (rgb[2] >> 3) << 0 )
-            for normal,triangle in monoMesh:
+            for tri in monoMesh:
+                normal = (Vector(tri[1])-Vector(tri[0])).cross(Vector(tri[2])-Vector(tri[0])).normalize()
                 f.write(pack("<3f", *(matrix*normal)))
-                for vertex in triangle:
+                for vertex in tri:
                     f.write(pack("<3f", *(matrix*(vertex-minVector))))
                 f.write(pack("<H", color))            
                 
-def face3(a,b,c):
-    return (Vector(b)-Vector(a)).cross(Vector(c)-Vector(a)).normalize(),(a,b,c)
-    
 class SectionAligner(object):
     def __init__(self, upright=Vector(0,0,1)):
         self.upright = upright.normalize()
@@ -275,9 +279,9 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), polyhedron
         nextCrossSection = getCrossSection( t+tstep if t+tstep < t2 else t1 )
         n = min(len(curCrossSection),len(nextCrossSection))
         
-        def triangulate(i):
-            return [ [ curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n] ], 
-                     [ nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i] ] ]
+        def triangulateSectionPart(i):
+            return [ ( curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n] ), 
+                     ( nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i] ) ]
                      
         def sectionToTriangles(section):
             n = len(section)
@@ -293,34 +297,35 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), polyhedron
             poly += sectionToTriangles(nextCrossSection[:n])
             
             for i in range(n):
-                for tri in triangulate(i):
+                for tri in triangulateSectionPart(i):
                     poly.append(list(reversed(tri)))
             monoMesh.append(poly)
         else:
             for i in range(n):
-                for tri in triangulate(i):
-                    monoMesh.append( face3(*tri) )
+                monoMesh += triangulateSectionPart(i)
         t += tstep
         
     return monoMesh
     
 if __name__ == '__main__':    
-    polyhedron = len(sys.argv) > 1
-
     r = math.sqrt(3)/3.
     scale = 5
     path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
     path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
     path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
-    spin = 0
+    spin = 1
     section = lambda t : [cmath.exp(spin*1j*t) * (-.5-.5j),cmath.exp(spin*1j*t) * (-.5+.5j),cmath.exp(spin*1j*t) * (.5+.5j),cmath.exp(spin*1j*t) * (.5-.5j)]
 
     rings = []
-    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
-    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
-    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .02, upright=Vector(0,.1,1), polyhedron=polyhedron) ) )
+    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=True) ) )
+    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=True) ) )
+    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=True) ) )
 
-    if polyhedron:
-        saveColorSCAD("rings.scad", rings)
-    else:
-        saveColorSTL("rings.stl", rings)
+    saveColorSCAD("rings.scad", rings)
+
+    rings = []
+    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=False) ) )
+    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=False) ) )
+    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .05, upright=Vector(0,.1,1), polyhedron=False) ) )
+
+    saveColorSTL("rings.stl", rings)
