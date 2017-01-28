@@ -360,6 +360,9 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=Fals
     The tangent to the mainPain should never be close to parallel to the upright vector. E.g., for a mainly
     horizontal knot, the default (0,0,1) setting should work.
     
+    cacheTriangulation optimizes in case all the section triangulations are the same. The typical case is where
+    either the section is constant, or the different sections are affine transforms of one another.
+    
     In polyhedron mode, each little piece of the knot is a separate polyhedron, appropriate for dumping into OpenSCAD.
     """
     
@@ -382,15 +385,14 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=Fals
         direction = mainPath( (t-t1+tstep/2.)%(t2-t1) + t1 ) - f1
         return aligner.align(s, direction, f1)
         
+    if solid and cacheTriangulation:
+        cachedTriangulation = triangulate(section(t1))
+        
     def getTriangulation(s):
-        if cacheTriangulation:
-            if cachedTriangulation is None:
-                cachedTriangulation = triangulate(s)
-                return cachedTriangulation
-            else:
-                return cachedTriangulation
-        else:
+        if cachedTriangulation is None:
             return triangulate(s)
+        else:
+            return cachedTriangulation
         
     output = []
     nextCrossSection = None
@@ -444,9 +446,9 @@ if __name__ == '__main__':
     section = lambda t : cmath.exp(spin*1j*t) * baseSection
 
     rings = []
-    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True) ) )
-    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True) ) )
-    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True) ) )
+    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
 
     saveColorSCAD("rings.scad", rings)
 
