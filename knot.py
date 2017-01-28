@@ -337,8 +337,8 @@ class SectionAligner(object):
             self.perp1 = (0,0,1) - self.upright.z*self.upright
         self.perp2 = self.upright.cross(self.perp1)
         
-    # First, the cross-section will be stood up with x-axis going to perp2, y-axis going to upright and normal going to perp1
-        self.m1 = Matrix( (self.perp2.x, self.upright.x, 0), (self.perp2.y, self.upright.y, 0), (self.perp2.z, self.upright.z, 0) )
+    # First, the cross-section will be stood up with x-axis going to -perp2, y-axis going to upright and normal going to perp1
+        self.m1 = Matrix( (-self.perp2.x, self.upright.x, 0), (-self.perp2.y, self.upright.y, 0), (-self.perp2.z, self.upright.z, 0) )
     
     def align(self, sectionPoints, direction, position):
         out = []
@@ -358,7 +358,7 @@ class SectionAligner(object):
 
         return out
                 
-def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=False, clockwise=False, scad=False, cacheTriangulation=False, closed=True):
+def sweep(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=False, clockwise=False, scad=False, cacheTriangulation=False, closed=True):
     """
     The upright vector specifies the preferred pointing direction for the y-axis in the input sections.
     The tangent to the mainPain should never be close to parallel to the upright vector. E.g., for a mainly
@@ -457,22 +457,26 @@ if __name__ == '__main__':
     path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
 
     # we define the base section with complex numbers to make rotation simple
-    #baseSection = Vector( (-.5-.5j),(-.5+.5j),(.5+.5j),(.5-.5j) ) #square
+    #baseSection = Vector( cmath.exp(1j*2*math.pi*k/3) for k in range(3) ) #triangle
+    #baseSection = Vector( 0j, 0.5+0j,0.5+.2j,0.2+.2j,0.2+1j,1j ) # letter L
+    #baseSection = Vector( 1+0j,1j,-1+0j,0-1j ) #square
     baseSection = Vector( cmath.exp(2j*math.pi*k/10) * (1 if k%2 else 0.5) for k in range(10) ) #star with five points
 
     # now spin the baseSection as we sweep it
     section = lambda t : cmath.exp(1j*t) * baseSection
 
     rings = []
-    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
-    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
-    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+    rings.append( ( (255,0,0), sweep(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+    rings.append( ( (0,255,0), sweep(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+    rings.append( ( (0,0,255), sweep(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
+#    rings.append( ( (255,0,0), sweep(lambda t:Vector(t,0,0), section, 0,6,.1,scad=True, closed=False)))
 
     saveColorSCAD("rings.scad", rings)
 
     rings = []
-    rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=False) ) )
-    rings.append( ( (0,255,0), knotMesh(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=False) ) )
-    rings.append( ( (0,0,255), knotMesh(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=False) ) )
+    rings.append( ( (255,0,0), sweep(path1, section, 0, 1*math.pi, .1, upright=Vector(0,.1,1), scad=False, closed=False) ) )
+    rings.append( ( (0,255,0), sweep(path2, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=False) ) )
+    rings.append( ( (0,0,255), sweep(path3, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=False) ) )
+#    rings.append( ( (255,0,0), sweep(lambda t:Vector(t,0,0), section, 0,6,.1,closed=False)))
 
     saveColorSTL("rings.stl", rings)
