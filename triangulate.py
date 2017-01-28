@@ -17,11 +17,21 @@ def pointInside(p,a,b,c):
     
 def triangulate(polygon):
     # assume input polygon is counterclockwise
-    if len(polygon) < 3:
+    n = len(polygon)
+
+    if n < 3:
         raise Exception
+    
+    # two efficient special cases
+    if n == 3:
+        return [[0,1,2]]
+    elif n == 4:
+        return [[0,1,2],[1,2,3]]
+    
     triangles = []
     polygon = polygon[:]
-    n = len(polygon)
+    
+    index = list(range(n))
     
     def isReflex(i):
         return cross_z(polygon[i]-polygon[i-1], polygon[(i+1) % n]-polygon[i]) < 0
@@ -46,10 +56,12 @@ def triangulate(polygon):
         foundEar = False
         for i in range(n):
             if ear[i]:
-                triangles.append([polygon[i-1],polygon[i],polygon[(i+1) % n]])
+                triangles.append([index[i-1],index[i],index[(i+1) % n]])
+                # TODO: less deleting!
                 del polygon[i]
                 del reflex[i]
                 del ear[i]
+                del index[i]
                 n -= 1
                 if reflex[i-1]:
                     reflex[i-1] = isReflex(i-1)
@@ -66,11 +78,11 @@ def triangulate(polygon):
         
     return triangles
     
-def polygonsToSVG(polys):
-    minX = min(min(v.x for v in p) for p in polys)
-    minY = min(min(v.y for v in p) for p in polys)
-    maxX = max(max(v.x for v in p) for p in polys)
-    maxY = max(max(v.y for v in p) for p in polys)
+def polygonsToSVG(vertices, polys):
+    minX = min(v.x for v in vertices)
+    minY = min(v.y for v in vertices)
+    maxX = max(v.x for v in vertices)
+    maxY = max(v.y for v in vertices)
 
     svgArray = []
     svgArray.append('<?xml version="1.0" standalone="no"?>')
@@ -80,10 +92,11 @@ def polygonsToSVG(polys):
         n = len(p) # always 3
         for i in range(n):
             svgArray.append('<line x1="%f" y1="%f" x2="%f" y2="%f" stroke="black" stroke-width="0.15px"/>' % 
-                (p[i-1].x-minX,p[i-1].y-minY,p[i].x-minX,p[i].y-minY))
+                (vertices[p[i-1]].x-minX,vertices[p[i-1]].y-minY,vertices[p[i]].x-minX,vertices[p[i]].y-minY))
     svgArray.append('</svg>')
     return '\n'.join(svgArray)
     
 if __name__ == '__main__':
-    print polygonsToSVG( triangulate([Vector(0,0),Vector(50,80),Vector(100,0),Vector(100,100),Vector(0,100)]) )
+    poly = [Vector(0,0),Vector(50,80),Vector(100,0),Vector(100,100),Vector(0,100)]
+    print polygonsToSVG( poly, triangulate(poly) )
     
