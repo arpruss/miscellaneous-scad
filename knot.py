@@ -163,6 +163,10 @@ class Matrix(Vector):
             return Matrix((-1,0,0),(0,-1,0),(0,0,-1))
         vx = Matrix((0,-v.z,v.y),(v.z,0,-v.x),(-v.y,v.x,0))
         return Matrix.identity(3) + vx + (1./(1+c)) * vx * vx
+        
+    @staticmethod
+    def rotate2D(theta):
+        return Matrix([math.cos(theta),-math.sin(theta)],[math.sin(theta),math.cos(theta)])
 
 # triangulation algorithm based on https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
 # minus all the double-linked list stuff that would be great but I am not bothering with it
@@ -382,10 +386,13 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=Fals
     
     def getCrossSection(s, t):
         f1 = mainPath(t)
-        direction = mainPath( (t-t1+tstep/2.)%(t2-t1) + t1 ) - f1
+        if closed or t+tstep/2 <= t2:
+            direction = mainPath( (t-t1+tstep/2.)%(t2-t1) + t1 ) - f1
+        else:
+            direction = f1 - mainPath( t-tstep/2 )
         return aligner.align(s, direction, f1)
         
-    if solid and cacheTriangulation:
+    if (solid or not closed) and cacheTriangulation:
         cachedTriangulation = triangulate(section(t1))
         
     def getTriangulation(s):
@@ -401,25 +408,29 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=Fals
         if nextCrossSection is not None:
             curCrossSection,curTriangulation = nextCrossSection,nextTriangulation
         else:
-            s = section(t)
-            curCrossSection,curTriangulation = getCrossSection(s, t), not solid or getTriangulation(s)
-        nextT = t+tstep if t+tstep < t2 else t1
-        s = section(nextT)
-        nextCrossSection,nextTriangulation = getCrossSection( s, nextT ), not solid or getTriangulation(s)
+            s1 = section(t)
+            curCrossSection,curTriangulation = getCrossSection(s1, t), not solid or getTriangulation(s1)
+        nextT = t+tstep if t+tstep < t2 else (t1 if closed else t2)
+        s2 = section(nextT)
+        nextCrossSection,nextTriangulation = getCrossSection( s2, nextT ), not solid or getTriangulation(s2)
         
         n = len(curCrossSection)
         assert n == len(nextCrossSection)
         
-        def triangulateTube(i):
-            return orderPolys( [ ( curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n] ), 
-                     ( nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i] ) ] )
-                     
         def applyTriangulation(points,tr,clockwise=False):
             if clockwise:
                 return [ tuple(reversed( (points[t[0]],points[t[1]],points[t[2]]))) for t in tr ]
             else:
                 return [ (points[t[0]],points[t[1]],points[t[2]]) for t in tr ]
 
+        if not closed and not solid and t == t1:
+            curTriangulation = getTriangulation(s1)
+            output += applyTriangulation(curCrossSection, curTriangulation, clockwise=clockwise)
+        
+        def triangulateTube(i):
+            return orderPolys( [ ( curCrossSection[i], nextCrossSection[i], nextCrossSection[(i+1)%n] ), 
+                     ( nextCrossSection[(i+1)%n], curCrossSection[(i+1)%n], curCrossSection[i] ) ] )
+                     
         if solid:
             polyhedron = applyTriangulation(curCrossSection, curTriangulation, clockwise=clockwise)
             polyhedron += applyTriangulation(nextCrossSection, nextTriangulation, clockwise=not clockwise)
@@ -429,7 +440,12 @@ def knotMesh(mainPath, section, t1, t2, tstep, upright=Vector(0,0,1), solid=Fals
         else:
             for i in range(n):
                 output += triangulateTube(i)
+                
         t += tstep
+            
+    if not solid and not closed:
+        s = section(t2)
+        output += applyTriangulation(getCrossSection(s, t2), getTriangulation(s), clockwise=not clockwise)
         
     return output
     
@@ -439,11 +455,13 @@ if __name__ == '__main__':
     path1 = lambda t: scale*Vector( math.cos(t), math.sin(t)+r, -math.cos(3*t)/3.  )
     path2 = lambda t: scale*Vector( math.cos(t)+0.5, math.sin(t)-r/2., -math.cos(3*t)/3. )
     path3 = lambda t: scale*Vector( math.cos(t)-0.5, math.sin(t)-r/2, -math.cos(3*t)/3. )
-    spin = 1
-    
-    #baseSection = Vector( (-.5-.5j),(-.5+.5j),(.5+.5j),(.5-.5j) )
-    baseSection = Vector( cmath.exp(2j*math.pi*k/10) * (1 if k%2 else 0.5) for k in range(10) )
-    section = lambda t : cmath.exp(spin*1j*t) * baseSection
+
+    # we define the base section with complex numbers to make rotation simple
+    #baseSection = Vector( (-.5-.5j),(-.5+.5j),(.5+.5j),(.5-.5j) ) #square
+    baseSection = Vector( cmath.exp(2j*math.pi*k/10) * (1 if k%2 else 0.5) for k in range(10) ) #star with five points
+
+    # now spin the baseSection as we sweep it
+    section = lambda t : cmath.exp(1j*t) * baseSection
 
     rings = []
     rings.append( ( (255,0,0), knotMesh(path1, section, 0, 2*math.pi, .1, upright=Vector(0,.1,1), scad=True, cacheTriangulation=True) ) )
