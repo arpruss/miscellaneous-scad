@@ -89,8 +89,7 @@ def polygonsToSVG(vertices, polys):
     svgArray.append('<svg width="%fmm" height="%fmm" viewBox="0 0 %f %f" xmlns="http://www.w3.org/2000/svg" version="1.1">'%(maxX-minX,maxY-minY,maxX-minX,maxY-minY))
     svgArray.append('\n')
     for p in polys:
-        n = len(p) # always 3
-        for i in range(n):
+        for i in range(len(p)):
             svgArray.append('<line x1="%f" y1="%f" x2="%f" y2="%f" stroke="black" stroke-width="0.15px"/>' % 
                 (vertices[p[i-1]].x-minX,vertices[p[i-1]].y-minY,vertices[p[i]].x-minX,vertices[p[i]].y-minY))
     svgArray.append('</svg>')
