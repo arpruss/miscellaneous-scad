@@ -1,34 +1,38 @@
-clipAngle = atan(5/(66*2.54));
-echo(clipAngle);
+clipAngle = 1.71;
 clipLength = 48; 
-clipWallThickness = 1.55;
+poleDiameter = 19.14;
+
+webThickness = 1.55;
 clipBottomStickout = 30;
 clipAttachmentThickness = 8;
-poleDiameter = 19.14;
+
 screwHoleSize = 3;
 screwHoleCountersinkDiameter = 8;
 screwHoleCountersinkDepth = 3;
 
-hangerWidth = 40;
-hangerThickness = 8;
+flangeWidth = 40;
+flangeThickness = 8;
+
+bottomScrewsHeightFactor = .3; 
+topScrewsHeightFactor = 0.8;
 
 nudge = 0.01;
 
 module clip() {
     render(convexity=5)
-    translate([0,poleDiameter/2+clipWallThickness,])
+    translate([0,poleDiameter/2+webThickness,])
     difference() {
         union() {
             translate([-clipAttachmentThickness/2,-clipBottomStickout-poleDiameter/2,0])
             cube([clipAttachmentThickness,clipBottomStickout,clipLength]);
-                cylinder(h=clipLength,d=poleDiameter+2*clipWallThickness);
+                cylinder(h=clipLength,d=poleDiameter+2*webThickness);
         }
         translate([0,poleDiameter*.85,clipLength]) rotate([-45,0,0])
-        cube(center=true,poleDiameter+2*clipWallThickness);
-translate([0,0,clipLength-clipWallThickness+nudge]) cylinder(h=clipWallThickness,d1=poleDiameter,d2=poleDiameter+2*clipWallThickness);
+        cube(center=true,poleDiameter+2*webThickness);
+translate([0,0,clipLength-webThickness+nudge]) cylinder(h=webThickness,d1=poleDiameter,d2=poleDiameter+2*webThickness);
         translate([0,0,-nudge]) {
             cylinder(h=clipLength+2*nudge,d=poleDiameter);
-            translate([0,1.5*(clipWallThickness+poleDiameter/2),0]) linear_extrude(height=clipLength+2*nudge) square(center=true, poleDiameter+2*clipWallThickness+2*nudge);
+            translate([0,1.5*(webThickness+poleDiameter/2),0]) linear_extrude(height=clipLength+2*nudge) square(center=true, poleDiameter+2*webThickness+2*nudge);
         }
     }
 }
@@ -36,7 +40,7 @@ translate([0,0,clipLength-clipWallThickness+nudge]) cylinder(h=clipWallThickness
 module screwHole() {
 rotate([90,0,0])
 translate([0,0,-nudge]) {
-    cylinder(d=screwHoleSize, $fn=4, h=hangerThickness+2*nudge); 
+    cylinder(d=screwHoleSize, $fn=4, h=flangeThickness+2*nudge); 
     cylinder(d=screwHoleCountersinkDiameter, $fn=16, h=screwHoleCountersinkDepth);
     }
 }
@@ -47,16 +51,16 @@ module wallAttachment() {
     translate([-250,-250,0]) cube([500,500,clipLength]);
     rotate([clipAngle,0,0])
     {
-    translate([0,-clipBottomStickout-hangerThickness,0]) difference() {
-    translate([-hangerWidth/2,0,-clipLength])
-        cube([hangerWidth, hangerThickness, 3*clipLength]);
-        translate([hangerWidth*.35,clipAttachmentThickness,clipLength*.3]) screwHole();
-        translate([hangerWidth*.35,clipAttachmentThickness,clipLength*.8]) screwHole();
-        translate([-hangerWidth*.35,clipAttachmentThickness,clipLength*.3]) screwHole();
-        translate([-hangerWidth*.35,clipAttachmentThickness,clipLength*.8]) screwHole();
+    translate([0,-clipBottomStickout-flangeThickness,0]) difference() {
+    translate([-flangeWidth/2,0,-clipLength])
+        cube([flangeWidth, flangeThickness, 3*clipLength]);
+        translate([flangeWidth*.35,clipAttachmentThickness,clipLength*bottomScrewsHeightFactor]) screwHole();
+        translate([flangeWidth*.35,clipAttachmentThickness,clipLength*topScrewsHeightFactor]) screwHole();
+        translate([-flangeWidth*.35,clipAttachmentThickness,clipLength*bottomScrewsHeightFactor]) screwHole();
+        translate([-flangeWidth*.35,clipAttachmentThickness,clipLength*topScrewsHeightFactor]) screwHole();
     }
-    translate([-hangerWidth/2,0,-clipLength])
-        translate([hangerWidth/2-clipAttachmentThickness/2,-clipBottomStickout,0])
+    translate([-flangeWidth/2,0,-clipLength])
+        translate([flangeWidth/2-clipAttachmentThickness/2,-clipBottomStickout,0])
         cube([clipAttachmentThickness,clipBottomStickout,3*clipLength]);
     }
     }
