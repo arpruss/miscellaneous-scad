@@ -13,8 +13,8 @@ screwHoleCountersinkDepth = 3;
 flangeWidth = 40;
 flangeThickness = 8;
 
-bottomScrewsHeightFactor = .3; 
-topScrewsHeightFactor = 0.8;
+bottomScrewsHeightFactor = 0.3; // this is weirdly dependent on the angle -- just experiment 
+topScrewsHeightFactor = 0.8; // this is weirdly dependent on the angle -- just experiment
 
 nudge = 0.01;
 
