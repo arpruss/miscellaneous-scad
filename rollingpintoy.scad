@@ -16,14 +16,15 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     centerR = centerDiameter / 2;
 
     bezierPointsTop = [
-      [0,height],[tipR,height], [0,height], 
+      [0,height],/*C*/OFFSET([1,0]),OFFSET([-1,0]), 
       /*N*/[tipR-chamferSize,height],
       /*C*/SMOOTH_ABS(chamferSize*0.5), 
       /*C*/SMOOTH_ABS(chamferSize*0.5), 
       /*N*/[tipR,height-chamferSize], 
       [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height]];
     function flip(v) = POINT_IS_SPECIAL(v) ? v : [v[0],height-v[1]];
-    bezierPointsBottom = [ for(i=[1:len(bezierPointsTop)-1]) let(j=len(bezierPointsTop)-1-i) flip(bezierPointsTop[j]) ];
+    fixedTop = DecodeBezierOffsets(bezierPointsTop);
+    bezierPointsBottom = [ for(i=[1:len(fixedTop)-1]) let(j=len(fixedTop)-1-i) flip(fixedTop[j]) ];
     bezierPoints = concat(bezierPointsTop,bezierPointsBottom);
     polygon(Bezier(bezierPoints));
 }
