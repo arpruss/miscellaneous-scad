@@ -1,4 +1,4 @@
-include <bezier.scad>;
+use <bezier.scad>;
 
 tipDiameter = 20;
 centerDiameter = 27;

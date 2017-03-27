@@ -10,7 +10,7 @@ function PointAlongBez4(p0, p1, p2, p3, u) = [
 
 function SMOOTH_REL(x) = ["r",x];
 function SMOOTH_ABS(x) = ["a",x];
-SYMMETRIC = ["r",1];
+function SYMMETRIC() = ["r",1];
 function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a");
 
 function normalize2D(v) = v / sqrt(v[0]*v[0]+v[1]*v[1]);
@@ -31,4 +31,14 @@ function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item 
 
 function Bezier(p,precision=0.05) = let(nodes=(len(p)-1)/3) flatten([for (i=[0:nodes-1]) Bezier2(p,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]);
 
-//polygon(Bezier([[0,0],[5,0],SYMMETRIC,[10,10],[15,10],[15,0],[20,0]],precision=0.05));
+linear_extrude(height=5) {
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+translate([0,15])
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(2),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+translate([0,30])
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(1.5),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+translate([0,45])
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(-1),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+translate([0,60])
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(-1),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+}
