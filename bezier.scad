@@ -11,11 +11,14 @@ function PointAlongBez4(p0, p1, p2, p3, u) = [
 function SMOOTH_REL(x) = ["r",x];
 function SMOOTH_ABS(x) = ["a",x];
 function SYMMETRIC() = ["r",1];
-function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a");
+function OFFSET(v) = ["o",v];
+function SHARP() = OFFSET([0,0]);
+function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
+function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o");
 
 function normalize2D(v) = v / sqrt(v[0]*v[0]+v[1]*v[1]);
 
-function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*normalize2D(node-otherCP):cp );
+function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*normalize2D(node-otherCP):(cp[0]=="o"?node+cp[1]:cp) );
 
 function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],getControlPoint(p[index+1],p[index+0],p[index-1]),getControlPoint(p[index+2],p[index+3],p[index+4]),p[index+3],i/nPoints)];
     
@@ -28,17 +31,23 @@ function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item 
 //   SYMMETRIC: uses a reflection of the control point on the other side of the node
 //   SMOOTH_REL(x): like SYMMETRIC, but the distance of the control point to the node is x times the distance of the other control point to the node
 //   SMOOTH_ABS(x): like SYMMETRIC, but the distance of the control point to the node is exactly x
+// You can also replace any control point with:
+//   OFFSET(v): puts the control point at the corresponding node plus the vector v
+//   SHARP(): equivalent to OFFSET([0,0]); useful for straight lines
+//   POLAR(r,angle): like OFFSET, except the offset is specified in polar coordinates
 
 function Bezier(p,precision=0.05) = let(nodes=(len(p)-1)/3) flatten([for (i=[0:nodes-1]) Bezier2(p,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]);
 
 linear_extrude(height=5) {
-polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,15])
-polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(2),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(2),[10,10],/*C*/[15,10],/*C*/POLAR(5,180),[20,0]],precision=0.05));
 translate([0,30])
-polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(1.5),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(1.5),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,45])
-polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(-1),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(-1),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,60])
-polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(-1),[10,10],/*C*/[15,10],/*C*/[15,0],[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(-1),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
+translate([0,75])
+polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
