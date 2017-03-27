@@ -62,7 +62,7 @@ module hollowPin() {
     }
 }
 
-$fn=80;
+$fn=60;
 hollowPin();
 
 //crossSection();
