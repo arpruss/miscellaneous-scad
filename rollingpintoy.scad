@@ -11,7 +11,7 @@ maxBridgeLength = 15;
 module dummy() {}
 nudge = 0.01;
 
-module crossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height) {
+module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height) {
     tipR = tipDiameter / 2;
     centerR = centerDiameter / 2;
 
@@ -31,38 +31,35 @@ module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height
     rotate_extrude() crossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height);
 }
 
-module insidePin() {
+module insidePinCrossSection() {
     maxDiameter = max(tipDiameter,centerDiameter);
 
     cylinderHeight = maxBridgeLength < maxDiameter ? 0.5*(maxDiameter-maxBridgeLength) : 0;
     
     module antiBridgingCylinder() {
         if (maxBridgeLength < maxDiameter) {
-            translate([0,0,-cylinderHeight])
-            cylinder(d2=maxBridgeLength, d1=maxDiameter, h=cylinderHeight);
+            translate([0,-cylinderHeight])
+            polygon([[0,0],[maxDiameter/2,0],[maxBridgeLength/2,cylinderHeight],[0,cylinderHeight]]);
         }
     }
     
         intersection() {
-            pin(tipDiameter=tipDiameter-2*wallThickness, centerDiameter=centerDiameter-2*wallThickness);
+            pinCrossSection(tipDiameter=tipDiameter-2*wallThickness, centerDiameter=centerDiameter-2*wallThickness);
             union() {
-                translate([-maxDiameter,-maxDiameter,height*endCapFraction+cylinderHeight]) cube([maxDiameter*2,maxDiameter*2,height*(1-2*endCapFraction)-2*cylinderHeight]);
-                translate([0,0,(1-endCapFraction)*height-nudge])
+                translate([-maxDiameter/2,height*endCapFraction+cylinderHeight]) square([maxDiameter,height*(1-2*endCapFraction)-2*cylinderHeight]);
+                translate([0,(1-endCapFraction)*height-nudge])
                     antiBridgingCylinder();
-                translate([0,0,endCapFraction*height+nudge])
-                rotate([0,180,0]) antiBridgingCylinder();
+                translate([0,endCapFraction*height+nudge])
+                mirror([0,1]) antiBridgingCylinder();
             }
         }
 }
 
-module hollowPin() {
+module crossSection() {
     difference() {
-        pin();
-        insidePin();
+        pinCrossSection();
+        insidePinCrossSection();
     }
 }
 
-$fn=60;
-hollowPin();
-
-//crossSection();
+rotate_extrude($fn=60) crossSection();
