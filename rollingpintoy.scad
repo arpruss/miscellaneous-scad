@@ -1,4 +1,4 @@
-use <bezier.scad>;
+include <bezier.scad>;
 
 tipDiameter = 20;
 centerDiameter = 27;
@@ -18,20 +18,23 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     bezierPointsTop = [
       [0,height],[tipR,height], [0,height], 
       /*N*/[tipR-chamferSize,height],
-      /*C*/[tipR-chamferSize*0.5,height], 
-      /*C*/[tipR,height-chamferSize*0.5], 
+      /*C*/SMOOTH_ABS(chamferSize*0.5), 
+      /*C*/SMOOTH_ABS(chamferSize*0.5), 
       /*N*/[tipR,height-chamferSize], 
       [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height]];
-    bezierPointsBottom = [ for(i=[1:len(bezierPointsTop)-1]) let(j=len(bezierPointsTop)-1-i) [bezierPointsTop[j][0],height-bezierPointsTop[j][1]] ];
+    function flip(v) = POINT_IS_SPECIAL(v) ? v : [v[0],height-v[1]];
+    bezierPointsBottom = [ for(i=[1:len(bezierPointsTop)-1]) let(j=len(bezierPointsTop)-1-i) flip(bezierPointsTop[j]) ];
     bezierPoints = concat(bezierPointsTop,bezierPointsBottom);
     polygon(Bezier(bezierPoints));
 }
 
-module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height) {
+module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height, $fn=$fn) {
     rotate_extrude() crossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height);
 }
 
 module insidePinCrossSection() {
+    $fn = 16;
+    
     maxDiameter = max(tipDiameter,centerDiameter);
 
     cylinderHeight = maxBridgeLength < maxDiameter ? 0.5*(maxDiameter-maxBridgeLength) : 0;
@@ -56,10 +59,13 @@ module insidePinCrossSection() {
 }
 
 module crossSection() {
+    $fn = 60;
     difference() {
         pinCrossSection();
         insidePinCrossSection();
     }
 }
 
-rotate_extrude($fn=60) crossSection();
+render(convexity=1)
+rotate_extrude($fn=60) 
+crossSection();
