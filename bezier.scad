@@ -21,7 +21,7 @@ function normalize2D(v) = v / sqrt(v[0]*v[0]+v[1]*v[1]);
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
 function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*normalize2D(node-otherCP):cp );
 
-function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],getControlPoint(p[index+1],p[index+0],p[index-1]),getControlPoint(p[index+2],p[index+3],p[index+4]),p[index+3],i/nPoints)];
+function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
     
 function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item ];
 
@@ -42,7 +42,9 @@ function DecodeBezierOffset(control,node) = control[0] == "o" ? node+control[1] 
 // replace all OFFSET/SHARP/POLAR points with coordinates
 function DecodeBezierOffsets(p) = [for (i=[0:len(p)-1]) i%3==0?p[i]:(i%3==1?DecodeBezierOffset(p[i],p[i-1]):DecodeBezierOffset(p[i],p[i+1]))];
 
-function Bezier(p,precision=0.05) = let(q=DecodeBezierOffsets(p), nodes=(len(p)-1)/3) flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]);
+function DecodeSpecialBezierPoints(p0) = let(p=DecodeBezierOffsets(p0)) [for (i=[0:len(p)-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))];
+
+function Bezier(p,precision=0.05) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(p)-1)/3) flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]);
 
 linear_extrude(height=5) {
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
