@@ -9,7 +9,9 @@ wallThickness = 1.25;
 maxBridgeLength = 15;
 
 module dummy() {}
+
 nudge = 0.01;
+endCapSize = endCapFraction * height;
 
 module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height) {
     tipR = tipDiameter / 2;
@@ -26,6 +28,7 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     fixedTop = DecodeSpecialBezierPoints(bezierPointsTop);
     bezierPointsBottom = [ for(i=[1:len(fixedTop)-1]) let(j=len(fixedTop)-1-i) flip(fixedTop[j]) ];
     bezierPoints = concat(bezierPointsTop,bezierPointsBottom);
+    echo(len(Bezier(bezierPoints)));
     polygon(Bezier(bezierPoints));
 }
 
@@ -50,10 +53,10 @@ module insidePinCrossSection() {
         intersection() {
             pinCrossSection(tipDiameter=tipDiameter-2*wallThickness, centerDiameter=centerDiameter-2*wallThickness);
             union() {
-                translate([-maxDiameter/2,height*endCapFraction+cylinderHeight]) square([maxDiameter,height*(1-2*endCapFraction)-2*cylinderHeight]);
-                translate([0,(1-endCapFraction)*height-nudge])
+                translate([-maxDiameter/2,endCapSize+cylinderHeight]) square([maxDiameter,height-2*endCapSize-2*cylinderHeight]);
+                translate([0,height-endCapSize-nudge])
                     antiBridgingCylinder();
-                translate([0,endCapFraction*height+nudge])
+                translate([0,endCapSize+nudge])
                 mirror([0,1]) antiBridgingCylinder();
             }
         }
