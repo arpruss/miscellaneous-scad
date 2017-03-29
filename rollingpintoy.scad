@@ -8,10 +8,15 @@ endCapFraction = 0.12; /* fraction of total height occupied by each end cap */
 wallThickness = 1.25;
 maxBridgeLength = 15;
 
+weightCapsuleHeight = 0; 
+weightCapsuleDiameter = 15;
+weightCapsuleNumberOfSides = 30;
+weightCapsuleOffsetFromTip = 3;
+
 module dummy() {}
 
 nudge = 0.01;
-endCapSize = endCapFraction * height;
+endCapSize = max(endCapFraction*height, weightCapsuleHeight > 0 ? weightCapsuleHeight+weightCapsuleOffsetFromTip+2 : 0);
 
 module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height) {
     tipR = tipDiameter / 2;
@@ -28,7 +33,6 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     fixedTop = DecodeSpecialBezierPoints(bezierPointsTop);
     bezierPointsBottom = [ for(i=[1:len(fixedTop)-1]) let(j=len(fixedTop)-1-i) flip(fixedTop[j]) ];
     bezierPoints = concat(bezierPointsTop,bezierPointsBottom);
-    echo(len(Bezier(bezierPoints)));
     polygon(Bezier(bezierPoints));
 }
 
@@ -71,5 +75,12 @@ module crossSection() {
 }
 
 render(convexity=1)
-rotate_extrude($fn=60) 
-crossSection();
+difference() {
+    rotate_extrude($fn=60) crossSection();
+    if (weightCapsuleHeight>0) {
+        translate([0,0,weightCapsuleOffsetFromTip])
+            cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
+        translate([0,0,height-weightCapsuleOffsetFromTip-weightCapsuleHeight])
+            cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
+    }
+}
