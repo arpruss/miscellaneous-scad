@@ -1,7 +1,7 @@
 use <bezier.scad>;
 use <interpolate.scad>;
-use <ribbon.scad>;
 
+//<params>
 includeHeadband = true;
 stalkCount = 2;
 
@@ -14,6 +14,7 @@ toothSpacing = 3;
 toothThickness = 1;
 toothLength = 1;
 toothWidthRatio = 0.5;
+headbandBottomFlare = true;
 
 holderPosition = 0.25;
 stalkThickness = 5;
@@ -28,9 +29,10 @@ stalkBallDiameter = 20;
 stalkLength = 126;
 stalkBallFlat = true;
 
-spacing = 10; /* spacing between parts */
+spacing = 5; /* spacing between parts */
 
 module dummy() {}
+//</params>
 
 nudge = 0.01;
 
@@ -38,7 +40,7 @@ headbandHeight = headbandWidth * headbandHeightRatio;
 
 pointsRight = Bezier([
 [0,headbandHeight], /*C*/POLAR(headbandWidth/4,0), /*C*/POLAR(headbandWidth/4,90), [headbandWidth/2,headbandHeight/2],
-/*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/4,60),[headbandWidth/4,0]]);
+/*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/(headbandBottomFlare?6:4),headbandBottomFlare?90:60),[headbandWidth/4,0]]);
 
 interp = interpolationData(pointsRight);
 length = totalLength(interp);
@@ -48,7 +50,7 @@ module rightSide() {
     segments = floor(length / segmentLength);
 
     for(i=[0:segments-1]) {
-        adjust = i < segments-1 ? 0 : 1/3* headbandStripWidth;
+        adjust = i < segments-1 ? 0 : (1/(2+sqrt(2)))* headbandStripWidth;
         a = interpolateByDistance(interp, i*segmentLength);
         b = interpolateByDistance(interp, (i+1)*segmentLength);
         hull() {
