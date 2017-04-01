@@ -21,10 +21,24 @@ function interpolateByDistance(interp,distance) = let(
     i=findSegmentByDistance(sumD,distance))
         i<0 ? (distance<totalD/2 ? v[0] : v[n]) :
             interpolatePoints(v[i],v[i+1],(distance-sumD[i])/d[i]);
+function get2DNormalBetweenPoints(a,b) = let(
+    v = (b-a)/distance(a,b))
+        [v[1],-v[0]];
+function getTangentByDistance(interp,distance) = let(
+    n=len(interp[1])-1,
+    d=interp[0],
+    sumD=interp[1],
+    v=interp[2],
+    totalD=interp[3],
+    i0=findSegmentByDistance(sumD,distance),
+    i = i0 < 0 ? (distance<totalD/2 ? 0 : n-1) : i0)
+        (v[i+1]-v[i])/distance(v[i],v[i+1]);
+    
 function interpolateByParameter(interp,t) = interpolateByDistance(interp,t*totalLength(interp));
 function singleInterpolateByDistance(v,distance) = interpolateByDistance(interpolationData(v),distance);
 function singleInterpolateByParameter(v,t) = interpolateByParameter(interpolationData(v),t);
 function measurePath(v) = totalLength(interpolationData(v));
 
+//interp = interpolationData([[1,2],[2,3],[1,2]]);
 //echo(singleInterpolateByParameter([[1,1],[2,2],[3,1]],0.75));
 //echo(measurePath([[1,2],[2,3],[1,2]]));
