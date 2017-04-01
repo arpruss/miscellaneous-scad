@@ -3,7 +3,7 @@ use <interpolate.scad>;
 
 //<params>
 includeHeadband = true;
-stalkCount = 2;
+stalkCount = 0;
 
 headbandWidth = 123;
 headbandHeightRatio = 1.1;
@@ -16,10 +16,10 @@ toothLength = 1;
 toothWidthRatio = 0.5;
 headbandBottomFlare = true;
 
-holderPosition = 0.25;
+stalkHolderPosition = 0.25;
 stalkThickness = 5;
-holderBackingThickness = 1;
-holderSize = 30;
+stalkHolderBackingThickness = 1;
+stalkHolderSize = 30;
 stalkWidth = 4;
 stalkSocketDiameter = 6;
 stalkTolerance = 0.5;
@@ -59,40 +59,44 @@ module rightSide() {
         }
     }
     
-    teeth = floor(length * toothedRatio / toothSpacing);
-    for(i=[0:teeth-1]) {
-        d = i * toothSpacing;
-        tangent = getTangentByDistance(interp, d);
-        normal = [tangent[1],-tangent[0]];
-        a = interpolateByDistance(interp, d);
-        hull() {
-            translate(a) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
-            translate(a+(toothLength+headbandStripThickness*0.5)*normal) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+    if (toothedRatio>0) {
+        teeth = floor(length * toothedRatio / toothSpacing);
+        for(i=[0:teeth-1]) {
+            d = i * toothSpacing;
+            tangent = getTangentByDistance(interp, d);
+            normal = [tangent[1],-tangent[0]];
+            a = interpolateByDistance(interp, d);
+            hull() {
+                translate(a) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+                translate(a+(toothLength+headbandStripThickness*0.5)*normal) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+            }
         }
     }
-    
-    holderStart = holderPosition * length - holderSize / 2;
-    holderEnd = holderPosition * length + holderSize / 2;
-    holderPoints0 = [for (d=[holderStart:1:holderEnd]) interpolateByDistance(interp,d)];
-    a = interpolateByDistance(interp,holderStart);
-    b = interpolateByDistance(interp,holderEnd);
-    holderAngle = atan2(b[1]-a[1],b[0]-a[0]);
-    c = (a+b)/2;
-    r = distance(a,c);
-    holderPoints1 = [for (angle=[0:10:180]) c+r*[cos(angle+holderAngle),sin(angle+holderAngle)]];
-    holderPoints = concat(holderPoints0,holderPoints1);
-    holderCenterPoint = interpolateByDistance(interp,(holderStart+holderEnd)/2);
-    holderTangent = getTangentByDistance(interp,(holderStart+holderEnd)/2);
-    holderNormal = [-holderTangent[1],holderTangent[0]];
-    socketCenter = holderCenterPoint+(stalkTolerance+stalkSocketDiameter/2+headbandStripThickness/2)*holderNormal;
-    linear_extrude(height=stalkThickness+holderBackingThickness)
-    difference() {
-        polygon(holderPoints);
-        translate(socketCenter) circle(r=stalkTolerance+stalkSocketDiameter/2);
-        translate(socketCenter) rotate([0,0,stalkAngle])    translate([0,-(stalkWidth/2+stalkTolerance)]) square([r,stalkWidth+stalkTolerance*2]);
+
+    if (stalkHolderSize>0) {    
+        stalkHolderStart = stalkHolderPosition * length - stalkHolderSize / 2;
+        stalkHolderEnd = stalkHolderPosition * length + stalkHolderSize / 2;
+        stalkHolderPoints0 = [for (d=[stalkHolderStart:1:stalkHolderEnd]) interpolateByDistance(interp,d)];
+        a = interpolateByDistance(interp,stalkHolderStart);
+        b = interpolateByDistance(interp,stalkHolderEnd);
+        stalkHolderAngle = atan2(b[1]-a[1],b[0]-a[0]);
+        c = (a+b)/2;
+        r = distance(a,c);
+        stalkHolderPoints1 = [for (angle=[0:10:180]) c+r*[cos(angle+stalkHolderAngle),sin(angle+stalkHolderAngle)]];
+        stalkHolderPoints = concat(stalkHolderPoints0,stalkHolderPoints1);
+        stalkHolderCenterPoint = interpolateByDistance(interp,(stalkHolderStart+stalkHolderEnd)/2);
+        stalkHolderTangent = getTangentByDistance(interp,(stalkHolderStart+stalkHolderEnd)/2);
+        stalkHolderNormal = [-stalkHolderTangent[1],stalkHolderTangent[0]];
+        socketCenter = stalkHolderCenterPoint+(stalkTolerance+stalkSocketDiameter/2+headbandStripThickness/2)*stalkHolderNormal;
+        linear_extrude(height=stalkThickness+stalkHolderBackingThickness)
+        difference() {
+            polygon(stalkHolderPoints);
+            translate(socketCenter) circle(r=stalkTolerance+stalkSocketDiameter/2);
+            translate(socketCenter) rotate([0,0,stalkAngle])    translate([0,-(stalkWidth/2+stalkTolerance)]) square([r,stalkWidth+stalkTolerance*2]);
+        }
+        linear_extrude(height=stalkHolderBackingThickness)
+            polygon(stalkHolderPoints);
     }
-    linear_extrude(height=holderBackingThickness)
-        polygon(holderPoints);
 }
 
 module headband() {
@@ -123,8 +127,9 @@ module stalk() {
 if (includeHeadband)
     headband();
 
-x0 = includeHeadband ? headbandWidth/2 + holderSize/2 + spacing : 0;
+x0 = includeHeadband ? headbandWidth/2 + stalkHolderSize/2 + spacing : 0;
 
-for (i=[0:stalkCount-1]) 
-    translate([x0+i*(stalkBallDiameter+spacing),0,0])
-        stalk();
+if (stalkCount>0)
+    for (i=[0:stalkCount-1]) 
+        translate([x0+i*(stalkBallDiameter+spacing),0,0])
+            stalk();
