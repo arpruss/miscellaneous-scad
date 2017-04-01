@@ -3,7 +3,7 @@ use <interpolate.scad>;
 
 //<params>
 includeHeadband = true;
-stalkCount = 0;
+stalkCount = 2;
 
 headbandWidth = 123;
 headbandHeightRatio = 1.1;
