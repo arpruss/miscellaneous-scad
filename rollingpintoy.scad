@@ -1,19 +1,23 @@
 use <bezier.scad>;
 
+//<params>
 tipDiameter = 20;
 centerDiameter = 27;
 height = 90;
 chamferSize = 1.5;
-endCapFraction = 0.12; /* fraction of total height occupied by each end cap */
+// fraction of total height occupied by each solid end cap 
+endCapFraction = 0.12; 
 wallThickness = 1.25;
 maxBridgeLength = 15;
 
+// height for weight capsule (if used, stop printing here and insert weights)
 weightCapsuleHeight = 0; 
 weightCapsuleDiameter = 15;
 weightCapsuleNumberOfSides = 30;
 weightCapsuleOffsetFromTip = 3;
 
 module dummy() {}
+//</params>
 
 nudge = 0.01;
 endCapSize = max(endCapFraction*height, weightCapsuleHeight > 0 ? weightCapsuleHeight+weightCapsuleOffsetFromTip+2 : 0);
