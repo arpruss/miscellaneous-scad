@@ -76,8 +76,34 @@ function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]))
 function RemoveDuplicates(p,eps=0.00001) = let(safeEps = eps/len(p)) [for (i=[0:len(p)-1]) if(i==0 || i==len(p)-1 || Distance2D(p[i-1],p[i]) >= safeEps) p[i]];
 
 function Bezier(p,precision=0.05,eps=0.00001) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(p)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
+    
+module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
+    $fn = 16;
+    p1 = DecodeSpecialBezierPoints(p);
+    l = Bezier(p1,precision=precision,eps=eps);
+    for (i=[0:len(l)-2]) {
+        hull() {
+            translate(l[i]) circle(d=lineThickness);
+            translate(l[i+1]) circle(d=lineThickness);
+        }
+    }
+    for (i=[0:len(p1)-1]) {
+        if (i%3 == 0) {
+            color("black") translate(p1[i]) circle(d=nodeSize);
+        }
+        else {
+            node = i%3 == 1 ? i-1 : i+1;
+            color("red") translate(p1[i]) circle(d=nodeSize);
+            color("red") hull() {
+                translate(p1[node]) circle(d=controlLineThickness);
+                translate(p1[i]) circle(d=controlLineThickness);
+            }
+        }
+    }
+}
 
 //<skip>
+translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]]);
 linear_extrude(height=5) {
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,15])

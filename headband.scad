@@ -1,5 +1,5 @@
 use <bezier.scad>;
-use <interpolate.scad>;
+use <paths.scad>;
 
 //<params>
 includeHeadband = true;
@@ -81,7 +81,7 @@ module rightSide() {
         b = interpolateByDistance(interp,stalkHolderEnd);
         stalkHolderAngle = atan2(b[1]-a[1],b[0]-a[0]);
         c = (a+b)/2;
-        r = distance(a,c);
+        r = norm(c-a);
         stalkHolderPoints1 = [for (angle=[0:10:180]) c+r*[cos(angle+stalkHolderAngle),sin(angle+stalkHolderAngle)]];
         stalkHolderPoints = concat(stalkHolderPoints0,stalkHolderPoints1);
         stalkHolderCenterPoint = interpolateByDistance(interp,(stalkHolderStart+stalkHolderEnd)/2);
