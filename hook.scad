@@ -2,29 +2,34 @@ pi = 3.14159265358979;
 hookCurveRadius = 30;
 hookDownDistance = 50;
 hookUpDistance = 40;
-hookEndAngle = 180 + 180 / pi * hookDownDistance / hookCurveRadius;
 sharpStartAngle = 180;
-hookThickness = 18;
+hookMainThickness = 18;
+hookTipThickness = 0;
+hookTipBallDiameter = 0;
 tolerance = 0.3;
 includeHookLeft = true;
 includeHookRight = true;
 // do not use this if you include hook left or right
 includeFullHook = false;
 includeAttachment = true;
+threadScale = 1;
 
 nudge = 0.01;
 
 module dummy() {}
+
+hookEndAngle = 180 + 180 / pi * hookDownDistance / hookCurveRadius;
+
 /*
 Broom and Paint Handle Threads 3/4"x5 by halley is licensed under the Creative Commons - Attribution license.
 http://www.thingiverse.com/thing:84774
 */
 
-    broomThreadFemale_size=[1.1*25.00738,1.1*25.00738,48.25175];
+    broomThreadFemale_size=[threadScale * 1.1*25.00738,threadScale * 1.1*25.00738,48.25175];
 
 module broomThreadFemale() {
     translate([0,-broomThreadFemale_size[1]/2,0])
-    scale([1.1,1.1,1.0])
+    scale([threadScale * 1.1,threadScale * 1.1,1.0])
     polyhedron(
  
  points=[
@@ -5787,7 +5792,7 @@ module broomThreadFemale() {
 
 module hook() {
     function thickness(angle) = 
-    angle <= sharpStartAngle ? hookThickness : hookThickness * (hookEndAngle-angle) / (hookEndAngle-sharpStartAngle);
+    angle <= sharpStartAngle ? hookMainThickness : hookMainThickness * (hookEndAngle-angle) / (hookEndAngle-sharpStartAngle) + hookTipThickness * (1-(hookEndAngle-angle) / (hookEndAngle-sharpStartAngle));
     function position(angle) = angle < 180 ? hookCurveRadius * [cos(angle),0,sin(angle)] : [-hookCurveRadius,0, -hookCurveRadius * 3.14159 / 180 * (angle-180)];
     
     translate([-hookCurveRadius,0,0])
@@ -5801,11 +5806,12 @@ module hook() {
             translate(p2) sphere(d=r2);
         }
     }
-    translate([0,0,-hookUpDistance]) cylinder(h=hookUpDistance,d=hookThickness);
+    translate([-2*hookCurveRadius,0,-hookDownDistance+hookTipBallDiameter/2]) sphere(d=hookTipBallDiameter);
+    translate([0,0,-hookUpDistance]) cylinder(h=hookUpDistance,d=hookMainThickness);
 }
 
 module hookHalf(angle) {
-    a = 2 * ( hookCurveRadius * 2 + hookThickness + 2 * hookDownDistance + 2 * hookUpDistance );
+    a = 2 * ( hookCurveRadius * 2 + hookMainThickness + 2 * hookDownDistance + 2 * hookUpDistance );
     render(convexity=2)
     intersection() {
         translate([-a/2,-a/2,0]) cube(a);
@@ -5825,17 +5831,17 @@ module thread() {
                 broomThreadFemale();
             }
         }
-        cylinder(d=hookThickness+2*tolerance, h=20);
+        cylinder(d=hookMainThickness+2*tolerance, h=20);
     }
 }
 
 if (includeHookLeft)
 hookHalf(90);
 if (includeHookRight)
-    translate([hookCurveRadius * 2 + 2 * hookThickness,0,0])
+    translate([hookCurveRadius * 2 + 2 * hookMainThickness,0,0])
      hookHalf(-90);
 if (includeFullHook)
-    translate([0,-hookDownDistance,0.5 * hookThickness])
+    translate([0,-hookDownDistance,0.5 * hookMainThickness])
     rotate([90,0,0])
    hook();
 
