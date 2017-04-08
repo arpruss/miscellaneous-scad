@@ -8,11 +8,11 @@ height = 125;
 textSize = 18;
 textSpacing = 23;
 line1 = "Happy __th";
-line2 = "Birthday";
-line3 = "to [name]!";
+line2 = "Birthday to";
+line3 = "[name]!";
 line4 = "From,";
 line5 = "[name]";
-font = "Vladimir script";
+font = "Great Vibes";
 
 module dummy() {}
 
