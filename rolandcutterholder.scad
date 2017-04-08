@@ -36,9 +36,9 @@ springSupportThickness = 2;
 
 capTaperStart = 2+7.75;
 
-includeHolder = true; // true;
-includeStrap = true;
-includeCap = true;
+includeHolder = 1; // [0:no, 1:yes]
+includeStrap = 1; // [0:no, 1:yes]
+includeCap = 1; // [0:no, 1:yes]
 
 module dummy() {}
 

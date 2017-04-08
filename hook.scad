@@ -1,4 +1,3 @@
-pi = 3.14159265358979;
 hookCurveRadius = 30;
 hookDownDistance = 50;
 hookUpDistance = 40;
@@ -7,16 +6,18 @@ hookMainThickness = 18;
 hookTipThickness = 0;
 hookTipBallDiameter = 0;
 tolerance = 0.3;
-includeHookLeft = true;
-includeHookRight = true;
+includeHookLeft = 1; // [0:no, 1:yes]
+includeHookRight = 1; // [0:no, 1:yes]
 // do not use this if you include hook left or right
-includeFullHook = false;
-includeAttachment = true;
+includeFullHook = 0; // [0:no, 1:yes] 
+includeAttachment = 1; // [0:no, 1:yes]
 threadScale = 1;
 
 nudge = 0.01;
 
 module dummy() {}
+
+pi = 3.14159265358979;
 
 hookEndAngle = 180 + 180 / pi * hookDownDistance / hookCurveRadius;
 

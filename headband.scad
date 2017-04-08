@@ -2,7 +2,7 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-includeHeadband = true;
+includeHeadband = 1; [0:no, 1:yes]
 stalkCount = 2;
 
 headbandWidth = 123;
@@ -14,7 +14,7 @@ toothSpacing = 3;
 toothThickness = 1;
 toothLength = 1;
 toothWidthRatio = 0.5;
-headbandBottomFlare = true;
+headbandBottomFlare = 1; [0:no, 1:yes]
 
 stalkHolderPosition = 0.25;
 stalkThickness = 5;
@@ -27,7 +27,7 @@ stalkAngle = 75;
 
 stalkBallDiameter = 20;
 stalkLength = 126;
-stalkBallFlat = true;
+stalkBallFlat = 1; [0:no, 1:yes]
 
 spacing = 5; /* spacing between parts */
 
