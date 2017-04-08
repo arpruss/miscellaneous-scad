@@ -10,7 +10,7 @@ line2 = "to my dear";
 line3 = "[blank]!";
 line4 = "Love,";
 line5 = "[blank]";
-font = "Vladimir script";
+font = "Great Vibes";
 
 nudge = 0.01;
 
