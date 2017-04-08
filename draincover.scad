@@ -3,11 +3,11 @@ topDiameter = 50;
 bottomDiameter = 30;
 holeHorizontalSpacingAtBottom = 2.5;
 numberOfHolesAround = 10;
-topFlange = 2;
+topFlange = 1.75;
 wallThickness = 1.5;
-numberOfHolesVertically = 10;
+numberOfHolesVertically = 16;
 numberOfHolesRadially = 2;
-holeVerticalSpacing = 2.5;
+holeVerticalSpacing = 1.5;
 holeRadialSpacing = 2;
 bottomHoleRadialOffset = 6;
 
@@ -51,7 +51,8 @@ module bottomHole(r1) {
 render(convexity=2)
 difference() {
     union() {
-        cylinder(d1=bottomDiameter,d2=topDiameter,h=height);
+        rotate([0,0,180/numberOfHolesAround])
+        cylinder(d1=bottomDiameter,d2=topDiameter,h=height, $fn=numberOfHolesAround);
         translate([0,0,height-(topDiameter/2+topFlange)]) cylinder(d2=topDiameter+topFlange*2,d1=0,h=topDiameter/2+topFlange);
     }
     translate([0,0,wallThickness])
