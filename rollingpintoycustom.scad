@@ -38,14 +38,19 @@ function getProfile(tipDiameter=tipDiameter,  centerDiameter=centerDiameter, hei
     pointsTop = DecodeSpecialBezierPoints(bezierPointsTop))
     reverseArray(Bezier(stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop))), precision=0.1));
 
-module extrudeWithScalingPath(path, scale=1.) {
+module extrudeWithScalingPath(path, scale=1., inset=false) {
     for (i=[0:len(path)-2]) {
         echo(s1,z1,s2,z2);
         s1 = path[i][0]*scale;
         z1 = path[i][1];
         s2 = path[i+1][0]*scale;
         z2 = path[i+1][1];
-        translate([0,0,z1]) linear_extrude(height=z2-z1, convexity=10, scale=s2/s1) scale(s1) children();
+        translate([0,0,z1]) linear_extrude(height=z2-z1, convexity=10, scale=s2/s1) if (inset) {
+            inset() scale(s1) children();
+        }
+        else {
+            scale(s1) children();
+        }
     }
 }
 
@@ -73,10 +78,10 @@ module inset(wallThickness=wallThickness) {
         {
             difference() 
             {
-                cube(maxDiameter, center=true);
+                square(maxDiameter, center=true);
                 children();
             }
-            sphere(r=wallThickness, $fn=12);
+            circle(r=wallThickness, $fn=12);
         }    
     }
 }
@@ -93,29 +98,22 @@ difference() {
 }
 */
 
-module outsideShape(scale=1.) {
-    profile = getProfile();
-    extrudeWithScalingPath(profile, scale=scale) children();
-}
-
-module makeToy() {
+module makeToy(scale=1.) {
     profile = getProfile();
     render(convexity=1)
     difference() {
-        children();
+        extrudeWithScalingPath(profile, scale=scale) children();
         intersection() {
-            inset()
-                children();
-            translate([-maxDiameter/2,-maxDiameter/2,height*endCapFraction]) cube([maxDiameter,maxDiameter,height*(1-2*endCapFraction)]);
+        extrudeWithScalingPath(profile, scale=scale, inset=true) children();
+        translate([-maxDiameter/2,-maxDiameter/2,height*endCapFraction]) cube([maxDiameter,maxDiameter,height*(1-2*endCapFraction)]);
         }
     }    
 }
 
 module full() {
     render(convexity=2)
-    makeToy()
-        outsideShape(scale=1./tipDiameter) 
-            polygon([for (angle=[0:5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
+    makeToy(scale=1./tipDiameter) 
+        polygon([for (angle=[0:5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
 }
 
 if (cutAwayView) {
