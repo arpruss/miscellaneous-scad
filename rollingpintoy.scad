@@ -10,6 +10,8 @@ chamferSize = 1.5;
 endCapFraction = 0.12; 
 wallThickness = 1.25;
 maxBridgeLength = 15;
+bodyNumberOfSides = 60;
+cutAwayView = 0;
 
 // height for weight capsule (if used, stop printing here and insert weights)
 weightCapsuleHeight = 0; 
@@ -44,8 +46,6 @@ module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height
 }
 
 module insidePinCrossSection() {
-    $fn = 16;
-    
     maxDiameter = max(tipDiameter,centerDiameter);
 
     cylinderHeight = maxBridgeLength < maxDiameter ? 0.5*(maxDiameter-maxBridgeLength) : 0;
@@ -70,20 +70,32 @@ module insidePinCrossSection() {
 }
 
 module crossSection() {
-    $fn = 60;
     difference() {
         pinCrossSection();
         insidePinCrossSection();
     }
 }
 
-render(convexity=1)
-difference() {
-    rotate_extrude($fn=60) crossSection();
-    if (weightCapsuleHeight>0) {
-        translate([0,0,weightCapsuleOffsetFromTip])
-            cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
-        translate([0,0,height-weightCapsuleOffsetFromTip-weightCapsuleHeight])
-            cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
+module full() {
+    render(convexity=1)
+    difference() {
+        rotate_extrude($fn=bodyNumberOfSides) crossSection();
+        if (weightCapsuleHeight>0) {
+            translate([0,0,weightCapsuleOffsetFromTip])
+                cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
+            translate([0,0,height-weightCapsuleOffsetFromTip-weightCapsuleHeight])
+                cylinder(h=weightCapsuleHeight,d=weightCapsuleDiameter,$fn=weightCapsuleNumberOfSides);
+        }
     }
+}
+
+if (cutAwayView) {
+    render(convexity=3)
+    intersection() {
+        full();
+        translate([0,-150,0]) cube(300);
+    }
+}
+else {
+    full();
 }
