@@ -11,7 +11,7 @@ endCapFraction = 0.12;
 wallThickness = 1.25;
 maxBridgeLength = 15;
 bodyNumberOfSides = 60;
-cutAwayView = 0;
+cutAwayView = 0; // [1:yes, 0:no]
 
 // height for weight capsule (if used, stop printing here and insert weights)
 weightCapsuleHeight = 0; 

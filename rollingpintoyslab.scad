@@ -1,5 +1,7 @@
 use <bezier.scad>;
 
+// NOTE: THIS IS TERRIBLE IN PRACTICE!
+
 //<params>
 tipDiameter = 20;
 centerDiameter = 27;
