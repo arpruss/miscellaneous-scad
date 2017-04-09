@@ -10,6 +10,8 @@ chamferSize = 1.5;
 endCapFraction = 0.12; 
 wallThickness = 1.25;
 maxBridgeLength = 15;
+maxDiameter = 4*max(tipDiameter,centerDiameter,height);
+cutAwayView = 1; // [1:yes, 0:no]
 
 // height for weight capsule (if used, stop printing here and insert weights)
 weightCapsuleHeight = 0; 
@@ -34,7 +36,7 @@ function getProfile(tipDiameter=tipDiameter,  centerDiameter=centerDiameter, hei
       /*N*/[tipR,height-chamferSize], 
       [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height]],
     pointsTop = DecodeSpecialBezierPoints(bezierPointsTop))
-    reverseArray(Bezier(stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop)))));
+    reverseArray(Bezier(stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop))), precision=0.1));
 
 module extrudeWithScalingPath(path, scale=1.) {
     for (i=[0:len(path)-2]) {
@@ -63,45 +65,22 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     polygon(Bezier(points));
 }
 
-module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height, $fn=$fn) {
-    rotate_extrude() crossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height);
-}
-
-module insidePinCrossSection() {
-    $fn = 16;
-    
-    maxDiameter = max(tipDiameter,centerDiameter);
-
-    cylinderHeight = maxBridgeLength < maxDiameter ? 0.5*(maxDiameter-maxBridgeLength) : 0;
-    
-    module antiBridgingCylinder() {
-        if (maxBridgeLength < maxDiameter) {
-            translate([0,-cylinderHeight])
-            polygon([[0,0],[maxDiameter/2,0],[maxBridgeLength/2,cylinderHeight],[0,cylinderHeight]]);
-        }
-    }
-    
-        intersection() {
-            pinCrossSection(tipDiameter=tipDiameter-2*wallThickness, centerDiameter=centerDiameter-2*wallThickness);
-            union() {
-                translate([-maxDiameter/2,endCapSize+cylinderHeight]) square([maxDiameter,height-2*endCapSize-2*cylinderHeight]);
-                translate([0,height-endCapSize-nudge])
-                    antiBridgingCylinder();
-                translate([0,endCapSize+nudge])
-                mirror([0,1]) antiBridgingCylinder();
+module inset(wallThickness=wallThickness) {
+    difference() 
+    {
+        square(maxDiameter, center=true);
+        minkowski() 
+        {
+            difference() 
+            {
+                cube(maxDiameter, center=true);
+                children();
             }
-        }
-}
-
-module crossSection() {
-    $fn = 60;
-    difference() {
-        pinCrossSection();
-        insidePinCrossSection();
+            sphere(r=wallThickness, $fn=12);
+        }    
     }
 }
 
-render(convexity=1)
 /*
 difference() {
     rotate_extrude($fn=60) crossSection();
@@ -113,5 +92,39 @@ difference() {
     }
 }
 */
-extrudeWithScalingPath(getProfile(),scale=1./90) 
-    polygon([for (angle=[0:5:355]) 30*(2+cos(angle*8))*[cos(angle),sin(angle)]]);
+
+module outsideShape(scale=1.) {
+    profile = getProfile();
+    extrudeWithScalingPath(profile, scale=scale) children();
+}
+
+module makeToy() {
+    profile = getProfile();
+    render(convexity=1)
+    difference() {
+        children();
+        intersection() {
+            inset()
+                children();
+            translate([-maxDiameter/2,-maxDiameter/2,height*endCapFraction]) cube([maxDiameter,maxDiameter,height*(1-2*endCapFraction)]);
+        }
+    }    
+}
+
+module full() {
+    render(convexity=2)
+    makeToy()
+        outsideShape(scale=1./tipDiameter) 
+            polygon([for (angle=[0:5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
+}
+
+if (cutAwayView) {
+    render(convexity=3)
+    intersection() {
+        full();
+        translate([0,-150,0]) cube(300);
+    }
+}
+else {
+    full();
+}
