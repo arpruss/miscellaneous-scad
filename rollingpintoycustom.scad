@@ -113,7 +113,7 @@ module makeToy(scale=1.) {
 module full() {
     render(convexity=2)
     makeToy(scale=1./tipDiameter) 
-        polygon([for (angle=[0:5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
+        polygon([for (angle=[0:2.5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
 }
 
 if (cutAwayView) {
