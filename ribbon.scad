@@ -4,8 +4,16 @@ module ribbon(points, thickness=1, closed=false) {
     union() {
         for (i=[1:len(p)-1]) {
             hull() {
-                translate(p[i-1]) circle(d=thickness, $fn=8);
-                translate(p[i]) circle(d=thickness, $fn=8);
+                translate(p[i-1]) 
+                    if ($children==0)
+                        circle(d=thickness, $fn=8);
+                    else
+                        children();
+                translate(p[i]) 
+                    if ($children==0)
+                        circle(d=thickness, $fn=8);
+                    else
+                        children();
             }
         }
     }
