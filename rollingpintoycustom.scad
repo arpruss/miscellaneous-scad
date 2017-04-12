@@ -5,13 +5,13 @@ use <paths.scad>;
 tipDiameter = 20;
 centerDiameter = 27;
 height = 90;
-chamferSize = 1.5;
+chamferSize = 0; // 1.5;
 // fraction of total height occupied by each solid end cap 
-endCapFraction = 0.12; 
+endCapFraction = 0.18; 
 wallThickness = 1.25;
 maxBridgeLength = 15;
 maxDiameter = 4*max(tipDiameter,centerDiameter,height);
-cutAwayView = 1; // [1:yes, 0:no]
+cutAwayView = 0; // [1:yes, 0:no]
 
 // height for weight capsule (if used, stop printing here and insert weights)
 weightCapsuleHeight = 0; 
@@ -22,7 +22,7 @@ weightCapsuleOffsetFromTip = 3;
 module dummy() {}
 //</params>
 
-nudge = 0.01;
+nudge = 0.001;
 endCapSize = max(endCapFraction*height, weightCapsuleHeight > 0 ? weightCapsuleHeight+weightCapsuleOffsetFromTip+2 : 0);
 
 function getProfile(tipDiameter=tipDiameter,  centerDiameter=centerDiameter, height=height) = 
@@ -36,11 +36,10 @@ function getProfile(tipDiameter=tipDiameter,  centerDiameter=centerDiameter, hei
       /*N*/[tipR,height-chamferSize], 
       [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height]],
     pointsTop = DecodeSpecialBezierPoints(bezierPointsTop))
-    reverseArray(Bezier(stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop))), precision=0.1));
+    reverseArray(Bezier(stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop))), precision=0.15));
 
 module extrudeWithScalingPath(path, scale=1., inset=false) {
     for (i=[0:len(path)-2]) {
-        echo(s1,z1,s2,z2);
         s1 = path[i][0]*scale;
         z1 = path[i][1];
         s2 = path[i+1][0]*scale;
@@ -81,7 +80,7 @@ module inset(wallThickness=wallThickness) {
                 square(maxDiameter, center=true);
                 children();
             }
-            circle(r=wallThickness, $fn=12);
+            circle(r=wallThickness, $fn=8);
         }    
     }
 }
@@ -112,8 +111,8 @@ module makeToy(scale=1.) {
 
 module full() {
     render(convexity=2)
-    makeToy(scale=1./tipDiameter) 
-        polygon([for (angle=[0:2.5:355]) tipDiameter*(1+.25*cos(angle*8))*[cos(angle),sin(angle)]]);
+    makeToy(scale=1.) 
+        polygon([for (angle=[0:2.5:359.99]) (1/5)*(4+cos(angle*8))*[cos(angle),sin(angle)]]);
 }
 
 if (cutAwayView) {

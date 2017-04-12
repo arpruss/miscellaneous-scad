@@ -48,7 +48,17 @@ function normalize2D(v) = v / sqrt(v[0]*v[0]+v[1]*v[1]);
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
 function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*normalize2D(node-otherCP):cp );
 
-function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
+function onLine2(a,b,c,eps=1e-4) =
+    norm(c-a) <= eps ? true 
+        : norm(b-a) <= eps ? false /* to be safe */
+            : abs((c[1]-a[1])*(b[0]-a[0]) - (b[1]-a[1])*(c[0]-a[0])) <= eps * eps && norm(c-a) <= eps + norm(b-a);
+
+function isStraight2(p1,c1,c2,p2,eps=1e-4) = 
+    onLine2(p1,p2,c1,eps=eps) && onLine2(p2,p1,c2,eps=eps);
+
+function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) 
+    isStraight2(p[index],p[index+1],p[index+2],p[index+3]) ? (rightEndPoint?[p[index+0],p[index+3]]:[p[index+0]] ) :
+    [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
     
 function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item ];
 
