@@ -30,23 +30,20 @@ function BEZ03(u) = pow((1-u), 3);
 function BEZ13(u) = 3*u*(pow((1-u),2));
 function BEZ23(u) = 3*(pow(u,2))*(1-u);
 function BEZ33(u) = pow(u,3);
-function PointAlongBez4(p0, p1, p2, p3, u) = [
-	BEZ03(u)*p0[0]+BEZ13(u)*p1[0]+BEZ23(u)*p2[0]+BEZ33(u)*p3[0],
-	BEZ03(u)*p0[1]+BEZ13(u)*p1[1]+BEZ23(u)*p2[1]+BEZ33(u)*p3[1]];
+function PointAlongBez4(p0, p1, p2, p3, u) = [for (i=[0:len(p0)-1]) 
+	BEZ03(u)*p0[i]+BEZ13(u)*p1[i]+BEZ23(u)*p2[i]+BEZ33(u)*p3[i]];
 // End public domain Bezier stuff
 
 function SMOOTH_REL(x) = ["r",x];
 function SMOOTH_ABS(x) = ["a",x];
 function SYMMETRIC() = ["r",1];
 function OFFSET(v) = ["o",v];
-function SHARP() = OFFSET([0,0]);
+function SHARP() = OFFSET([0,0,0]);
 function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
 function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o");
 
-function normalize2D(v) = v / sqrt(v[0]*v[0]+v[1]*v[1]);
-
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
-function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*normalize2D(node-otherCP):cp );
+function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*(node-otherCP)/norm(node-otherCP):cp );
 
 function onLine2(a,b,c,eps=1e-4) =
     norm(c-a) <= eps ? true 
@@ -54,6 +51,7 @@ function onLine2(a,b,c,eps=1e-4) =
             : abs((c[1]-a[1])*(b[0]-a[0]) - (b[1]-a[1])*(c[0]-a[0])) <= eps * eps && norm(c-a) <= eps + norm(b-a);
 
 function isStraight2(p1,c1,c2,p2,eps=1e-4) = 
+    len(p1) == 2 &&
     onLine2(p1,p2,c1,eps=eps) && onLine2(p2,p1,c2,eps=eps);
 
 function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) 
@@ -89,30 +87,52 @@ function Bezier(p,precision=0.05,eps=0.00001) = let(q=DecodeSpecialBezierPoints(
     
 module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
     $fn = 16;
+    dim = len(p[0]);
+    module point(size) {
+        if (dim==2)
+            circle(d=size);
+        else
+            sphere(d=size);
+    }
     p1 = DecodeSpecialBezierPoints(p);
     l = Bezier(p1,precision=precision,eps=eps);
     for (i=[0:len(l)-2]) {
         hull() {
-            translate(l[i]) circle(d=lineThickness);
-            translate(l[i+1]) circle(d=lineThickness);
+            translate(l[i]) point(lineThickness);
+            translate(l[i+1]) point(lineThickness);
         }
     }
     for (i=[0:len(p1)-1]) {
         if (i%3 == 0) {
-            color("black") translate(p1[i]) circle(d=nodeSize);
+            color("black") translate(p1[i]) point(nodeSize);
         }
         else {
             node = i%3 == 1 ? i-1 : i+1;
-            color("red") translate(p1[i]) circle(d=nodeSize);
+            color("red") translate(p1[i]) point(nodeSize);
             color("red") hull() {
-                translate(p1[node]) circle(d=controlLineThickness);
-                translate(p1[i]) circle(d=controlLineThickness);
+                translate(p1[node]) point(controlLineThickness);
+                translate(p1[i]) point(controlLineThickness);
             }
         }
     }
 }
 
 //<skip>
+
+module _ribbon(thickness=2) {
+    for (i=[1:len(p)-1]) {
+                hull() {
+                    translate(p[i-1]) 
+                        sphere(thickness/2);
+                    translate(p[i]) 
+                        sphere(thickness/2);
+                }
+            }
+}
+
+translate([-20,0,0])
+BezierVisualize([[0,0,10],[10,5,3],[10,10,20],[20,20,20],SYMMETRIC(),[0,0,8],[0,0,0]], lineThickness=1,nodeSize=2);
+
 translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]]);
 linear_extrude(height=5) {
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
