@@ -29,5 +29,4 @@ triangles = loadMesh(argv[1])
 bounds = getBounds(triangles)
 mesh = makePrism(bounds)
 print bounds
-print getBounds(tuple(t for c,t in mesh))
 saveSTL(outName, mesh, adjustCoordinates=False)
