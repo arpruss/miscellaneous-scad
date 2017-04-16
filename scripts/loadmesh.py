@@ -1,3 +1,5 @@
+import struct
+
 def loadMesh(filename, reverseTriangles=False):
     triangles = []
     
