@@ -1,4 +1,4 @@
-from stl2svg import loadMesh
+from loadmesh import loadMesh
 from sys import argv, stderr
 
 def toSCAD(polygons):
@@ -45,5 +45,5 @@ def toSCAD(polygons):
     return '\n'.join(scad)
     
 if __name__ == '__main__':
-    print(toSCAD(loadMesh(argv[1])))
+    print(toSCAD(loadMesh(argv[1], reverse=True)))
        

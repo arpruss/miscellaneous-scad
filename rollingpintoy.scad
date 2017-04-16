@@ -2,15 +2,15 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-tipDiameter = 20;
-centerDiameter = 27;
+bodyNumberOfSides = 8;
+tipDiameter = 20 / cos(180/bodyNumberOfSides);
+centerDiameter = 27 / cos(180/bodyNumberOfSides);
 height = 90;
 chamferSize = 1.5;
 // fraction of total height occupied by each solid end cap 
 endCapFraction = 0.12; 
 wallThickness = 1.25;
 maxBridgeLength = 15;
-bodyNumberOfSides = 60;
 cutAwayView = 0; // [1:yes, 0:no]
 
 // height for weight capsule (if used, stop printing here and insert weights)

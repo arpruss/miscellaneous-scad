@@ -2,8 +2,8 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-tipDiameter = 20;
-centerDiameter = 27;
+tipDiameter = 20*polygonOuterInnerRatio(8);
+centerDiameter = 27*polygonOuterInnerRatio(8);
 height = 90;
 chamferSize = 0; // 1.5;
 // fraction of total height occupied by each solid end cap 
@@ -21,6 +21,8 @@ weightCapsuleOffsetFromTip = 3;
 
 module dummy() {}
 //</params>
+
+function polygonOuterInnerRatio(n) = 1/cos(180/n);
 
 nudge = 0.001;
 endCapSize = max(endCapFraction*height, weightCapsuleHeight > 0 ? weightCapsuleHeight+weightCapsuleOffsetFromTip+2 : 0);
