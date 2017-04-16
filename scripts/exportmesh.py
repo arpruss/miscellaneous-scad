@@ -134,9 +134,9 @@ def saveSTL(filename, mesh, swapYZ=False, quiet=False, adjustCoordinates=False):
                 color = 0x8000 | ( (rgb[0] >> 3) << 10 ) | ( (rgb[1] >> 3) << 5 ) | ( (rgb[2] >> 3) << 0 )
             try:
                 normal = (Vector(tri[1])-Vector(tri[0])).cross(Vector(tri[2])-Vector(tri[0])).normalize()
+                write(pack("<3f", *(matrix*normal)))
             except:
-                normal = Vector(0,0,0)
-            write(pack("<3f", *(matrix*normal)))
+                continue
             for vertex in tri:
                 write(pack("<3f", *(matrix*(vertex-minVector))))
             write(pack("<H", color))            
