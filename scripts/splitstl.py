@@ -21,8 +21,6 @@ def intersects(mesh, poly):
 
     
 class MeshData(list):
-    EPS = 1e-6
-
     def __init__(self):
         self.mesh = []
         self.points = set()
@@ -37,25 +35,26 @@ class MeshData(list):
                 self.minBounds[i] = min(self.minBounds[i], v[i])
                 self.maxBounds[i] = max(self.maxBounds[i], v[i])
             
-    def contains(self, point):
+    def contains(self, point, eps=1e-6):
         for i in range(3):
-            if point[i] < self.minBounds[i] - MeshData.EPS or point[i] > self.maxBounds[i] + MeshData.EPS:
+            if point[i] < self.minBounds[i] - eps or point[i] > self.maxBounds[i] + eps:
                 return False
         if tuple(point) in self.points:
             return True
-        for p in self.points:
-            if (p-point).norm() <= MeshData.EPS:
-                return True
+        if 0 < eps:
+            for p in self.points:
+                if (p-point).norm() <= eps:
+                    return True
         return False
     
-def splitMesh(polygons):
+def splitMesh(polygons, eps=1e-6):
     meshes = []
 
     for i,poly in enumerate(polygons):
         matches = []
         for j,m in enumerate(meshes):
             for v in poly:
-                if m.contains(v):
+                if m.contains(v, eps=eps):
                     matches.append(j)
                     break
         if len(matches) == 0:
@@ -75,8 +74,12 @@ def splitMesh(polygons):
 if __name__ == '__main__':
     base,_ = os.path.splitext(sys.argv[1])
     triangles = loadMesh(sys.argv[1])
+    
+    eps = 0
+    if len(sys.argv) > 2:
+        eps = float(sys.argv[2])
 
-    meshes = splitMesh(triangles)
+    meshes = splitMesh(triangles, eps=eps)
     meshes = sorted(meshes, key=getBounds)
 
     for i,m in enumerate(meshes):
