@@ -1,16 +1,16 @@
 radius = 20;
 numberOfHooks = 3;
-width = 10;
-thickness = 3;
+width = 11;
+thickness = 3.25;
 hookLength = 22;
-hookAngle = 70;
+hookAngle = 75;
 supportRatio = 0.5;
 nailHoleDiameter = 2;
 nailHoleAngle = 70;
 
 module dummy() {}
 
-$fn = 10;
+$fn = 12;
 
 innerRadius = radius * cos(180/numberOfHooks);
 
@@ -44,8 +44,10 @@ module hook()
         }
         
         hull() {
-            cylinder(d=thickness,h=width);
-            translate([hookLength,0,0]) cylinder(d=thickness,h=width);
+            translate([0,0,thickness/2]) sphere(d=thickness);
+            translate([0,0,width-thickness/2]) sphere(d=thickness);
+            translate([hookLength,0,thickness/2]) sphere(d=thickness);
+            translate([hookLength,0,width-thickness/2]) sphere(d=thickness);
         }
     }
 }
