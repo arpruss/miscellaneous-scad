@@ -4,8 +4,8 @@ width = 11;
 thickness = 3.25;
 hookLength = 22;
 hookAngle = 75;
-supportRatio = 0.5;
-nailHoleDiameter = 2;
+supportRatio = 0.6;
+nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
 
 module dummy() {}
