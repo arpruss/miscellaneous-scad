@@ -45,5 +45,5 @@ def toSCAD(polygons):
     return '\n'.join(scad)
     
 if __name__ == '__main__':
-    print(toSCAD(loadMesh(argv[1], reverse=True)))
+    print(toSCAD(loadMesh(argv[1], reverseTriangles=True)))
        
