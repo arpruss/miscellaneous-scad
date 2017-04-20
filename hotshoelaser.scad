@@ -1,16 +1,22 @@
-hotshoeWidth = 18.52-0.4;
-hotshoeThickness = 1.95-0.3;
-hotshoeLength = 18;
-hotshoeInset = 3.2;
-hotshoeTaper = 0.25;
-hotshoeCorner = 1.5;   
+hotshoeWidthTolerance = 0.4;
+hotshoeThicknessTolerance = 0.3;
    
+mountOffset = 0;
 clipLength = 30; 
 clipWallThickness = 1.5;
 clipOpeningAngle = 120;
 laserDiameter = 13.8;
 laserButtonStickout = 1.25;
 laserButtonPresserArcAngle=30;
+
+module dummy() {}
+
+hotshoeLength = 18;
+hotshoeInset = 3.2;
+hotshoeTaper = 0.25;
+hotshoeCorner = 1.5;   
+hotshoeWidth = 18.52-hotshoeWidthTolerance;
+hotshoeThickness = 1.95-hotshoeThicknessTolerance;
 
 nudge = 0.001;    
     
@@ -78,10 +84,10 @@ module clip() {
 
 render(convexity=3)
 difference() {
-    hotshoe(coverStickout = 5);
-    translate([0,hotshoeThickness+laserDiameter/2+clipWallThickness,0])
+    hotshoe(coverStickout = laserDiameter/2+mountOffset);
+    translate([0,mountOffset+hotshoeThickness+laserDiameter/2+clipWallThickness,0])
     translate([0,0,-nudge]) 
         cylinder(h=clipLength+2*nudge,d=laserDiameter+clipWallThickness);
 }
-translate([0,hotshoeThickness,0])
+translate([0,hotshoeThickness+mountOffset,0])
 clip();
