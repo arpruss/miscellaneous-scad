@@ -6,7 +6,7 @@ mountOffset = 2;
 dovetailWidth = 13;
 dovetailHeight = 3;
 dovetailStemHeight = 3;
-dovetailLength = 51;
+dovetailLength = 30;// the full length dovetail would be 51;
 holeSpacing = 18;
 holeDiameter = 4.5;
 
