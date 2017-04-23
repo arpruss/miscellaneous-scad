@@ -4,7 +4,7 @@
 // https://creativecommons.org/licenses/by-nc-sa/3.0/
 
 // Fake gears draw a solid rectangular prism and cylinder with axial hole, up to the pitch level, for ease of layout.
-$fakeGears = true; 
+$fakeGears = false; 
 herringbone = 1;
 materialSavingInset = 0;
 removeCircles = 0;
@@ -280,22 +280,19 @@ module stirnrad(modul, zahnzahl, breite, bohrung, eingriffswinkel = 20, schraegu
     eingriffswinkel = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
     schraegungswinkel = Schrägungswinkel, Standardwert = 0° (Geradverzahnung)
 	optimiert = Löcher zur Material-/Gewichtsersparnis bzw. Oberflächenvergößerung erzeugen, wenn Geometrie erlaubt (= 1, wenn wahr) */
-module zahnstange_und_rad (modul, laenge_stange, zahnzahl_ritzel, hoehe_stange, bohrung_ritzel, breite, eingriffswinkel=20, schraegungswinkel=0, zusammen_gebaut=true, optimiert=true, includeRack=true, includePinion=true, $fakeGears=$fakeGears) {
+module zahnstange_und_rad (modul, laenge_stange, zahnzahl_ritzel, hoehe_stange, bohrung_ritzel, breite, eingriffswinkel=20, schraegungswinkel=0, zusammen_gebaut=true, optimiert=true, $fakeGears=$fakeGears) {
 
 	abstand = zusammen_gebaut? modul*zahnzahl_ritzel/2 : modul*zahnzahl_ritzel;
 	
-    if (includeRack)
-        zahnstange(modul, laenge_stange, hoehe_stange, breite, eingriffswinkel, -schraegungswinkel, $fakeGears=$fakeGears);
+    zahnstange(modul, laenge_stange, hoehe_stange, breite, eingriffswinkel, -schraegungswinkel, $fakeGears=$fakeGears);
 	translate([0,abstand,0])
-    if (includePinion) {
-		if (istgerade(zahnzahl_ritzel)) {
-			rotate(90 + 180/zahnzahl_ritzel)
-				stirnrad (modul, zahnzahl_ritzel, breite, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
-		}
-		else {
-			rotate(a=90) 
-				stirnrad (modul, zahnzahl_ritzel, breite, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
-		}
+    if (istgerade(zahnzahl_ritzel)) {
+        rotate(90 + 180/zahnzahl_ritzel)
+            stirnrad (modul, zahnzahl_ritzel, breite, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
+    }
+    else {
+        rotate(a=90) 
+            stirnrad (modul, zahnzahl_ritzel, breite, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
     }
 }
 
@@ -312,27 +309,27 @@ module doHerringbone(herringbone=herringbone, faceWidth=breite) {
     }
 }
 
-module rack(faceWidth=breite, herringbone=herringbone, $fakeGears=$fakeGears) {
+module rack(faceWidth=breite, herringbone=herringbone, $fakeGears=$fakeGears, length=laenge_stange, toothHeightAbovePitch=modul) {
     doHerringbone(herringbone=herringbone, faceWidth=faceWidth) 
         render(convexity=2)
-        zahnstange(modul, laenge_stange, hoehe_stange, herringbone?faceWidth/2:faceWidth, eingriffswinkel, -schraegungswinkel, $fakeGears=$fakeGears);
+        zahnstange(toothHeightAbovePitch, length, hoehe_stange, herringbone?faceWidth/2:faceWidth, eingriffswinkel, -schraegungswinkel, $fakeGears=$fakeGears);
 }
 
 // By default in herringbone mode, this is flipped.
 // The reason for that is it makes for a more
 // symmetric fit when printed with the first layer
 // smooshed against the print bed.
-module pinion(faceWidth=breite, herringbone=herringbone, flipHerringbone=true, $fakeGears=$fakeGears) {
+module pinion(faceWidth=breite, herringbone=herringbone, flipHerringbone=true, $fakeGears=$fakeGears, toothCount=zahnzahl_ritzel, toothHeightAbovePitch=modul, holeDiameter=bohrung_ritzel) {
     module basePinion() {
         translate([0,0,materialSavingInset<0?-materialSavingInset:0])
         doHerringbone(herringbone=herringbone, faceWidth=faceWidth)
-            if (istgerade(zahnzahl_ritzel)) {
-                rotate(90 + 180/zahnzahl_ritzel)
-                    stirnrad (modul, zahnzahl_ritzel, herringbone?faceWidth/2:faceWidth, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
+            if (istgerade(toothCount)) {
+                rotate(90 + 180/toothCount)
+                    stirnrad (toothHeightAbovePitch, toothCount, herringbone?faceWidth/2:faceWidth, holeDiameter, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
             }
             else {
                 rotate(a=90) 
-                    stirnrad (modul, zahnzahl_ritzel, herringbone?faceWidth/2:faceWidth, bohrung_ritzel, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
+                    stirnrad (toothHeightAbovePitch, toothCount, herringbone?faceWidth/2:faceWidth, holeDiameter, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
             }
         }
         
@@ -344,9 +341,8 @@ module pinion(faceWidth=breite, herringbone=herringbone, flipHerringbone=true, $
 
 render(convexity=2) {
     rack(herringbone=true, $fakeGears=$fakeGears);
-    translate([laenge_stange/2,20,0]) {
-    pinion(herringbone=true, $fakeGears=$fakeGears);
-    }
+    translate([laenge_stange/2,20,0]) 
+        pinion(herringbone=true, $fakeGears=$fakeGears);
 }
 
 //zahnstange_und_rad (modul, laenge_stange, zahnzahl_ritzel, hoehe_stange, bohrung_ritzel, breite, eingriffswinkel, schraegungswinkel, zusammen_gebaut, optimiert);
