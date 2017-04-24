@@ -1,5 +1,7 @@
 use <Zahnstange_und_ritzel.scad>;
 
+includeDrawTube = 1;
+
 printerTolerance=0.25;
 axleDiameter=3;
 drawTubeInnerDiameter=33;
@@ -77,4 +79,5 @@ module drawTube() {
     }
 }
 
-drawTube();
+if (includeDrawTube)
+    drawTube();

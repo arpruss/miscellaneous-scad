@@ -2,6 +2,9 @@ from loadmesh import loadMesh
 from sys import argv, stderr
 
 def toSCAD(polygons):
+    def format(v):
+        return '[%.7g,%.7g,%.7g]' % tuple(v)
+
     scad = []
     scad.append('module stlObject1() {polyhedron(')
     scad.append(' points=[')
@@ -15,18 +18,25 @@ def toSCAD(polygons):
     stderr.write("Getting points.\n" )
     pointDict = {}
     points = []
+    m = [float("inf"),float("inf"),float("inf")]
+    M = [float("-inf"),float("-inf"),float("-inf")]
     for polygon in polygons:
         for v in polygon:
             vv = fix3(v)
-            if vv not in pointDict:
-                pointDict[vv] = len(points)
-                points.append(vv)
-    m = [min((v[i] for v in points)) for i in range(3)]
-    M = [max((v[i] for v in points)) for i in range(3)]
+            for i in range(3):
+                m[i] = min(m[i],vv[i])
+                M[i] = max(M[i],vv[i])
+            
     sizes = [M[i]-m[i] for i in range(3)]
     m[0] = .5*(m[0]+M[0]) # center x
-    for v in points:
-        scad.append('  [%.7g,%.7g,%.7g],' % tuple((v[i]-m[i] for i in range(3))))
+
+    for polygon in polygons:
+        for v in polygon:
+            vv = fix3(v)
+            s = format(vv[i]-m[i] for i in range(3))
+            if s not in pointDict:
+                pointDict[s] = len(pointDict)
+                scad.append('   '+s+",")
 
     scad.append(' ],')
     scad.append(' faces=[')
@@ -35,7 +45,8 @@ def toSCAD(polygons):
         p = '  ['
         for v in polygon:
             vv = fix3(v)
-            p += '%d,' % pointDict[vv]
+            s = format(vv[i]-m[i] for i in range(3))
+            p += '%d,' % pointDict[s]
         scad.append(p+'],')
     scad.append(' ]);')
     scad.append('}')
