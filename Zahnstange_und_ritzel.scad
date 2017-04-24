@@ -5,9 +5,9 @@
 
 // Fake gears draw a solid rectangular prism and cylinder with axial hole, up to the pitch level, for ease of layout.
 $fakeGears = false; 
-herringbone = 1;
+herringbone = 1; // [1:yes, 0:no]
 materialSavingInset = 0;
-removeCircles = 0;
+removeCircles = 1; // [1:yes, 0:no]
 // Kopfspiel (pinion play)
 spiel = 0.05;
 // Höhe des Zahnkopfes über dem Teilkreis (height of the tooth above the pitch line)
@@ -296,7 +296,7 @@ module zahnstange_und_rad (modul, laenge_stange, zahnzahl_ritzel, hoehe_stange, 
     }
 }
 
-module doHerringbone(herringbone=herringbone, faceWidth=breite) {
+module doherringbone(herringbone=herringbone, faceWidth=breite) {
     if (herringbone) {
         translate([0,0,faceWidth/2])
             union() {
@@ -310,7 +310,7 @@ module doHerringbone(herringbone=herringbone, faceWidth=breite) {
 }
 
 module rack(faceWidth=breite, herringbone=herringbone, $fakeGears=$fakeGears, length=laenge_stange, toothHeightAbovePitch=modul) {
-    doHerringbone(herringbone=herringbone, faceWidth=faceWidth) 
+    doherringbone(herringbone=herringbone, faceWidth=faceWidth) 
         render(convexity=2)
         zahnstange(toothHeightAbovePitch, length, hoehe_stange, herringbone?faceWidth/2:faceWidth, eingriffswinkel, -schraegungswinkel, $fakeGears=$fakeGears);
 }
@@ -319,10 +319,10 @@ module rack(faceWidth=breite, herringbone=herringbone, $fakeGears=$fakeGears, le
 // The reason for that is it makes for a more
 // symmetric fit when printed with the first layer
 // smooshed against the print bed.
-module pinion(faceWidth=breite, herringbone=herringbone, flipHerringbone=true, $fakeGears=$fakeGears, toothCount=zahnzahl_ritzel, toothHeightAbovePitch=modul, holeDiameter=bohrung_ritzel) {
+module pinion(faceWidth=breite, herringbone=herringbone, flipherringbone=true, $fakeGears=$fakeGears, toothCount=zahnzahl_ritzel, toothHeightAbovePitch=modul, holeDiameter=bohrung_ritzel) {
     module basePinion() {
         translate([0,0,materialSavingInset<0?-materialSavingInset:0])
-        doHerringbone(herringbone=herringbone, faceWidth=faceWidth)
+        doherringbone(herringbone=herringbone, faceWidth=faceWidth)
             if (istgerade(toothCount)) {
                 rotate(90 + 180/toothCount)
                     stirnrad (toothHeightAbovePitch, toothCount, herringbone?faceWidth/2:faceWidth, holeDiameter, eingriffswinkel, schraegungswinkel, optimiert, $fakeGears=$fakeGears);
@@ -333,7 +333,7 @@ module pinion(faceWidth=breite, herringbone=herringbone, flipHerringbone=true, $
             }
         }
         
-    if (herringbone && flipHerringbone)
+    if (herringbone && flipherringbone)
         mirror(0,1,0) basePinion();
     else
         basePinion();

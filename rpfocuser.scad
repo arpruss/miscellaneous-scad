@@ -6,7 +6,7 @@ printerTolerance=0.25;
 axleDiameter=3;
 drawTubeInnerDiameter=33;
 drawTubeWallThickness=2.25;
-drawTubeLength=50;
+drawTubeLength=80;
 drawTubeLipThickness=2;
 drawTubeLipHeight=5;
 eyepieceSetScrewDiameter=3;
@@ -18,9 +18,6 @@ slideWidth=10;
 rackWidth=8;
 
 module dummy() {}
-
-rackColor = "red";
-slideColor = "blue";
 
 nudge = 0.001;
 
@@ -79,5 +76,9 @@ module drawTube() {
     }
 }
 
-if (includeDrawTube)
+if (includeDrawTube) {
+    // orient for printing
+    translate([0,0,drawTubeLength])
+    rotate([180,0,0])
     drawTube();
+}
