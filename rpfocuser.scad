@@ -1,5 +1,6 @@
 use <Zahnstange_und_ritzel.scad>;
 
+fakeGears = 1;
 includeDrawTube = 1;
 includeDrawTubeSlide = 1;
 includeOuterTube = 1;
@@ -137,7 +138,8 @@ module outerTube() {
 }
 
 module doPinion() {
-    pinion(herringbone=true, faceWidth=rackWidth, toothCount = pinionTeeth, toothHeightAbovePitch=toothSize, holeDiameter=axleDiameter+2*tolerance);
+    render(convexity=2)
+    pinion(herringbone=true, faceWidth=rackWidth, toothCount = pinionTeeth, toothHeightAbovePitch=toothSize, holeDiameter=axleDiameter+2*tolerance, $fakeGears=fakeGears);
 }
 
 row0 = [ 0,
