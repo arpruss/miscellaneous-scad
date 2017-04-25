@@ -3,6 +3,7 @@ use <Zahnstange_und_ritzel.scad>;
 includeDrawTube = 1;
 includeDrawTubeSlide = 1;
 includeOuterTubeSlide = 1;
+includeOuterTube = 1;
 
 tolerance=0.25; // it is assumed that a part won't stick out more than this beyond its nominal size in any direction
 gap=1; // use where gaps are needed, e.g., between draw tube and outer tube
@@ -20,11 +21,13 @@ focuserTubeTolerance=0.25;
 telescopeTubeDiameter=200; // 0 for flat mount
 slideWidth=10;
 rackWidth=8;
-slideThickness=1;
+slideThickness=2;
 
 module dummy() {}
 
 nudge = 0.001;
+
+outerTubeInnerDiameter = drawTubeInnerDiameter+2*gap+2*tolerance+outerTubeWallThickness;
 
 module diamondCylinder(d=1,h=1) {
     cylinder(d=d, h=h, $fn=4);
@@ -89,10 +92,17 @@ module slide(width, length, diamondHeight) {
     }
 }
 
+module outerTube() {
+    id = drawTubeInnerDiameter+2*drawTubeWallThickness+2*gap+2*tolerance;
+    od = id + outerTubeWallThickness;
+    tube(id=id, od=od, h=outerTubeLength);
+}
+
 row0 = [ 0,
-    [[includeDrawTube, drawTubeInnerDiameter/2+drawTubeWallThickness + drawTubeLipThickness, 0],
-    [includeDrawTubeSlide, slideWidth, -drawTubeLength/2],
-    [includeOuterTubeSlide, slideWidth+2*gap, -outerTubeLength/2]]];
+    [[includeDrawTube, drawTubeInnerDiameter/2+drawTubeWallThickness + drawTubeLipThickness, 0, 0],
+    [includeDrawTubeSlide, slideWidth, 0, -drawTubeLength/2],
+    [includeOuterTubeSlide, slideWidth+2*gap, 0, -outerTubeLength/2],
+    [includeOuterTube, outerTubeInnerDiameter , outerTubeInnerDiameter/2, 0]]];
 
 module location(positions, index) {
     x = positions[0];
@@ -102,7 +112,7 @@ module location(positions, index) {
     y = pos(positions[1], index);
     echo(positions[1],y,index);
     
-    translate([x+positions[1][index][2],y,0]) children();
+    translate([x+positions[1][index][3],y+positions[1][index][2],0]) children();
 }
 
 if (includeDrawTube) {
@@ -120,4 +130,8 @@ if (includeDrawTubeSlide) {
 if (includeOuterTubeSlide) {
     location(row0, 2)
     slide(slideWidth+2*gap, outerTubeLength, outerTubeWallThickness);
+}
+
+if (includeOuterTube) {
+    location(row0, 3) outerTube();
 }
