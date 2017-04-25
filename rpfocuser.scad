@@ -13,7 +13,7 @@ drawTubeWallThickness=2.25;
 drawTubeLength=80;
 drawTubeLipThickness=2;
 drawTubeLipHeight=5;
-outerTubeWallThickness=2.25;
+outerTubeWallThickness=3;
 eyepieceSetScrewDiameter=3;
 setScrewRightOfRack=true;
 outerTubeLength=30;
@@ -25,9 +25,12 @@ slideThickness=2;
 
 module dummy() {}
 
+$fn=60;
+
 nudge = 0.001;
 
-outerTubeInnerDiameter = drawTubeInnerDiameter+2*gap+2*tolerance+outerTubeWallThickness;
+drawTubeOD = drawTubeInnerDiameter+drawTubeWallThickness*2-2*tolerance;
+outerTubeID = drawTubeOD+2*gap+4*tolerance;
 
 module diamondCylinder(d=1,h=1) {
     cylinder(d=d, h=h, $fn=4);
@@ -51,7 +54,7 @@ function diamondPositions(length,width) = [width/2,length/2,length-width/2];
 
 module drawTube() {
     clearLength = drawTubeLength-drawTubeLipHeight;
-    od = drawTubeInnerDiameter+2*drawTubeWallThickness-2*tolerance;
+    od = drawTubeOD;
     
     render(convexity=2)
     difference() {
@@ -88,21 +91,41 @@ module slide(width, length, diamondHeight) {
     translate([0,-width/2,0]) cube([length,width,slideThickness]);
     for (x=diamondPositions(length,width)) {
         translate([x,0,slideThickness-nudge])
-        diamondCylinder(d=diamondSize(rackWidth,male=false,male=true),h=diamondHeight);
+        diamondCylinder(d=diamondSize(width,male=false,male=true),h=diamondHeight);
     }
 }
 
 module outerTube() {
-    id = drawTubeInnerDiameter+2*drawTubeWallThickness+2*gap+2*tolerance;
+    wall = drawTubeWallThickness;
+    id = drawTubeInnerDiameter+2*wall+2*gap+2*tolerance;
     od = id + outerTubeWallThickness;
-    tube(id=id, od=od, h=outerTubeLength);
+    slideInsetLeftEdge = drawTubeOD/2 + slideThickness + 2*tolerance;
+    slideInsetRightEdge = slideInsetLeftEdge + slideThickness+2*tolerance;
+    slideInsetWidth = slideWidth+2*gap+2*tolerance;
+
+    // TODO: gearbox
+    // TODO: attachment area
+    render(convexity=2)
+    difference() {
+        union() {
+            cylinder(d=od, h=outerTubeLength);
+            translate([-slideInsetWidth/2-wall,0,0]) cube([slideInsetWidth+2*wall, slideInsetRightEdge+wall, outerTubeLength]);
+        }
+        translate([0,0,-nudge]) cylinder(d=id, h=outerTubeLength+2*nudge);
+        translate([-slideInsetWidth/2,0,-nudge]) cube([slideInsetWidth,slideInsetRightEdge, outerTubeLength+2*nudge]);
+        for (z=diamondPositions(outerTubeLength,slideWidth+2*gap)) {
+            translate([0,0,z])
+            rotate([-90,0,0])
+            diamondCylinder(d=diamondSize(slideWidth+2*gap,male=false),h=slideInsetRightEdge+wall+nudge);
+        }
+    }
 }
 
 row0 = [ 0,
     [[includeDrawTube, drawTubeInnerDiameter/2+drawTubeWallThickness + drawTubeLipThickness, 0, 0],
     [includeDrawTubeSlide, slideWidth, 0, -drawTubeLength/2],
     [includeOuterTubeSlide, slideWidth+2*gap, 0, -outerTubeLength/2],
-    [includeOuterTube, outerTubeInnerDiameter , outerTubeInnerDiameter/2, 0]]];
+    [includeOuterTube, outerTubeID , outerTubeID/2, 0]]];
 
 module location(positions, index) {
     x = positions[0];
@@ -110,7 +133,6 @@ module location(positions, index) {
 
 
     y = pos(positions[1], index);
-    echo(positions[1],y,index);
     
     translate([x+positions[1][index][3],y+positions[1][index][2],0]) children();
 }
