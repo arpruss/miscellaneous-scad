@@ -38,6 +38,15 @@ function singleInterpolateByDistance(v,distance) = interpolateByDistance(interpo
 function singleInterpolateByParameter(v,t) = interpolateByParameter(interpolationData(v),t);
 function measurePath(v) = totalLength(interpolationData(v));
 
+function findCoordinateIntersection2(a,b,index,value) = 
+    a[index] == value ? a : 
+        b[index] == value ? b :
+            let( t=(value-a[index]) / (b[index]-a[index]))
+                (1-t)*a+t*b;
+
+function findCoordinateIntersection(path,index,value) = 
+    [for (i=[0:len(path)-2]) if ((path[i][index]-value)*(path[i+1][index]-value) <= 0) findCoordinateIntersection2(path[i],path[i+1],index,value)];            
+
 function mirrorMatrix(normalVector) = let(v = normalVector/norm(normalVector)) len(v)<3 ? [[1-2*v[0]*v[0],-2*v[0]*v[1]],[-2*v[0]*v[1],1-2*v[1]*v[1]]] : [[1-2*v[0]*v[0],-2*v[0]*v[1],-2*v[0]*v[2]],[-2*v[0]*v[1],1-2*v[1]*v[1],-2*v[1]*v[2]],[-2*v[0]*v[2],-2*v[1]*v[2],1-2*v[2]*v[2]]];
 
 function trimArray(a, n) = [for (i=[0:n-1]) a[i]];
@@ -58,3 +67,4 @@ function stitchPaths(a,b) = let(na=len(a)) [for (i=[0:na+len(b)-2]) i<na? a[i] :
 //interp = interpolationData([[1,2],[2,3],[1,2]]);
 //echo(singleInterpolateByParameter([[1,1],[2,2],[3,1]],0.75));
 //echo(measurePath([[1,2],[2,3],[1,2]]));
+
