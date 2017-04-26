@@ -1,4 +1,5 @@
-use <threads.scad>;
+//use <threads.scad>;
+use <quickthread.scad>;
 
 includeDrawTube = 1;
 includeOuterTube = 1;
@@ -6,10 +7,10 @@ includeThread = 1;
 nominalDrawTubeDiameter = 31.75;
 eyepieceTolerance = 1.5;
 drawTubeWall = 4;
-drawTubeLength = 15;
+drawTubeLength = 20;
 outerTubeLength = 15;
 outerTubeWall = 3.5;
-threadTolerance = 0;
+threadTolerance = 0.5;
 collarHeight = 3;
 collarWall = 2;
 knurlSize = 3;
@@ -40,7 +41,8 @@ if (includeDrawTube) {
     difference() {
         union() {
             if (includeThread) 
-                metric_thread(drawTubeOD, pitch=pitch, length=drawTubeLength);
+                //metric_thread(drawTubeOD, pitch=pitch, length=drawTubeLength);
+                isoMetricThread(d=drawTubeOD,pitch=pitch,h=drawTubeLength);
             else 
                 cylinder(d=drawTubeOD,h=drawTubeLength);
             linear_extrude(height=collarHeight) knurledCircle(d=drawTubeOD+collarWall*2);
@@ -57,7 +59,8 @@ if (includeOuterTube) {
     difference() {
         cylinder(d=outerTubeID+outerTubeWall*2, h=outerTubeLength);
         translate([0,0,-nudge]) if (includeThread)
-metric_thread(outerTubeID, pitch=pitch, length=outerTubeLength+2*nudge);
+//metric_thread(outerTubeID, pitch=pitch, length=outerTubeLength+2*nudge,internal=true);
+        isoMetricThread(d=outerTubeID, pitch=pitch, h=outerTubeLength+2*nudge,internal=true);
             else cylinder(d=outerTubeID, h=outerTubeLength+2*nudge);
     }
 }

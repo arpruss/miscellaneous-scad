@@ -45,7 +45,7 @@ function tubeFaces(param) =
 function extrFaces(param) = concat([startFacePoints(param)],concat(tubeFaces(param),[endFacePoints(param)]));
 
                     
-module rawThread(profile, r=undef, d=undef, height=10, lead=undef, $fn=72, adjustRadius=false) {
+module rawThread(profile, r=undef, d=undef, height=10, lead=undef, $fn=72, adjustRadius=false, clip=true, includeCylinder=true) {
     radius = (r==undef ? d/2 : r);
     vSize = max([for(v1=profile) for(v2=profile) v2[1]-v1[1]]);
     vMin = min([for(v=profile) v[0]]);
@@ -60,11 +60,12 @@ module rawThread(profile, r=undef, d=undef, height=10, lead=undef, $fn=72, adjus
     render(convexity=10)
     union() {
         intersection() {
-            translate([-hSize/2,-hSize/2,0]) cube([hSize,hSize,height]);
+            if (clip)
+                translate([-hSize/2,-hSize/2,0]) cube([hSize,hSize,height]);
             translate([0,0,-_lead]) polyhedron(faces=extrFaces(param),points=extrPoints(param));
         }
-        //rotate([0,0,180/$fn]) 
-        cylinder(r=adjRadius+extrNudge,$fn=$fn,h=height);
+        if (includeCylinder) 
+            cylinder(r=adjRadius+extrNudge,$fn=$fn,h=height);
     }
 }
 
@@ -88,5 +89,5 @@ module isoMetricThread(d=undef, r=undef, pitch=1, h=10, lead=undef, angle=30, in
 
 //rawThread([[0,0],[1.5,1.5],[0,3]], r=25, 91, 3);
 //rawThread([[0,0],[0,3],[3,3],[3,0]], r=25, 50, 6, $fn=80);
-isoMetricThread(d=50,h=15,pitch=3,angle=45,internal=false,$fn=3);
+isoMetricThread(d=50,h=15,pitch=3,angle=45,internal=false,$fn=204);
 //rawThread([[0,0],[1,0],[.5,.5],[1,1],[0,1]],r=20,h=10,lead=1.5);
