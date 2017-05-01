@@ -36,31 +36,64 @@ module head(sweepBack=false) {
     }
 }
 
-module bump(t, attachments=false) {
+module bump(t) {
     render(convexity=2)
     rotate(angle(t))
     translate([distanceFromHinge,-position(t)]) {
-        if (attachments) {
-            translate([-distanceFromHinge,position(t)]) square([distanceFromHinge,1]);
-            translate([-headWidth*.9,0]) square([3,position(t)]);
-        }
-        head(sweepBack=!attachments);
+        head(sweepBack=true);
     }
 }
 
+module arm(t) {
+    render(convexity=2)
+    translate([0,-correctorWidth,-1])     cube([distanceFromHinge+distanceToEnd,correctorWidth,2]);
+    rotate([0,-angle(t),0]) {
+        translate([0,-correctorWidth,-1]) cube([distanceFromHinge+distanceToEnd,correctorWidth,2]);
+        translate([distanceFromHinge,-correctorWidth/2,-position(t)]) {
+            rotate_extrude() 
+            {
+                intersection() {
+                    union() {
+                        translate([-headWidth*.1,headHeight]) square([headWidth*.2,position(t)-headHeight]);
+                        head();
+                    }
+                    translate([0,0]) square([headWidth,position(t)]);
+                }
+                
+            }
+        }
+    }
+}
+
+module corrector() {
+    maxAngle = angle(maxTime);
+    p = position(maxTime);
+    r1 = norm([distanceFromHinge,p]);
+    theta = maxAngle-atan2(p,distanceFromHinge);
+    maxHeight=r1 * sin(theta);
+    linear_extrude(height=correctorWidth)
+    difference() {
+        translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,maxHeight]);
+        translate([-distanceFromHinge,minimumThickness])
+        for (t=[0:.05:2*maxTime]) 
+            bump(t, attachments=false);
+    }
+}
+
+/*
 if (animate) {
     for (t=[0:1:$t*maxTime]) {
         bump(t, attachments=false);
     }
     bump($t*maxTime,attachments=true);
 }
-else {
-    linear_extrude(height=correctorWidth)
-    difference() {
-        translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,distanceToEnd]);
-        translate([-distanceFromHinge,minimumThickness])
-        for (t=[0:.1:2*maxTime]) 
-            bump(t, attachments=false);
-    }
+*/
+if (animate) {
+    translate([0,0,-minimumThickness])
+    rotate([90,0,0])
+    translate([distanceFromHinge,0,0]) corrector();
+    arm($t*60);
 }
-
+else {
+    corrector();
+}
