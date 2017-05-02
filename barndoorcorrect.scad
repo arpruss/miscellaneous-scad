@@ -1,6 +1,6 @@
 headHeight = 3.4; // Thickness of spherical portion of bolt head
 headWidth = 14.73; // Width of spherical portion of bolt head
-minimumThickness = 1.5; // Minimum thickness of adjustment device
+minimumThickness = 0; // Minimum thickness of adjustment device
 tolerance = 0.25; // We assume filament goes this far beyond its boundaries
 initialStickout = 3.07; // The top of the bolt head sticks out this far past the horizontal plane through the hinge 
 distanceFromHinge = 294.5; // Distance from the rotational center of the hinge to the bolt
@@ -8,6 +8,7 @@ threadPitch = 1.27; // in mm: 20 tpi = 1.27
 rpm = 1; // Planned speed of bolt rotation
 distanceToEnd = 35; // Distance from center of bolt to the end of the board
 correctorWidth = 14;
+extraGap = 2; // extra gap between boards at zero angle
 maxTime = 120; // in minutes
 
 module dummy() {}
@@ -70,11 +71,11 @@ module corrector() {
     p = position(maxTime);
     r1 = norm([distanceFromHinge,p]);
     theta = maxAngle-atan2(p,distanceFromHinge);
-    maxHeight=r1 * sin(theta);
+    maxHeight=r1 * sin(theta)+extraGap;
     linear_extrude(height=correctorWidth)
     difference() {
-        translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,maxHeight]);
-        translate([-distanceFromHinge,minimumThickness])
+        translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,maxHeight+extraGap]);
+        translate([-distanceFromHinge,minimumThickness+extraGap])
         for (t=[0:.05:2*maxTime]) 
             bump(t, attachments=false);
     }
