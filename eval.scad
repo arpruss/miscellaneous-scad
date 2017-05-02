@@ -84,10 +84,7 @@ module curve3d(f,t0,t1,steps=30,thickness=1,closed=false) {
     }
 }
 
-module demo() {
-// 3*(x*y^3-x^3*y)
-//plot3d(["*", 3, [ "-", ["*", "x", ["^", "y", 3]], ["*", ["^", "x", 3], "y"] ]], [-1,-1],[1,1], steps=50, height=0.5);
-
+module demo1() {
     // borromean knot parametrization by I.J. McGee
     scale = 30;
     r = sqrt(3)/3;
@@ -101,7 +98,12 @@ module demo() {
        
 }
 
-demo();
+module demo2() {
+// 3*(x*y^3-x^3*y)
+plot3d(["*", 3, [ "-", ["*", "x", ["^", "y", 3]], ["*", ["^", "x", 3], "y"] ]], [-1,-1],[1,1], steps=200, height=0.5);
+}
+
+demo2();
 
 
 //
