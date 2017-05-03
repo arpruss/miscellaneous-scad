@@ -1,10 +1,12 @@
 use <string-to-float.scad>;
-use <strings.scad>;
+use <eval.scad>;
 
 function _isspace(c) = (" " == c || "\t" == c || "\r" == c || "\n" == c );
 function _isdigit(c) = ("0" <= c && c <= "9" );
 function _isalpha(c) = ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
+function _isalpha_(c) = _isalpha(c)  || c=="_";
 function _isalnum_(c) = _isalpha(c) || _isdigit(c) || c=="_";
+function _flattenLists(ll) = [for(a=ll) for(b=a) b];
 
 function _spaceSequence(s, start=0) = 
     len(s)>start && _isspace(s[start]) ? 1+_spaceSequence(s, start=start+1) : 0;
@@ -13,7 +15,7 @@ function _digitSequence(s, start=0) =
 function _alnum_Sequence(s, start=0) = 
     len(s)>start && _isalnum_(s[start]) ? 1+_alnum_Sequence(s, start=start+1) : 0;
 function _identifierSequence(s, start=0) = 
-    len(s)>start && (_isalpha(s[start]) || s[start]=="_") ? 1+_alnum_Sequence(s, start=start+1) : 0;
+    len(s)>start && _isalpha_(s[start]) ? 1+_alnum_Sequence(s, start=start+1) : 0;
 function _signedDigitSequence(s, start=0) = 
     len(s) <= start ? 0 :
         (s[start] == "+" || s[start] == "-" ) ? 1+_digitSequence(s,start=start+1) : _digitSequence(s,start=start);
@@ -77,13 +79,38 @@ _PREC = 2;
 _LEFT_ASSOC = 3;
 _OPERATOR = 4;
 
+function _func(op) = [ op, 1, 1.5, true, op ];
+
 _operators = [
+    [ "^", 2, 0, false, "^" ],
     [ "*", 2, 1, true, "*" ],
     [ "/", 2, 1, true, "/" ],
+    [ "%", 2, 1, true, "%" ],
+    _func("sqrt"),
+    _func("cos"),
+    _func("sin"),
+    _func("tan"),
+    _func("acos"),
+    _func("asin"),
+    _func("atan"),
+    _func("COS"),
+    _func("SIN"),
+    _func("TAN"),
+    _func("ACOS"),
+    _func("ASIN"),
+    _func("ATAN"),
+    _func("abs"),
+    _func("ceil"),
+    _func("exp"),
+    _func("floor"),
+    _func("ln"),
+    _func("log"),
+    _func("round"),
+    _func("sign"),
+    [ "#-",1, 1.5, true, "-" ],
     [ "+", 2, 2, true, "+" ],
     [ "-", 2, 2, true, "-" ],
-    [ "#-",1, -1, true, "-" ],
-    [ "^", 2, 0, false, "^" ] ];
+   ];
     
 _binary_or_unary = [ ["-", "#-"] ];
 
@@ -112,32 +139,42 @@ function _prec(op1, pos1, op2, pos2) =
                 op2[_LEFT_ASSOC] ? pos2 < pos1 :
                     pos2 < pos1;
     
-function _parseLiteralOrVariable(s) = search(s[0], "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") ? s : atof(s);
+function _parseLiteralOrVariable(s) = 
+        _isalpha_(s[0]) ? ["$", s] : atof(s);
+        
+function _isoperator(token) = _PREC<len(token);
     
-function _findLowestPrecedenceOperator(tok,start,stop) = stop <= start ? [undef,start] :
-        stop == start+1 ? ( len(tok[start])>_PREC ? [tok[start],start] : [undef,start] ) :
-        let( rest = tok[start][0] == "(" ?
-            _findLowestPrecedenceOperator(tok, _endParens(tok,start=start+1,_stop=stop), stop)
-            : _findLowestPrecedenceOperator(tok, start+1, stop) )
-            _prec(rest[0], rest[1], tok[start], start) ? [tok[start], start] : rest;
+function _mainOperator(tok,start,stop) = 
+        let (token = tok[start])
+        stop <= start ? [undef,start] :
+        stop == start+1 ? ( _isoperator(token) ? [token,start] : [undef,start] ) :
+        let( rest = 
+            token[0] == "(" ? _mainOperator(tok, _endParens(tok,start=start+1,_stop=stop, openCount=1), stop)
+            : _mainOperator(tok, start+1, stop) )
+            _prec(rest[0], rest[1], token, start) ? [_isoperator(token) ? token : undef, start] : rest; 
     
 function _parseTokenized(tok,start=0,_stop=undef) = 
     let( stop= _stop==undef ? len(tok) : _stop )
         stop <= start ? undef :
         tok[start][0] == "(" ? 
             _parseTokenized(tok,start=start+1,_stop=_endParens(tok,start=start+1,openCount=1,stop=stop)-1) : 
-        let( lp = _findLowestPrecedenceOperator(tok,start,stop) )
+        let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
-            let( op = lp[0], pos = lp[1] ) 
+            let( op = lp[0], pos = lp[1] )
                 op[_ARITY] == 2 ?
-                    [ op[_OPERATOR], _parseTokenized(tok,start,pos), _parseTokenized(tok,pos+1,_stop=stop) ]
-                    : [ op[_OPERATOR], _parseTokenized(tok,pos+1,_stop=stop) ];  
+                    [ op[_OPERATOR], _parseTokenized(tok,start=start,_stop=pos), _parseTokenized(tok,start=pos+1,_stop=stop) ]
+                    : [ op[_OPERATOR], _parseTokenized(tok,start=pos+1,_stop=stop) ];  
+
+function compileFunction(expression) = _parseTokenized(_tokenizeExpression(expression));
 
 //echo(_tokenizeExpression("a-b*(-!a)+(-a)-a*12e1"));
 //echo(search("-", ["+",["-",1],["z",1]], num_returns_per_match=1));
-echo(_tokenizeExpression("a-b*c-(d-e)-f*12e1"));
-echo(_parseTokenized(_tokenizeExpression("a-b*c-(d-e)-f*12e1")));
-echo(_positiveRealSequence("12e-3"));
-echo(_tokenize("z 12e-3<=34+44&&exp2_(33)"));
+
+//echo(_positiveRealSequence("12e-3"));
+//echo(_tokenize("z 12e-3<=34+44&&exp2_(33)"));
 //echo(_parseTokenized(_tokenizeExpression("(a)")));
 // TODO: fix tokenization not to break on periods, and inside things like "<=" and "&&"
+
+f="sin(20+2*x)";
+echo(compileFunction(f));
+echo(eval(compileFunction(f), [["x", 12.5]]));
