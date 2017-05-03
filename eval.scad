@@ -1,6 +1,22 @@
 pi = 3.1415926535897932;
 
-function eval(c,v) = 
+function _let(v, var, value) =
+    let(varNum = var == "x" ? 0 : 
+                 var == "y" ? 1 :
+                 var == "z" ? 2 :
+                 var == "t" ? 3 : var) 
+        [for(j=[0:max(len(v)-1,varNum)]) j==varNum?value:v[j] ];
+
+function _generate(var, range, expr, v) =
+    let(varNum = var == "x" ? 0 : 
+                 var == "y" ? 1 :
+                 var == "z" ? 2 :
+                 var == "t" ? 3 : var) 
+    [ for(i=range)
+        let( v2 = [for(j=[0:max(len(v)-1,varNum)]) j==varNum?i:v[j] ] ) 
+            eval(expr, v2) ];
+
+function eval(c,v=[]) = 
     let(op=c[0]) (
     op == undef ? c :
     op == "x" ? v[0] : 
@@ -8,13 +24,15 @@ function eval(c,v) =
     op == "z" ? v[2] :
     op == "t" ? v[3] :
     op == "P" ? pi :
-    op == "v" ? v[c[1]] :
+    op == "V" ? v[c[1]] :
     op == "'" ? c[1] : 
     op == "+" ? eval(c[1],v)+eval(c[2],v) :
     op == "-" ? (len(c)==2 ? -eval(c[1],v) : eval(c[1],v)-eval(c[2],v)) :
     op == "*" ? eval(c[1],v)*eval(c[2],v) :
     op == "/" ? eval(c[1],v)/eval(c[2],v) :
     op == "%" ? eval(c[1],v)%eval(c[2],v) :
+    op == "sqrt" ? sqrt(eval(c[1],v)) :
+    op == "^" || op == "pow" ? pow(eval(c[1],v),eval(c[2],v)) :
     op == "cos" ? cos(eval(c[1],v)) :
     op == "sin" ? sin(eval(c[1],v)) :
     op == "tan" ? tan(eval(c[1],v)) :
@@ -43,8 +61,6 @@ function eval(c,v) =
     op == "rands" ? rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
     op == "round" ? round(eval(c[1],v)) :
     op == "sign" ? sign(eval(c[1],v)) :
-    op == "sqrt" ? sqrt(eval(c[1],v)) :
-    op == "^" || op == "pow" ? pow(eval(c[1],v),eval(c[2],v)) :
     op == "<" ? eval(c[1],v)<eval(c[2],v) :
     op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
     op == "==" ? eval(c[1],v)==eval(c[2],v) :
@@ -58,6 +74,9 @@ function eval(c,v) =
     op == "[" ? [for (i=[1:len(c)-1]) eval(c[i],v)] :
     op == "#" ? eval(c[1],v)[eval(c[2],v)] :
     op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
+    op == "range" ? (len(c)==3 ? [eval(c[1],v):eval(c[2],v)] : [eval(c[1],v):eval(c[2],v):eval(c[3],v)]) :
+    op == "let" ? eval(c[3],_let(v,c[1],c[2])) :
+    op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
     undef
     );
     
@@ -103,7 +122,7 @@ module demo2() {
 plot3d(["*", 3, [ "-", ["*", "x", ["^", "y", 3]], ["*", ["^", "x", 3], "y"] ]], [-1,-1],[1,1], steps=200, height=0.5);
 }
 
-demo2();
+demo1();
+//demo2();
 
-
-//
+//echo(eval(["let", "y", 3, ["+", 7, "y"]]));
