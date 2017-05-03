@@ -135,7 +135,8 @@ function _parseTokenized(tok,start=0,_stop=undef) =
 
 //echo(_tokenizeExpression("a-b*(-!a)+(-a)-a*12e1"));
 //echo(search("-", ["+",["-",1],["z",1]], num_returns_per_match=1));
-echo(_parseTokenized(_tokenizeExpression("a-b*c+d+e-f*12e1")));
+echo(_tokenizeExpression("a-b*c-(d-e)-f*12e1"));
+echo(_parseTokenized(_tokenizeExpression("a-b*c-(d-e)-f*12e1")));
 echo(_positiveRealSequence("12e-3"));
 echo(_tokenize("z 12e-3<=34+44&&exp2_(33)"));
 //echo(_parseTokenized(_tokenizeExpression("(a)")));
