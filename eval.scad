@@ -36,6 +36,7 @@ function atof(str) =
 // end string to float library
 
 
+function _tail(v) = len(v)>=2 ? [for(i=[1:len(v)-1]) v[i]] : [];
 function _isspace(c) = (" " == c || "\t" == c || "\r" == c || "\n" == c );
 function _isdigit(c) = ("0" <= c && c <= "9" );
 function _isalpha(c) = ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
@@ -112,15 +113,24 @@ _NAME = 0;
 _ARITY = 1;
 _PREC = 2;
 _LEFT_ASSOC = 3;
-_OPERATOR = 4;
+_ARGUMENTS_FROM_VECTOR = 4;
+_OPERATOR = 5;
 
-function _func(op) = [ op, 1, 1.5, true, op ];
+function _func(op) = [ op, 1, 1.5, true, false, op ];
 
 _operators = [
-    [ "^", 2, 0, false, "^" ],
-    [ "*", 2, 1, true, "*" ],
-    [ "/", 2, 1, true, "/" ],
-    [ "%", 2, 1, true, "%" ],
+    [ "#", 2, 0, true, false, "#" ],
+    [ "^", 2, 0, false, false, "^" ],
+    [ "*", 2, 1, true, false, "*" ],
+    [ "/", 2, 1, true, false, "/" ],
+    [ "%", 2, 1, true, false, "%" ],
+    [ "[", 1, 1.5, true, true, "[" ],
+    [ "atan2", 1, 1.5, true, true, "atan2" ],
+    [ "ATAN2", 1, 1.5, true, true, "ATAN2" ],
+    [ "max", 1, 1.5, true, true, "max" ],
+    [ "min", 1, 1.5, true, true, "min" ],
+    [ "pow", 1, 1.5, true, true, "pow" ],
+    [ "cross", 1, 1.5, true, true, "cross" ],
     _func("sqrt"),
     _func("cos"),
     _func("sin"),
@@ -142,12 +152,22 @@ _operators = [
     _func("log"),
     _func("round"),
     _func("sign"),
-    [ "#-",1, 1.5, true, "-" ],
-    [ "+", 2, 2, true, "+" ],
-    [ "-", 2, 2, true, "-" ],
+    _func("norm"),
+    [ "#-",1, 1.5, true, false, "-" ],
+    [ "+", 2, 2, true, false, "+" ],
+    [ "-", 2, 2, true, false, "-" ],
+    [ ",", 2, 100, true, false, "," ]
    ];
     
-_binary_or_unary = [ ["-", "#-"] ];
+_binary_or_unary = [ ["-", "#-"], ["#", "["] ];
+
+function _fixBrackets(pretok,start=0) =
+    start >= len(pretok) ? [] :
+    pretok[start] == "[" ?
+        concat(["#", "("], _fixBrackets(pretok,start=start+1)) :
+    pretok[start] == "]" ?
+        concat([")"], _fixBrackets(pretok,start=start+1)) :
+        concat(pretok[start], _fixBrackets(pretok,start=start+1));
 
 function _fixUnaries(pretok) =
     [ for (i=[0:len(pretok)-1]) 
@@ -157,8 +177,8 @@ function _fixUnaries(pretok) =
             (0 <= j && (i == 0 || pretok[i-1] == "(" ||
                 0 <= _indexInTable(pretok[i-1], _operators)))? _binary_or_unary[j][1] : a ];
 
-function _tokenizeExpression(s) =
-    let (pretok=_fixUnaries(_tokenize(s)))
+function _parsePass1(s) =
+    let (pretok=_fixUnaries(_fixBrackets(_tokenize(s))))
     [ for (i=[0:len(pretok)-1])
         let (a=pretok[i])
         if (a[0] != " ")
@@ -189,19 +209,41 @@ function _mainOperator(tok,start,stop) =
             adjToken = _isoperator(token) ? token : undef )
             _prec(rest[0], rest[1], adjToken, start) ? [adjToken, start] : rest; 
     
-function _parseTokenized(tok,start=0,_stop=undef) = 
+/* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
+function _parseMain(tok,start=0,_stop=undef) = 
     let( stop= _stop==undef ? len(tok) : _stop )
         stop <= start ? undef :
         tok[start][0] == "(" ? 
-            _parseTokenized(tok,start=start+1,_stop=_endParens(tok,start=start+1,openCount=1,stop=stop)-1) : 
+            _parseMain(tok,start=start+1,_stop=_endParens(tok,start=start+1,openCount=1,stop=stop)-1) : 
         let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
             let( op = lp[0], pos = lp[1] )
                 op[_ARITY] == 2 ?
-                    [ op[_OPERATOR], _parseTokenized(tok,start=start,_stop=pos), _parseTokenized(tok,start=pos+1,_stop=stop) ]
-                    : [ op[_OPERATOR], _parseTokenized(tok,start=pos+1,_stop=stop) ];  
+                    [ op[_OPERATOR], _parseMain(tok,start=start,_stop=pos), _parseMain(tok,start=pos+1,_stop=stop) ]
+                    : [ op[_OPERATOR], _parseMain(tok,start=pos+1,_stop=stop) ];  
+            
+           
+// this upgrades sequences of binary commas to vectors            
+function _fixCommas(expression) = 
+    expression[0] == "," ? 
+        let(a=_fixCommas(expression[1]),
+            b=_fixCommas(expression[2])) 
+            a[0] == "[[" ? 
+                concat(["[["],concat(_tail(a), [b])) :
+                ["[[",a,b]
+        : 
+    !(len(expression)>1) ? expression :
+            concat([expression[0]], [for (i=[1:len(expression)-1]) _fixCommas(expression[i])]);
 
-function compileFunction(expression) = _parseTokenized(_tokenizeExpression(expression));
+// fix arguments from vectors
+function _fixArguments(expression) = 
+    let(i=_indexInTable(expression[0], _operators, _OPERATOR)) 
+            i >=0 && _operators[i][_ARGUMENTS_FROM_VECTOR] && expression[1][0] == "[[" ? concat([expression[0]], [for (i=[1:len(expression[1])-1]) _fixArguments(expression[1][i])]) : 
+            len(expression)>1 ? 
+                concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
+                    : expression;
+
+function compileFunction(expression) = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression))));
 
 pi = 3.1415926535897932;
 
@@ -318,7 +360,18 @@ echo(compileFunction("3*(x*y^3-x^3*y)"));
 plot3d(compileFunction("3*(x*y^3-x^3*y)"), [-1,-1],[1,1], steps=200, height=0.5);
 }
 
-demo1();
+//demo1();
 //demo2();
-
+echo(compileFunction("(-1)^3")); // TODO: FIX
+echo(compileFunction("1^2,3*4,5"));
+echo(compileFunction("a,b,c,d"));
+echo(compileFunction("[1^2,[3*4,5]]"));
 //echo(compileFunction("1^2"));
+echo(eval(compileFunction("[1,2]+[2,3]")));
+echo(eval(compileFunction("atan2(1,0)")));
+echo(compileFunction("cross([1,2],[3,4])"));
+echo(eval(compileFunction("norm([1,1])")));
+s="[1,2]+(z)";
+echo(_fixBrackets(_tokenize(s)));
+echo(_parsePass1(s));
+echo(_parseMain(_parsePass1(s)));
