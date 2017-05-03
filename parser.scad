@@ -150,8 +150,9 @@ function _mainOperator(tok,start,stop) =
         stop == start+1 ? ( _isoperator(token) ? [token,start] : [undef,start] ) :
         let( rest = 
             token[0] == "(" ? _mainOperator(tok, _endParens(tok,start=start+1,_stop=stop, openCount=1), stop)
-            : _mainOperator(tok, start+1, stop) )
-            _prec(rest[0], rest[1], token, start) ? [_isoperator(token) ? token : undef, start] : rest; 
+            : _mainOperator(tok, start+1, stop),
+            adjToken = _isoperator(token) ? token : undef )
+            _prec(rest[0], rest[1], adjToken, start) ? [adjToken, start] : rest; 
     
 function _parseTokenized(tok,start=0,_stop=undef) = 
     let( stop= _stop==undef ? len(tok) : _stop )
