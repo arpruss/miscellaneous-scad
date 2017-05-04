@@ -169,7 +169,7 @@ _operators = [
     [ "&&", 2, 5, 1, true, "&&" ],
     [ "||", 2, 5, 1, true, "||" ],
     [ ":", 2, 10, -1, true, "," ],
-    [ "?", 2, 20, 1, true, "?" ], 
+    [ "?", 2, 20, -1, true, "?" ], 
     [ ",", 2, 100, 1, true, "," ]
    ];
     
@@ -203,8 +203,6 @@ function _prec(op1, pos1, op2, pos2) =
     op1 != undef && op2 == undef ? false :
     op1 == undef && op2 != undef ? true :
     op1 == undef && op2 == undef ? true :
-    op1[_NAME] == ":" && op2[_NAME] == "?" ? pos1 > pos2 :
-    op1[_NAME] == ":" && op2[_NAME] == "?" ? pos2 > pos2 :
     op1[_PREC] < op2[_PREC] ? true :
         op2[_PREC] < op1[_PREC] ? false :
             op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
@@ -216,6 +214,15 @@ function _parseLiteralOrVariable(s) =
         atof(s);
         
 function _isoperator(token) = _PREC<len(token);
+        
+function _skipParens(tok,start,stop) =
+   start >= stop ? [] :
+   tok[start][0] == "(" ? 
+        _skipParens(tok,_endParens(tok,start=start+1,stop=stop,openCount=1),stop)
+        : 
+        concat([[tok[start],start]],_skipParens(tok,start+1,stop));
+            
+// We know the main operator is a ? or a :. We now need to find out which.
     
 function _mainOperator(tok,start,stop) = 
         let (token = tok[start])
@@ -225,6 +232,9 @@ function _mainOperator(tok,start,stop) =
             token[0] == "(" ? _mainOperator(tok, _endParens(tok,start=start+1,_stop=stop, openCount=1), stop)
             : _mainOperator(tok, start+1, stop),
             adjToken = _isoperator(token) ? token : undef )
+            (adjToken[0] == "?" || adjToken[0] == ":") && (rest[0] == "?" || rest[0] == ":") ?
+            _mainOperatorTrinary(tok,start,stop)
+            :
             _prec(rest[0], rest[1], adjToken, start) ? [adjToken, start] : rest; 
     
 /* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
@@ -417,5 +427,9 @@ echo(eval(compileFunction("atan2(1,0)")));
 echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
 echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
 echo(compileFunction("30-COS(1)")); */
-echo(_fixCommas(_parseMain(_parsePass1("abc"))));
-echo(compileFunction("cond ? a : b",optimize=false));echo(compileFunction("(1==1)? a : b ? c : d",optimize=false));
+///012345678
+e="a?b:c?d:e";
+echo(_mainOperator(_parsePass1(e),0,9));
+echo(_mainOperator(_parsePass1(e),2,9));
+echo(_parseMain(_parsePass1(e)));
+echo(compileFunction(e,optimize=false));
