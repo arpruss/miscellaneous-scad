@@ -298,7 +298,7 @@ function _optimize(expression) =
     concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
         expression;
         
-function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
+function compileFunction(expression,optimize=false) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
 pi = 3.1415926535897932;
@@ -361,50 +361,40 @@ function eval(c,v=[],careful=false) =
     op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
     op == ">=" ? eval(c[1],v)>=eval(c[2],v) :
     op == ">" ? eval(c[1],v)>=eval(c[2],v) :
-
-    careful ? (
-    op == "==" ? 
+    op == "==" ? (!careful ? eval(c[1],v)==eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        c1 == c2) :
-    op == "!=" ? 
+        c1 == c2) ) :
+    op == "!=" ? (!careful ? eval(c[1],v)!=eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        c1 != c2) :
-    op == "&&" ? 
+        c1 != c2) ) :
+    op == "&&" ? (!careful ? eval(c[1],v)&&eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         !c1 ? false : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        c1 && c2) :
-    op == "||" ? 
+        c1 && c2) ) :
+    op == "||" ? (!careful ? eval(c[1],v)||eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         c1 ? true : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        c1 || c2) :
-    op == "!" ? 
+        c1 || c2) ) :
+    op == "!" ? (!careful ? !eval(c[1],v) :
         (let(c1=eval(c[1],v))
-        undef ? undef :
-        !c1) :
-    op == "?" ? 
+        c1==undef ? undef :
+        !c1) ) :
+    op == "?" ? (!careful ? (eval(c[1],v)?eval(c[2],v):eval(c[3],v)) :  
         (let(c1=eval(c[1],v))
-        undef ? undef :
-        c1 ? eval(c[2],v):eval(c[3],v))
-    ) :
-
-    op == "==" ? eval(c[1],v)==eval(c[2],v) :
-    op == "!=" ? eval(c[1],v)!=eval(c[2],v) :
-    op == "&&" ? eval(c[1],v)&&eval(c[2],v) :
-    op == "||" ? eval(c[1],v)||eval(c[2],v) :
-    op == "!" ? !eval(c[1],v) :
-    op == "?" ? (eval(c[1],v) ? eval(c[2],v):eval(c[3],v)) :
+        c1==undef ? undef :
+        c1 ? eval(c[2],v):eval(c[3],v)) ):
     
     op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
     op == "range" ? (len(c)==3 ? [eval(c[1],v):eval(c[2],v)] : [eval(c[1],v):eval(c[2],v):eval(c[3],v)]) :
@@ -469,7 +459,6 @@ echo(compileFunction("(x^z)"));
 echo(compileFunction("[1^2,3*4,5]"));
 echo(compileFunction("2*2*[a,b,c,d]"));
 echo(compileFunction("[1^2,[3*4,5]]"));
-//echo(compileFunction("1^2"));
 echo(eval(compileFunction("[1,2]+[2,3]")));
 echo(eval(compileFunction("atan2(1,0)")));
 echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
@@ -477,5 +466,5 @@ echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
 echo(compileFunction("30-COS(1)")); 
 echo(eval(compileFunction("true",optimize=true)));
 echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
-echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false), [["x",1]]));
-
+echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=true), [["x",1]]));
+echo(eval(compileFunction("x==1?2:3",optimize=false),careful=true));
