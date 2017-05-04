@@ -395,15 +395,16 @@ function eval(c,v=[]) =
     undef
     );
     
-module plot3d(f,start,end,steps=20,height=1) {
+// Demos begin    
+    
+module plot3d(f,start,end,steps=20,thickness=1) {
     delta = (end-start)/steps;
     for(i=[0:steps-1])
        for(j=[0:steps-1]) {
            xy = [i*delta[0],j*delta[1]]+start;
            z = eval(f,[["x",xy[0]],["y",xy[1]]]);
-           translate([xy[0],xy[1],z-height/2]) cube([delta[0],delta[1],height/2]);
+           translate([xy[0],xy[1],z-thickness/2]) cube([delta[0],delta[1],thickness/2]);
        }
-               
 }   
 
 module curve3d(f,t0,t1,steps=30,thickness=1,closed=false) {
@@ -454,11 +455,10 @@ echo(compileFunction("(x^z)"));
 echo(compileFunction("[1^2,3*4,5]"));
 echo(compileFunction("2*2*[a,b,c,d]"));
 echo(compileFunction("[1^2,[3*4,5]]"));
+echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
+echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=true));
 echo(eval(compileFunction("[1,2]+[2,3]")));
 echo(eval(compileFunction("atan2(1,0)")));
 echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
-echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
-echo(compileFunction("30-COS(1)")); 
-echo(eval(compileFunction("true",optimize=true)));
-echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
-echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=true), [["x",1]]));
+echo(eval(compileFunction("true && false",optimize=true)));
+echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40"), [["x",1]]));
