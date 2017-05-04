@@ -1,3 +1,5 @@
+// NOTE: precedence for ? operator is wrong: please surround it by parens
+
 // begin string to float library
 // Jesse Campbell
 // www.jbcse.com
@@ -167,7 +169,7 @@ _operators = [
     [ "&&", 2, 5, 1, true, "&&" ],
     [ "||", 2, 5, 1, true, "||" ],
     [ ":", 2, 10, -1, true, "," ],
-    [ "?", 2, 20, -1, true, "?" ],
+    [ "?", 2, 20, 1, true, "?" ], 
     [ ",", 2, 100, 1, true, "," ]
    ];
     
@@ -201,6 +203,8 @@ function _prec(op1, pos1, op2, pos2) =
     op1 != undef && op2 == undef ? false :
     op1 == undef && op2 != undef ? true :
     op1 == undef && op2 == undef ? true :
+    op1[_NAME] == ":" && op2[_NAME] == "?" ? pos1 > pos2 :
+    op1[_NAME] == ":" && op2[_NAME] == "?" ? pos2 > pos2 :
     op1[_PREC] < op2[_PREC] ? true :
         op2[_PREC] < op1[_PREC] ? false :
             op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
@@ -246,14 +250,16 @@ function _fixCommas(expression) =
                 concat(["[["],concat(_tail(a), [b])) :
                 ["[[",a,b]
         : 
-    !(len(expression)>1) ? expression :
+    expression[0] == "$" || !(len(expression)>1) ? expression :
             concat([expression[0]], [for (i=[1:len(expression)-1]) _fixCommas(expression[i])]);
 
 // fix arguments from vectors
 function _fixArguments(expression) = 
     let(i=_indexInTable(expression[0], _operators, _OPERATOR)) 
             i >=0 && _operators[i][_ARGUMENTS_FROM_VECTOR] && expression[1][0] == "[[" ? concat([expression[0]], [for (i=[1:len(expression[1])-1]) _fixArguments(expression[1][i])]) : 
-            len(expression)>1 ? 
+            expression[0] == "?" ?
+                concat([expression[0],expression[1]],[for (i=[1:len(expression[2])-1]) _fixArguments(expression[2][i])]) : 
+            len(expression)>1 && expression[0] != "$" ? 
                 concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
                     : expression;
                 
@@ -411,4 +417,5 @@ echo(eval(compileFunction("atan2(1,0)")));
 echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
 echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
 echo(compileFunction("30-COS(1)")); */
-echo(compileFunction("(1==1)!=(1==1)"));
+echo(_fixCommas(_parseMain(_parsePass1("abc"))));
+echo(compileFunction("cond ? a : b",optimize=false));echo(compileFunction("(1==1)? a : b ? c : d",optimize=false));
