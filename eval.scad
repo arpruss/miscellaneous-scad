@@ -298,7 +298,7 @@ function _optimize(expression) =
     concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
         expression;
         
-function compileFunction(expression,optimize=false) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
+function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
 pi = 3.1415926535897932;
