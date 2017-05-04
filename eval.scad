@@ -289,7 +289,7 @@ function _wellDefined(x) =
     len([for (a=x) if(!_wellDefined(a)) true])==0;
 
 function _optimize(expression) =
-    let(x=eval(expression,careful=true))
+    let(x=eval(expression,$careful=true))
         _wellDefined(x) ? _optimizedLiteral(x) :
         expression[0] == "'" ? _optimizedLiteral(x) :
         let(n=len(expression))
@@ -314,7 +314,7 @@ function _generate(var, range, expr, v) =
 
 
 // note: given the way variables are recognized, operators are not allowed to be a single alnum or underline
-function eval(c,v=[],careful=false) = 
+function eval(c,v=[]) = 
     c == "x" || c == "y" || c == "z" || c == "t" ? _lookupVariable(c,v) :
     let(op=c[0]) (
     op == undef ? c :
@@ -361,37 +361,37 @@ function eval(c,v=[],careful=false) =
     op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
     op == ">=" ? eval(c[1],v)>=eval(c[2],v) :
     op == ">" ? eval(c[1],v)>=eval(c[2],v) :
-    op == "==" ? (!careful ? eval(c[1],v)==eval(c[2],v) :
+    op == "==" ? (!$careful ? eval(c[1],v)==eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        c1 == c2) ) :
-    op == "!=" ? (!careful ? eval(c[1],v)!=eval(c[2],v) :
+        ["!", c1 == c2]) ) :
+    op == "!=" ? (!$careful ? eval(c[1],v)!=eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
         c1 != c2) ) :
-    op == "&&" ? (!careful ? eval(c[1],v)&&eval(c[2],v) :
+    op == "&&" ? (!$careful ? eval(c[1],v)&&eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         !c1 ? false : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
         c1 && c2) ) :
-    op == "||" ? (!careful ? eval(c[1],v)||eval(c[2],v) :
+    op == "||" ? (!$careful ? eval(c[1],v)||eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
         c1 ? true : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
         c1 || c2) ) :
-    op == "!" ? (!careful ? !eval(c[1],v) :
+    op == "!" ? (!$careful ? !eval(c[1],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef :
         !c1) ) :
-    op == "?" ? (!careful ? (eval(c[1],v)?eval(c[2],v):eval(c[3],v)) :  
+    op == "?" ? (!$careful ? (eval(c[1],v)?eval(c[2],v):eval(c[3],v)) :  
         (let(c1=eval(c[1],v))
         c1==undef ? undef :
         c1 ? eval(c[2],v):eval(c[3],v)) ):
@@ -467,4 +467,3 @@ echo(compileFunction("30-COS(1)"));
 echo(eval(compileFunction("true",optimize=true)));
 echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
 echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=true), [["x",1]]));
-echo(eval(compileFunction("x==1?2:3",optimize=false),careful=true));
