@@ -80,6 +80,7 @@ function _multiSymbolOperatorSequence(s, start=0) =
     (s[start]=="<" && s[start+1]=="=") ||
     (s[start]==">" && s[start+1]=="=") ||
     (s[start]=="=" && s[start+1]=="=") ||
+    (s[start]=="!" && s[start+1]=="=") ||
     (s[start]=="&" && s[start+1]=="&") ||
     (s[start]=="|" && s[start+1]=="|") ? 2 : 0;
     
@@ -112,25 +113,16 @@ function _indexInTable(string, table, column=0) =
 _NAME = 0;
 _ARITY = 1;
 _PREC = 2;
-_LEFT_ASSOC = 3;
+_ASSOC_DIR = 3;
 _ARGUMENTS_FROM_VECTOR = 4;
 _OPERATOR = 5;
 
-function _func(op) = [ op, 1, 1.5, true, false, op ];
+function _func(op) = [ op, 1, -1, 1, true, op ];
 
 _operators = [
-    [ "#", 2, 0, true, false, "#" ],
-    [ "^", 2, 0, false, false, "^" ],
-    [ "*", 2, 1, true, false, "*" ],
-    [ "/", 2, 1, true, false, "/" ],
-    [ "%", 2, 1, true, false, "%" ],
-    [ "[", 1, 1.5, true, true, "[" ],
-    [ "atan2", 1, 1.5, true, true, "atan2" ],
-    [ "ATAN2", 1, 1.5, true, true, "ATAN2" ],
-    [ "max", 1, 1.5, true, true, "max" ],
-    [ "min", 1, 1.5, true, true, "min" ],
-    [ "pow", 1, 1.5, true, true, "pow" ],
-    [ "cross", 1, 1.5, true, true, "cross" ],
+    [ "[", 1, -1, 1, true, "[" ],
+    [ "pow", 1, -1, 1, true, "^" ],
+    [ "cross", 1, -1, 1, true, "cross" ],
     _func("sqrt"),
     _func("cos"),
     _func("sin"),
@@ -153,10 +145,30 @@ _operators = [
     _func("round"),
     _func("sign"),
     _func("norm"),
-    [ "#-",1, 1.5, true, false, "-" ],
-    [ "+", 2, 2, true, false, "+" ],
-    [ "-", 2, 2, true, false, "-" ],
-    [ ",", 2, 100, true, false, "," ]
+    [ "atan2", 1, -1, 1, true, "atan2" ],
+    [ "ATAN2", 1, -1, 1, true, "ATAN2" ],
+    [ "max", 1, -1, 1, true, "max" ],
+    [ "min", 1, -1, 1, true, "min" ],
+    [ "#", 2, 0, -1, false, "#" ],
+    [ "^", 2, 0, -1, false, "^" ],
+    [ "#-",1, 0.5, 0, true, "-" ],
+    [ "*", 2, 1, 1, false, "*" ],
+    [ "/", 2, 1, 1, false, "/" ],
+    [ "%", 2, 1, 1, false, "%" ],
+    [ "+", 2, 2, 1, true, "+" ],
+    [ "-", 2, 2, 1, true, "-" ],
+    [ "!=", 2, 3, 1, true, "!=" ],
+    [ "==", 2, 3, 1, true, "==" ],
+    [ "<=", 2, 3, 1, true, "<=" ],
+    [ ">=", 2, 3, 1, true, ">=" ],
+    [ "<", 2, 3, 1, true, "<" ],
+    [ ">", 2, 3, 1, true, ">" ],
+    [ "!", 1, 4, 1, true, "!" ],
+    [ "&&", 2, 5, 1, true, "&&" ],
+    [ "||", 2, 5, 1, true, "||" ],
+    [ ":", 2, 10, -1, true, "," ],
+    [ "?", 2, 20, -1, true, "?" ],
+    [ ",", 2, 100, 1, true, "," ]
    ];
     
 _binary_or_unary = [ ["-", "#-"], ["#", "["] ];
@@ -188,14 +200,16 @@ function _parsePass1(s) =
 function _prec(op1, pos1, op2, pos2) =
     op1 != undef && op2 == undef ? false :
     op1 == undef && op2 != undef ? true :
+    op1 == undef && op2 == undef ? true :
     op1[_PREC] < op2[_PREC] ? true :
         op2[_PREC] < op1[_PREC] ? false :
-            op1[_LEFT_ASSOC] ? pos1 < pos2 :
-                op2[_LEFT_ASSOC] ? pos2 < pos1 :
-                    pos2 < pos1;
+            op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
     
 function _parseLiteralOrVariable(s) = 
-        _isalpha_(s[0]) ? ["$", s] : atof(s);
+        _isalpha_(s[0]) ? ["$", s] : 
+        s == "true" ? true :
+        s == "false" ? false :
+        atof(s);
         
 function _isoperator(token) = _PREC<len(token);
     
@@ -213,8 +227,8 @@ function _mainOperator(tok,start,stop) =
 function _parseMain(tok,start=0,_stop=undef) = 
     let( stop= _stop==undef ? len(tok) : _stop )
         stop <= start ? undef :
-        tok[start][0] == "(" ? 
-            _parseMain(tok,start=start+1,_stop=_endParens(tok,start=start+1,openCount=1,stop=stop)-1) : 
+        tok[start][0] == "(" && _endParens(tok,start=start+1,_stop=stop,openCount=1)==stop ? 
+            _parseMain(tok,start=start+1,_stop=stop-1) : 
         let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
             let( op = lp[0], pos = lp[1] )
@@ -242,8 +256,25 @@ function _fixArguments(expression) =
             len(expression)>1 ? 
                 concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
                     : expression;
+                
+function _optimizedLiteral(x) = 
+    len(x)==undef ? x : ["'", x];
+                
+function _wellDefined(x) =
+    x==undef ? false :
+    len(x)==undef ? true :
+    len([for (a=x) if(!_wellDefined(a)) true])==0;
 
-function compileFunction(expression) = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression))));
+function _optimize(expression) =
+    let(x=eval(expression))
+        _wellDefined(x) ? _optimizedLiteral(x) :
+        expression[0] == "'" ? _optimizedLiteral(x) :
+        let(n=len(expression))
+        n>=2 ? concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
+        expression;
+        
+function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
+        optimize ? _optimize(unoptimized) : unoptimized;
 
 pi = 3.1415926535897932;
 
@@ -330,6 +361,7 @@ module plot3d(f,start,end,steps=20,height=1) {
 }   
 
 module curve3d(f,t0,t1,steps=30,thickness=1,closed=false) {
+    
     delta = (t1-t0)/(steps-1);
     values = [for (i=[0:steps-1]) eval(f,[["t", t0+i*delta]])];
         
@@ -344,12 +376,18 @@ module curve3d(f,t0,t1,steps=30,thickness=1,closed=false) {
 module demo1() {
     // borromean knot parametrization by I.J. McGee
     r = sqrt(3)/3;
+/*
     // 30*[cos(t),sin(t)+r,-cos(3*t)/3];
-    color("red") curve3d([ "*", 30, ["[", ["COS", "t"], ["+", ["SIN", "t"], r], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10);
+    color("red") curve3d([ "*", 30, ["[", ["COS", "t"], ["+", ["SIN", "t"], r], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10); 
     // 30*[cos(t)+0.5,sin(t)-r/2,-cos(3*t)/3];
     color("green") curve3d([ "*", 30, ["[", ["+",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10);
     // 30*[cos(t)-0.5,sin(t)-r/2,-cos(3*t)/3];
-    color("blue") curve3d([ "*", 30, ["[", ["-",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10);
+    color("blue") curve3d([ "*", 30, ["[", ["-",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10); */
+    
+    color("red") curve3d(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
+    color("green") curve3d(compileFunction("30*[COS(t)+0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
+    color("blue") curve3d(compileFunction("30*[COS(t)-0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
+
     
        
 }
@@ -360,18 +398,17 @@ echo(compileFunction("3*(x*y^3-x^3*y)"));
 plot3d(compileFunction("3*(x*y^3-x^3*y)"), [-1,-1],[1,1], steps=200, height=0.5);
 }
 
-//demo1();
+demo1();
 //demo2();
-echo(compileFunction("(-1)^3")); // TODO: FIX
-echo(compileFunction("1^2,3*4,5"));
-echo(compileFunction("a,b,c,d"));
+/*
+echo(compileFunction("(x^z)")); // TODO: FIX
+echo(compileFunction("[1^2,3*4,5]"));
+echo(compileFunction("2*2*[a,b,c,d]"));
 echo(compileFunction("[1^2,[3*4,5]]"));
 //echo(compileFunction("1^2"));
 echo(eval(compileFunction("[1,2]+[2,3]")));
 echo(eval(compileFunction("atan2(1,0)")));
-echo(compileFunction("cross([1,2],[3,4])"));
-echo(eval(compileFunction("norm([1,1])")));
-s="[1,2]+(z)";
-echo(_fixBrackets(_tokenize(s)));
-echo(_parsePass1(s));
-echo(_parseMain(_parsePass1(s)));
+echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
+echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
+echo(compileFunction("30-COS(1)")); */
+echo(compileFunction("(1==1)!=(1==1)"));
