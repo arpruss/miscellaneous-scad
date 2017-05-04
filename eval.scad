@@ -439,4 +439,5 @@ echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
 echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
 echo(compileFunction("30-COS(1)")); 
 echo(eval(compileFunction("true",optimize=true)));
-echo(compileFunction(e,optimize=true));
+echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
+echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false), [["x",1]]));
