@@ -1,41 +1,32 @@
-// begin string to float library
-// Jesse Campbell
-// www.jbcse.com
-// http://www.thingiverse.com/thing:2247435
-// OpenSCAD ascii string to number conversion function atof
-// atoi and substr are from http://www.thingiverse.com/roipoussiere
-// licensed under the Creative Commons - Attribution license.
-
-// modified to support scientific notation by Alexander Pruss
-
-function atoi(str, base=10, i=0, nb=0) =
-	i == len(str) ? (str[0] == "-" ? -nb : nb) :
-	i == 0 && str[0] == "-" ? atoi(str, base, 1) :
-	atoi(str, base, i + 1,
-		nb + search(str[i], "0123456789ABCDEF")[0] * pow(base, len(str) - i - 1));
-
-function substr(str, pos=0, len=-1, substr="") =
-	len == 0 ? substr :
-	len == -1 ? substr(str, pos, len(str)-pos, substr) :
-	substr(str, pos+1, len-1, str(substr, str[pos]));
+function _substr(s, start=0, stop=undef) =
+    let( _stop = stop==undef ? len(s) : stop )
+        start >= _stop || start >= len(s) ? "" :
+        str(s[start], _substr(s, start=start+1, stop=_stop));
+        
+function _parseInt(s, start=0, stop=undef, accumulated=0) =
+    let( _stop = stop==undef ? len(s) : stop )
+        start >= stop ? accumulated :
+        s[start] == "+" ? _parseInt(s, start=start+1, stop=_stop) :
+        s[start] == "-" ? -_parseInt(s, start=start+1, stop=_stop) :
+        let (digit = search(s[start], "0123456789"))
+            digit == [] ? 0 : _parseInt(s, start=start+1, stop=_stop, accumulated=accumulated*10+digit[0]);
     
-function atof(str) = 
-    len(str) == 0 ? 0 : 
-        let(
-            expon1 = search("e", str),
-            expon = len(expon1) ? expon1 : search("E", str))
-           len(expon) ? atof(substr(str,pos=0,len=expon[0])) * pow(10, atoi(substr(str,pos=expon[0]+1))) :
-        let(
-            multiplyBy = (str[0] == "-") ? -1 : 1,
-            str = (str[0] == "-" || str[0] == "+") ? substr(str, 1, len(str)-1) : str,    
-            decimal = search(".", str),    
-            beforeDecimal = decimal == [] ? str : substr(str, 0, decimal[0]),
-            afterDecimal = decimal == [] ? "0" : substr(str, decimal[0]+1)
-        )
-        (multiplyBy * (atoi(beforeDecimal) + atoi(afterDecimal)/pow(10,len(afterDecimal))));
-// end string to float library
+function _findNonDigit(s, start=0) =
+    start >= len(s) ? len(s) :
+        "0" <= s[start] && s[start] <= "9" ? 
+        _findNonDigit(s, start=start+1) : start;
 
-
+function _parseUnsignedFloat(s) =
+    len(s) == 0 ? 0 :
+        let(
+            firstNonDigit = _findNonDigit(s),
+            decimalPart = s[firstNonDigit]!="." ? 
+                [firstNonDigit,firstNonDigit] : [firstNonDigit+1, _findNonDigit(s, start=firstNonDigit+1)],
+            intPart = _parseInt(s,start=0,stop=firstNonDigit),
+            fractionPart = _parseInt(s,start=decimalPart[0],stop=decimalPart[1]),
+            baseExp = s[decimalPart[1]]=="e" || s[decimalPart[1]]=="E" ? pow(10,_parseInt(s, start=decimalPart[1]+1)) : 1)
+            (intPart+fractionPart*pow(10,-(decimalPart[1]-decimalPart[0])))*baseExp;
+            
 function _tail(v) = len(v)>=2 ? [for(i=[1:len(v)-1]) v[i]] : [];
 function _isspace(c) = (" " == c || "\t" == c || "\r" == c || "\n" == c );
 function _isdigit(c) = ("0" <= c && c <= "9" );
@@ -89,11 +80,11 @@ function _tokenize(s, start=0) =
     let(c1=_spaceSequence(s, start=start)) c1>0 ?
         concat([" "], _tokenize(s, start=start+c1)) :
     let(c2=_identifierSequence(s, start=start)) c2>0 ? 
-        concat([substr(s, pos=start, len=c2)], _tokenize(s, start=start+c2)) :
+        concat([_substr(s, start=start, stop=start+c2)], _tokenize(s, start=start+c2)) :
     let(c3=_positiveRealSequence(s, start=start)) c3>0 ? 
-        concat([substr(s, pos=start, len=c3)], _tokenize(s, start=start+c3)) :
+        concat([_substr(s, start=start, stop=start+c3)], _tokenize(s, start=start+c3)) :
     let(c4=_multiSymbolOperatorSequence(s, start=start)) c4>0 ? 
-        concat([substr(s, pos=start, len=c4)], _tokenize(s, start=start+c4)) :
+        concat([_substr(s, start=start, stop=start+c4)], _tokenize(s, start=start+c4)) :
         concat([s[start]], _tokenize(s, start=start+1));
 
         
@@ -152,6 +143,7 @@ _operators = [
     [ "#", 2, 0, -1, false, "#" ],
     [ "^", 2, 0, -1, false, "^" ],
     [ "#-",1, 0.5, 0, true, "-" ],
+    [ "#+",1, 0.5, 0, true, "+" ],
     [ "*", 2, 1, 1, false, "*" ],
     [ "/", 2, 1, 1, false, "/" ],
     [ "%", 2, 1, 1, false, "%" ],
@@ -171,7 +163,7 @@ _operators = [
     [ ",", 2, 100, 1, true, "," ]
    ];
     
-_binary_or_unary = [ ["-", "#-"], ["#", "["] ];
+_binary_or_unary = [ ["-", "#-"], ["+", "#+"], ["#", "["] ];
 
 function _fixBrackets(pretok,start=0) =
     start >= len(pretok) ? [] :
@@ -210,7 +202,7 @@ function _parseLiteralOrVariable(s) =
         s == "false" ? false :
         s == "undef" ? undef :
         _isalpha_(s[0]) ? ["$", s] : 
-        atof(s);
+        _parseUnsignedFloat(s);
         
 function _isoperator(token) = _PREC<len(token);
         
@@ -320,7 +312,7 @@ function eval(c,v=[]) =
     op == undef ? c :
     op == "$" ? _lookupVariable(c[1],v) :
     op == "'" ? c[1] : 
-    op == "+" ? eval(c[1],v)+eval(c[2],v) :
+    op == "+" ? (len(c)==2 ? eval(c[1],v) : eval(c[1],v)+eval(c[2],v)) :
     op == "-" ? (len(c)==2 ? -eval(c[1],v) : eval(c[1],v)-eval(c[2],v)) :
     op == "*" ? eval(c[1],v)*eval(c[2],v) :
     op == "/" ? eval(c[1],v)/eval(c[2],v) :
@@ -438,6 +430,8 @@ module demo1() {
     // 30*[cos(t)-0.5,sin(t)-r/2,-cos(3*t)/3];
     color("blue") curve3d([ "*", 30, ["[", ["-",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10); */
     
+    
+    echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
     color("red") curve3d(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
     color("green") curve3d(compileFunction("30*[COS(t)+0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
     color("blue") curve3d(compileFunction("30*[COS(t)-0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
@@ -455,6 +449,7 @@ plot3d(compileFunction("3*(x*y^3-x^3*y)"), [-1,-1],[1,1], steps=200, height=0.5)
 demo1();
 //demo2();
 
+echo(compileFunction("(1+12)"));
 echo(compileFunction("(x^z)")); 
 echo(compileFunction("[1^2,3*4,5]"));
 echo(compileFunction("2*2*[a,b,c,d]"));
