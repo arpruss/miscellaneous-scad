@@ -107,6 +107,7 @@ _PREC = 2;
 _ASSOC_DIR = 3;
 _ARGUMENTS_FROM_VECTOR = 4;
 _OPERATOR = 5;
+_EXTRA_DATA = 6;
 
 function _func(op) = [ op, 1, -1, 1, true, op ];
 
@@ -160,7 +161,9 @@ _operators = [
     [ "&&", 2, 5, 1, true, "&&" ],
     [ "||", 2, 5, 1, true, "||" ],
     [ ":", 2, 10, -1, true, "," ],
-    [ "?", 2, 20, -1, true, "?" ], 
+    [ "?", 2, 20, -1, true, "?" ],
+    [ "=", 2, 30, 1, true, "=" ], // for let()
+    [ "let", 1, 40, 1, true, "let" ], // for let()
     [ ",", 2, 100, 1, true, "," ]
    ];
     
@@ -182,14 +185,22 @@ function _fixUnaries(pretok) =
             (0 <= j && (i == 0 || pretok[i-1] == "(" ||
                 0 <= _indexInTable(pretok[i-1], _operators)))? _binary_or_unary[j][1] : a ];
 
+function _fixLet1(tok, start=0, stop=undef) =
+    let (stop = stop==undef ? len(tok) : stop)
+        start >= stop ? [] :
+        tok[start][0] == "let"?
+           let(endP=_endParens(tok,start=start+1,stop=stop,openCount=0)) concat([concat(tok[start], [_fixLet1(tok,start=start+2,stop=endP-1)])], _fixLet1(tok,start=endP,stop=stop)) :
+        concat([tok[start]], _fixLet1(tok,start=start+1,stop=stop));   
+       
 function _parsePass1(s) =
     let (pretok=_fixUnaries(_fixBrackets(_tokenize(s))))
+    _fixLet1(
     [ for (i=[0:len(pretok)-1])
         let (a=pretok[i])
         if (a[0] != " ")
-        let (j=_indexInTable(a, _operators))
-            j >= 0 ? _operators[j] : [a] ];
-    
+            let (j=_indexInTable(a, _operators))
+                j >= 0 ? _operators[j] : [a] ] );
+        
 function _prec(op1, pos1, op2, pos2) =
     op1 != undef && op2 == undef ? false :
     op1 == undef && op2 != undef ? true :
@@ -236,6 +247,16 @@ function _mainOperator(tok,start,stop) =
     let(c=_getCandidatesForMainOperator(tok,start,stop),
     m=_findMainOperator(c))
      m[0][0] == "?" || m[0][0] == ":" ? _mainQuestionOperator(c) : m;
+     
+function _doLets(assignments, final, start=0) =
+    start >= len(assignments) ? final :
+    assignments[start][0] == "=" && assignments[start][1][0] == "$" ? ["let", ["'", assignments[start][1][1]], assignments[start][2], _doLets(assignments, final, start=start+1)] : _doLets(assignments, final, start=start+1);
+     
+function _letOperator(a,b) = 
+    let(rawAssignments=_fixCommas(a),
+        assignments=rawAssignments[0] == "[[" ?
+            _tail(rawAssignments) : [a])
+    _doLets(assignments, b);
     
 /* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
 function _parseMain(tok,start=0,stop=undef) = 
@@ -246,6 +267,8 @@ function _parseMain(tok,start=0,stop=undef) =
         let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
             let( op = lp[0], pos = lp[1] )
+                op[_NAME] == "let" ?
+                    _letOperator( _parseMain(op[_EXTRA_DATA]), _parseMain(tok,start=pos+1,stop=stop)) :
                 op[_ARITY] == 2 ?
                     [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=stop) ]
                     : [ op[_OPERATOR], _parseMain(tok,start=pos+1,stop=stop) ];  
@@ -276,9 +299,11 @@ function _fixArguments(expression) =
 function _optimizedLiteral(x) = 
     len(x)==undef ? x : ["'", x];
                 
-function _wellDefined(x) =
+function _wellDefined(x) =                
     x==undef ? false :
     len(x)==undef ? true :
+    x[0] == "'" ? true :
+    len(x)==1 ? x[0]!=undef :
     len([for (a=x) if(!_wellDefined(a)) true])==0;
 
 function _optimize(expression) =
@@ -389,8 +414,12 @@ function eval(c,v=[]) =
     
     op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
     op == "range" ? (len(c)==3 ? [eval(c[1],v):eval(c[2],v)] : [eval(c[1],v):eval(c[2],v):eval(c[3],v)]) :
-    op == "let" ? eval(c[3],_let(v,c[1],c[2])) :
+    op == "let" ? (!$careful ? eval(c[3],concat([[eval(c[1],v),eval(c[2],v)]], v)) :
+            let(c1=eval(c[1],v),c2=eval(c[2],v)) 
+                c1==undef || c2==undef ? undef :
+                    eval(c[3],concat([[c1,c2]], v)) ) :
     op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
     undef
     );
-    
+
+echo(compileFunction( "let(u=2*t) sin(u)+2*sin(2*u)"));
