@@ -140,6 +140,7 @@ _operators = [
     [ "ATAN2", 1, -1, 1, true, "ATAN2" ],
     [ "max", 1, -1, 1, true, "max" ],
     [ "min", 1, -1, 1, true, "min" ],
+    [ "concat", 1, -1, 1, true, "concat" ],
     [ "#", 2, 0, -1, false, "#" ],
     [ "^", 2, 0, -1, false, "^" ],
     [ "#-",1, 0.5, 0, true, "-" ],
@@ -293,8 +294,6 @@ function _optimize(expression) =
 function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
-pi = 3.1415926535897932;
-
 function _let(v, var, value) = concat([var, value], v);
 
 function _lookupVariable(var, table) =
@@ -395,70 +394,3 @@ function eval(c,v=[]) =
     undef
     );
     
-// Demos begin    
-    
-module plot3d(f,start,end,steps=20,thickness=1) {
-    delta = (end-start)/steps;
-    for(i=[0:steps-1])
-       for(j=[0:steps-1]) {
-           xy = [i*delta[0],j*delta[1]]+start;
-           z = eval(f,[["x",xy[0]],["y",xy[1]]]);
-           translate([xy[0],xy[1],z-thickness/2]) cube([delta[0],delta[1],thickness/2]);
-       }
-}   
-
-module curve3d(f,t0,t1,steps=30,thickness=1,closed=false) {
-    
-    delta = (t1-t0)/(steps-1);
-    values = [for (i=[0:steps-1]) eval(f,[["t", t0+i*delta]])];
-        
-    for(i=[0:steps-2]) {
-        hull() {
-            translate(values[i]) sphere(d=thickness);
-            translate(values[i+1]) sphere(d=thickness);
-        }
-    }
-}
-
-module demo1() {
-    // borromean knot parametrization by I.J. McGee
-    r = sqrt(3)/3;
-/*
-    // 30*[cos(t),sin(t)+r,-cos(3*t)/3];
-    color("red") curve3d([ "*", 30, ["[", ["COS", "t"], ["+", ["SIN", "t"], r], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10); 
-    // 30*[cos(t)+0.5,sin(t)-r/2,-cos(3*t)/3];
-    color("green") curve3d([ "*", 30, ["[", ["+",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10);
-    // 30*[cos(t)-0.5,sin(t)-r/2,-cos(3*t)/3];
-    color("blue") curve3d([ "*", 30, ["[", ["-",["COS", "t"],0.5], ["-", ["SIN", "t"], r/2], ["-", ["/", ["COS", ["*", 3, "t"]], 3]]] ], 0, 2*pi, steps=60, thickness=10); */
-    
-    
-    echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
-    color("red") curve3d(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
-    color("green") curve3d(compileFunction("30*[COS(t)+0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
-    color("blue") curve3d(compileFunction("30*[COS(t)-0.5,SIN(t)-sqrt(3)/3/2,-COS(3*t)/3]"),0,2*pi,steps=60,thickness=10,closed=true);
-
-    
-       
-}
-
-module demo2() {
-//plot3d(["*", 3, [ "-", ["*", "x", ["^", "y", 3]], ["*", ["^", "x", 3], "y"] ]], [-1,-1],[1,1], steps=200, height=0.5);
-echo(compileFunction("3*(x*y^3-x^3*y)"));    
-plot3d(compileFunction("3*(x*y^3-x^3*y)"), [-1,-1],[1,1], steps=200, height=0.5);
-}
-
-demo1();
-//demo2();
-
-echo(compileFunction("(1+12)"));
-echo(compileFunction("(x^z)")); 
-echo(compileFunction("[1^2,3*4,5]"));
-echo(compileFunction("2*2*[a,b,c,d]"));
-echo(compileFunction("[1^2,[3*4,5]]"));
-echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
-echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=true));
-echo(eval(compileFunction("[1,2]+[2,3]")));
-echo(eval(compileFunction("atan2(1,0)")));
-echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
-echo(eval(compileFunction("true && false",optimize=true)));
-echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40"), [["x",1]]));
