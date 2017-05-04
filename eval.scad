@@ -1,15 +1,15 @@
 function _substr(s, start=0, stop=undef) =
-    let( _stop = stop==undef ? len(s) : stop )
-        start >= _stop || start >= len(s) ? "" :
-        str(s[start], _substr(s, start=start+1, stop=_stop));
+    let( stop = stop==undef ? len(s) : stop )
+        start >= stop || start >= len(s) ? "" :
+        str(s[start], _substr(s, start=start+1, stop=stop));
         
 function _parseInt(s, start=0, stop=undef, accumulated=0) =
-    let( _stop = stop==undef ? len(s) : stop )
+    let( stop = stop==undef ? len(s) : stop )
         start >= stop ? accumulated :
-        s[start] == "+" ? _parseInt(s, start=start+1, stop=_stop) :
-        s[start] == "-" ? -_parseInt(s, start=start+1, stop=_stop) :
+        s[start] == "+" ? _parseInt(s, start=start+1, stop=stop) :
+        s[start] == "-" ? -_parseInt(s, start=start+1, stop=stop) :
         let (digit = search(s[start], "0123456789"))
-            digit == [] ? 0 : _parseInt(s, start=start+1, stop=_stop, accumulated=accumulated*10+digit[0]);
+            digit == [] ? 0 : _parseInt(s, start=start+1, stop=stop, accumulated=accumulated*10+digit[0]);
     
 function _findNonDigit(s, start=0) =
     start >= len(s) ? len(s) :
@@ -88,12 +88,12 @@ function _tokenize(s, start=0) =
         concat([s[start]], _tokenize(s, start=start+1));
 
         
-function _endParens(list,start=0,openCount=0,_stop=undef) = 
-    let(stop = _stop==undef ? len(list) : _stop)
+function _endParens(list,start=0,openCount=0,stop=undef) = 
+    let(stop = stop==undef ? len(list) : stop)
     start >= stop ? (openCount?undef:stop) :
     list[start][0] == ")" ? 
-            (openCount==1 ? start+1 : _endParens(list,start+1,_stop=stop, openCount=openCount-1)) : 
-    _endParens(list,start+1,_stop=stop, openCount=
+            (openCount==1 ? start+1 : _endParens(list,start+1,stop=stop, openCount=openCount-1)) : 
+    _endParens(list,start+1,stop=stop, openCount=
         list[start][0] == "(" ? 
             openCount+1 : openCount);
         
@@ -237,17 +237,17 @@ function _mainOperator(tok,start,stop) =
      m[0][0] == "?" || m[0][0] == ":" ? _mainQuestionOperator(c) : m;
     
 /* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
-function _parseMain(tok,start=0,_stop=undef) = 
-    let( stop= _stop==undef ? len(tok) : _stop )
+function _parseMain(tok,start=0,stop=undef) = 
+    let( stop= stop==undef ? len(tok) : stop )
         stop <= start ? undef :
-        tok[start][0] == "(" && _endParens(tok,start=start+1,_stop=stop,openCount=1)==stop ? 
-            _parseMain(tok,start=start+1,_stop=stop-1) : 
+        tok[start][0] == "(" && _endParens(tok,start=start+1,stop=stop,openCount=1)==stop ? 
+            _parseMain(tok,start=start+1,stop=stop-1) : 
         let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
             let( op = lp[0], pos = lp[1] )
                 op[_ARITY] == 2 ?
-                    [ op[_OPERATOR], _parseMain(tok,start=start,_stop=pos), _parseMain(tok,start=pos+1,_stop=stop) ]
-                    : [ op[_OPERATOR], _parseMain(tok,start=pos+1,_stop=stop) ];  
+                    [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=stop) ]
+                    : [ op[_OPERATOR], _parseMain(tok,start=pos+1,stop=stop) ];  
             
            
 // this upgrades sequences of binary commas to vectors            
