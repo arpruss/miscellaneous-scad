@@ -1,5 +1,3 @@
-// NOTE: precedence for ? operator is wrong: please surround it by parens
-
 // begin string to float library
 // Jesse Campbell
 // www.jbcse.com
@@ -208,34 +206,43 @@ function _prec(op1, pos1, op2, pos2) =
             op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
     
 function _parseLiteralOrVariable(s) = 
-        _isalpha_(s[0]) ? ["$", s] : 
         s == "true" ? true :
         s == "false" ? false :
+        s == "undef" ? undef :
+        _isalpha_(s[0]) ? ["$", s] : 
         atof(s);
         
 function _isoperator(token) = _PREC<len(token);
         
-function _skipParens(tok,start,stop) =
+function _getCandidatesForMainOperator(tok,start,stop) =
    start >= stop ? [] :
    tok[start][0] == "(" ? 
-        _skipParens(tok,_endParens(tok,start=start+1,stop=stop,openCount=1),stop)
+        _getCandidatesForMainOperator(tok,_endParens(tok,start=start+1,stop=stop,openCount=1),stop)
         : 
-        concat([[tok[start],start]],_skipParens(tok,start+1,stop));
+        _isoperator(tok[start]) ? concat([[tok[start],start]],_getCandidatesForMainOperator(tok,start+1,stop)) :
+        _getCandidatesForMainOperator(tok,start+1,stop);
             
+// Find the operator with least precedence            
+function _findMainOperator(candidates,start=0) =
+    len(candidates) <= start ? [undef, 0] :
+    let(rest=_findMainOperator(candidates,start+1))
+    _prec(rest[0], rest[1], candidates[start][0], candidates[start][1]) ? candidates[start] : rest;
+
+function _firstOccurrence(c,opName,start=0) =
+    start >= len(c) ? undef :
+    c[start][0][0] == opName ? c[start] :
+        _firstOccurrence(c,opName,start=start+1);
+    
 // We know the main operator is a ? or a :. We now need to find out which.
+function _mainQuestionOperator(c) =
+    let(fq = _firstOccurrence(c,"?"), 
+        fc = _firstOccurrence(c,":"))
+        fq[1] != undef && (fc[1] == undef || fq[1] < fc[1]) ? fq : fc;
     
 function _mainOperator(tok,start,stop) = 
-        let (token = tok[start])
-        stop <= start ? [undef,start] :
-        stop == start+1 ? ( _isoperator(token) ? [token,start] : [undef,start] ) :
-        let( rest = 
-            token[0] == "(" ? _mainOperator(tok, _endParens(tok,start=start+1,_stop=stop, openCount=1), stop)
-            : _mainOperator(tok, start+1, stop),
-            adjToken = _isoperator(token) ? token : undef )
-            (adjToken[0] == "?" || adjToken[0] == ":") && (rest[0] == "?" || rest[0] == ":") ?
-            _mainOperatorTrinary(tok,start,stop)
-            :
-            _prec(rest[0], rest[1], adjToken, start) ? [adjToken, start] : rest; 
+    let(c=_getCandidatesForMainOperator(tok,start,stop),
+    m=_findMainOperator(c))
+     m[0][0] == "?" || m[0][0] == ":" ? _mainQuestionOperator(c) : m;
     
 /* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
 function _parseMain(tok,start=0,_stop=undef) = 
@@ -282,11 +289,13 @@ function _wellDefined(x) =
     len([for (a=x) if(!_wellDefined(a)) true])==0;
 
 function _optimize(expression) =
-    let(x=eval(expression))
+    let(x=eval(expression,careful=true))
         _wellDefined(x) ? _optimizedLiteral(x) :
         expression[0] == "'" ? _optimizedLiteral(x) :
         let(n=len(expression))
-        n>=2 ? concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
+        n>=2 ? 
+        expression[0]=="$" ? ((expression[1]=="x" || expression[1] == "y" || expression[1] == "z" || expression[1] == "t") ?expression[1] : expression) :
+    concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
         expression;
         
 function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
@@ -305,7 +314,7 @@ function _generate(var, range, expr, v) =
 
 
 // note: given the way variables are recognized, operators are not allowed to be a single alnum or underline
-function eval(c,v=[]) = 
+function eval(c,v=[],careful=false) = 
     c == "x" || c == "y" || c == "z" || c == "t" ? _lookupVariable(c,v) :
     let(op=c[0]) (
     op == undef ? c :
@@ -355,7 +364,9 @@ function eval(c,v=[]) =
     op == "&&" ? eval(c[1],v)&&eval(c[2],v) :
     op == "||" ? eval(c[1],v)||eval(c[2],v) :
     op == "!" ? !eval(c[1],v) :
-    op == "?" ? (eval(c[1],v)?eval(c[2],v):eval(c[3],v)) :
+    op == "?" ? let(cond=eval(c[1],v)) 
+        (careful && cond==undef ? undef :
+            cond?eval(c[2],v):eval(c[3],v)) :
     op == "[" ? [for (i=[1:len(c)-1]) eval(c[i],v)] :
     op == "#" ? eval(c[1],v)[eval(c[2],v)] :
     op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
@@ -416,8 +427,8 @@ plot3d(compileFunction("3*(x*y^3-x^3*y)"), [-1,-1],[1,1], steps=200, height=0.5)
 
 demo1();
 //demo2();
-/*
-echo(compileFunction("(x^z)")); // TODO: FIX
+
+echo(compileFunction("(x^z)")); 
 echo(compileFunction("[1^2,3*4,5]"));
 echo(compileFunction("2*2*[a,b,c,d]"));
 echo(compileFunction("[1^2,[3*4,5]]"));
@@ -426,10 +437,6 @@ echo(eval(compileFunction("[1,2]+[2,3]")));
 echo(eval(compileFunction("atan2(1,0)")));
 echo(eval(compileFunction("cross([1,2,3],[3,4,6])")));
 echo(compileFunction("30*[COS(t),SIN(t)+sqrt(3)/3,-COS(3*t)/3]"));
-echo(compileFunction("30-COS(1)")); */
-///012345678
-e="a?b:c?d:e";
-echo(_mainOperator(_parsePass1(e),0,9));
-echo(_mainOperator(_parsePass1(e),2,9));
-echo(_parseMain(_parsePass1(e)));
-echo(compileFunction(e,optimize=false));
+echo(compileFunction("30-COS(1)")); 
+echo(eval(compileFunction("true",optimize=true)));
+echo(compileFunction(e,optimize=true));
