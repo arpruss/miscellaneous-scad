@@ -355,20 +355,57 @@ function eval(c,v=[],careful=false) =
     op == "rands" ? rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
     op == "round" ? round(eval(c[1],v)) :
     op == "sign" ? sign(eval(c[1],v)) :
+    op == "[" ? [for (i=[1:len(c)-1]) eval(c[i],v)] :
+    op == "#" ? eval(c[1],v)[eval(c[2],v)] :
     op == "<" ? eval(c[1],v)<eval(c[2],v) :
     op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
-    op == "==" ? eval(c[1],v)==eval(c[2],v) :
-    op == "!=" ? eval(c[1],v)!=eval(c[2],v) :
     op == ">=" ? eval(c[1],v)>=eval(c[2],v) :
     op == ">" ? eval(c[1],v)>=eval(c[2],v) :
+
+    careful ? (
+    op == "==" ? 
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 == c2) :
+    op == "!=" ? 
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 != c2) :
+    op == "&&" ? 
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        !c1 ? false : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 && c2) :
+    op == "||" ? 
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        c1 ? true : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 || c2) :
+    op == "!" ? 
+        (let(c1=eval(c[1],v))
+        undef ? undef :
+        !c1) :
+    op == "?" ? 
+        (let(c1=eval(c[1],v))
+        undef ? undef :
+        c1 ? eval(c[2],v):eval(c[3],v))
+    ) :
+
+    op == "==" ? eval(c[1],v)==eval(c[2],v) :
+    op == "!=" ? eval(c[1],v)!=eval(c[2],v) :
     op == "&&" ? eval(c[1],v)&&eval(c[2],v) :
     op == "||" ? eval(c[1],v)||eval(c[2],v) :
     op == "!" ? !eval(c[1],v) :
-    op == "?" ? let(cond=eval(c[1],v)) 
-        (careful && cond==undef ? undef :
-            cond?eval(c[2],v):eval(c[3],v)) :
-    op == "[" ? [for (i=[1:len(c)-1]) eval(c[i],v)] :
-    op == "#" ? eval(c[1],v)[eval(c[2],v)] :
+    op == "?" ? (eval(c[1],v) ? eval(c[2],v):eval(c[3],v)) :
+    
     op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
     op == "range" ? (len(c)==3 ? [eval(c[1],v):eval(c[2],v)] : [eval(c[1],v):eval(c[2],v):eval(c[3],v)]) :
     op == "let" ? eval(c[3],_let(v,c[1],c[2])) :
@@ -441,3 +478,4 @@ echo(compileFunction("30-COS(1)"));
 echo(eval(compileFunction("true",optimize=true)));
 echo(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false));
 echo(eval(compileFunction("x==1?10:x==2?20?x==3?30:40",optimize=false), [["x",1]]));
+
