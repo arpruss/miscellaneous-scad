@@ -160,10 +160,10 @@ _operators = [
     [ "!", 1, 4, 1, true, "!" ],
     [ "&&", 2, 5, 1, true, "&&" ],
     [ "||", 2, 5, 1, true, "||" ],
-    [ ":", 2, 10, -1, true, "," ],
-    [ "?", 2, 20, -1, true, "?" ],
+    [ ":", 2, 20, -1, true, "," ],
+    [ "?", 2, 10, -1, true, "?" ],
     [ "=", 2, 30, 1, true, "=" ], // for let()
-    [ "let", 1, 40, 1, true, "let" ], // for let()
+    [ "let", 1, 25, 1, true, "let" ], // for let()
     [ ",", 2, 100, 1, true, "," ]
    ];
     
@@ -174,7 +174,11 @@ function _fixBrackets(pretok,start=0) =
     pretok[start] == "[" ?
         concat(["#", "("], _fixBrackets(pretok,start=start+1)) :
     pretok[start] == "]" ?
-        concat([")"], _fixBrackets(pretok,start=start+1)) :
+        concat([")"], _fixBrackets(pretok,start=start+1)) : 
+    pretok[start] == "?" ?
+        concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
+    pretok[start] == ":" ?
+        concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
         concat(pretok[start], _fixBrackets(pretok,start=start+1));
 
 function _fixUnaries(pretok) =
@@ -205,6 +209,8 @@ function _prec(op1, pos1, op2, pos2) =
     op1 != undef && op2 == undef ? false :
     op1 == undef && op2 != undef ? true :
     op1 == undef && op2 == undef ? true :
+    op1[_ARITY] == 1 && pos1 > pos2 ? true :
+    op2[_ARITY] == 1 && pos2 > pos1 ? false :
     op1[_PREC] < op2[_PREC] ? true :
         op2[_PREC] < op1[_PREC] ? false :
             op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
@@ -421,3 +427,4 @@ function eval(c,v=[]) =
     op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
     undef
     );
+    
