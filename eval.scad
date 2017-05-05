@@ -421,5 +421,3 @@ function eval(c,v=[]) =
     op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
     undef
     );
-
-echo(compileFunction( "let(u=2*t) sin(u)+2*sin(2*u)"));
