@@ -325,6 +325,8 @@ function _optimize(expression) =
 function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
+function evaluateFunction(expression,variables) = eval(compileFunction(expression,optimize=false),variables);
+
 function _let(v, var, value) = concat([var, value], v);
 
 function _lookupVariable(var, table) =
@@ -428,3 +430,8 @@ function eval(c,v=[]) =
     undef
     );
     
+// per 10,000 operations with "x^3*y-x*y^3"
+// 25 sec compile
+// 21 sec compile unoptimized
+// 22 sec evaluateFunction()
+// 0.8 sec eval
