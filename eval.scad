@@ -437,3 +437,5 @@ function eval(c,v=[]) =
 // 21 sec compile unoptimized
 // 22 sec evaluateFunction()
 // 0.8 sec eval
+    
+echo(eval(["let", ["'", "x"], 3, ["+", "x", 1]]));
