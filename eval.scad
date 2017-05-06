@@ -1,4 +1,4 @@
-function _isString(v) = v >= chr(0);
+function _isString(v) = v >= "";
 function _isVector(v) = concat(v, []) == v;
 
 function _substr(s, start=0, stop=undef) =
@@ -347,7 +347,7 @@ function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
 
 function eval(c,v=[]) = 
-    chr(0)<=c ? _lookupVariable(c,v) :
+    ""<=c ? _lookupVariable(c,v) :
     let(op=c[0]) (
     op == undef ? c :
     op == "'" ? c[1] : 
@@ -441,17 +441,18 @@ function eval(c,v=[]) =
 // 24 sec compile
 // 21 sec unoptimized compile
 // 22 sec evaluateFunction()
-// 0.8 sec eval
+// 0.7 sec eval
     
 // pass1 10 seconds [tokenize: 4 seconds]
 // parseMain 6
 // fixCommas 0
 // fixArguments 3
 // optimize 3
-    
-/*echo(compileFunction("x^(2*3)"));
+
+/*    
+echo(compileFunction("x^(2*3)"));
 fc = compileFunction("x^3*y-x*y^3",optimize=true);
+echo(fc);
 echo(eval(fc,[["x",1],["y",1]]));
-z=[for(i=[0:9999]) compileFunction("x^3*y-x*y^3",optimize=true)];
-    */
-    
+z=[for(i=[0:99999]) eval(fc,[ ["x",1],["y",2] ])];
+*/
