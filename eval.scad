@@ -1,3 +1,6 @@
+function _isString(v) = v >= chr(0);
+function _isVector(v) = concat(v, []) == v;
+
 function _substr(s, start=0, stop=undef) =
     let( stop = stop==undef ? len(s) : stop )
         start >= stop || start >= len(s) ? "" :
@@ -183,6 +186,7 @@ function _fixBrackets(pretok,start=0) =
         concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
         concat(pretok[start], _fixBrackets(pretok,start=start+1));
 
+// disambiguate operators that can be unary or binary
 function _fixUnaries(pretok) =
     [ for (i=[0:len(pretok)-1]) 
          let (
@@ -221,7 +225,7 @@ function _parseLiteralOrVariable(s) =
         s == "true" ? true :
         s == "false" ? false :
         s == "undef" ? undef :
-        _isalpha_(s[0]) ? ["$", s] : 
+        _isalpha_(s[0]) ? s : 
         _parseUnsignedFloat(s);
         
 function _isoperator(token) = _PREC<len(token);
@@ -261,7 +265,7 @@ function _mainOperator(tok,start,stop) =
      
 function _doLets(assignments, final, start=0) =
     start >= len(assignments) ? final :
-    assignments[start][0] == "=" && assignments[start][1][0] == "$" ? ["let", ["'", assignments[start][1][1]], assignments[start][2], _doLets(assignments, final, start=start+1)] : _doLets(assignments, final, start=start+1);
+    assignments[start][0] == "=" ? ["let", ["'", assignments[start][1]], assignments[start][2], _doLets(assignments, final, start=start+1)] : _doLets(assignments, final, start=start+1);
      
 function _letOperator(a,b) = 
     let(rawAssignments=_fixCommas(a),
@@ -296,8 +300,9 @@ function _fixCommas(expression) =
                 concat(["[["],concat(_tail(a), [b])) :
                 ["[[",a,b]
         : 
-    expression[0] == "$" || !(len(expression)>1) ? expression :
-            concat([expression[0]], [for (i=[1:len(expression)-1]) _fixCommas(expression[i])]);
+    _isVector(expression) ?
+            concat([expression[0]], [for (i=[1:len(expression)-1]) _fixCommas(expression[i])]) :
+            expression;
 
 // fix arguments from vectors
 function _fixArguments(expression) = 
@@ -305,7 +310,7 @@ function _fixArguments(expression) =
             i >=0 && _operators[i][_ARGUMENTS_FROM_VECTOR] && expression[1][0] == "[[" ? concat([expression[0]], [for (i=[1:len(expression[1])-1]) _fixArguments(expression[1][i])]) : 
 /*            expression[0] == "?" ?
                 concat([expression[0],expression[1]],[for (i=[1:len(expression[2])-1]) _fixArguments(expression[2][i])]) : */
-            len(expression)>1 && expression[0] != "$" ? 
+            len(expression)>1 && !_isString(expression) ? 
                 concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
                     : expression;
                 
@@ -323,10 +328,8 @@ function _optimize(expression) =
     let(x=eval(expression,$careful=true))
         _wellDefined(x) ? _optimizedLiteral(x) :
         expression[0] == "'" ? _optimizedLiteral(x) :
-        let(n=len(expression))
-        n>=2 ? 
-        expression[0]=="$" ? ((expression[1]=="x" || expression[1] == "y" || expression[1] == "z" || expression[1] == "t") ?expression[1] : expression) :
-    concat([expression[0]], [for(i=[1:n-1]) _optimize(expression[i])]) :
+        ! _isString(expression) ? 
+            concat([expression[0]], [for(i=[1:len(expression)-1]) _optimize(expression[i])]) :
         expression;
         
 function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
@@ -343,13 +346,10 @@ function _lookupVariable(var, table) =
 function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
 
-
-// note: given the way variables are recognized, operators are not allowed to be a single alnum or underline
 function eval(c,v=[]) = 
-    c == "x" || c == "y" || c == "z" || c == "t" ? _lookupVariable(c,v) :
+    chr(0)<=c ? _lookupVariable(c,v) :
     let(op=c[0]) (
     op == undef ? c :
-    op == "$" ? _lookupVariable(c[1],v) :
     op == "'" ? c[1] : 
     op == "+" ? (len(c)==2 ? eval(c[1],v) : eval(c[1],v)+eval(c[2],v)) :
     op == "-" ? (len(c)==2 ? -eval(c[1],v) : eval(c[1],v)-eval(c[2],v)) :
@@ -397,7 +397,7 @@ function eval(c,v=[]) =
         c1==undef ? undef : 
         let(c2=eval(c[2],v))
         c2==undef ? undef :
-        ["!", c1 == c2]) ) :
+        c1 == c2) ) :
     op == "!=" ? (!$careful ? eval(c[1],v)!=eval(c[2],v) :
         (let(c1=eval(c[1],v))
         c1==undef ? undef : 
@@ -438,11 +438,20 @@ function eval(c,v=[]) =
     );
     
 // per 10,000 operations with "x^3*y-x*y^3"
-// 25 sec compile
-// 21 sec compile unoptimized
+// 24 sec compile
+// 21 sec unoptimized compile
 // 22 sec evaluateFunction()
 // 0.8 sec eval
     
-//echo(eval(["let", ["'", "x"], 3, ["+", "x", 1]]));
-echo(compileFunction("true?(true?(3):2):1"));
-echo(compileFunction("a?b?c:d:e"));
+// pass1 10 seconds [tokenize: 4 seconds]
+// parseMain 6
+// fixCommas 0
+// fixArguments 3
+// optimize 3
+    
+/*echo(compileFunction("x^(2*3)"));
+fc = compileFunction("x^3*y-x*y^3",optimize=true);
+echo(eval(fc,[["x",1],["y",1]]));
+z=[for(i=[0:9999]) compileFunction("x^3*y-x*y^3",optimize=true)];
+    */
+    
