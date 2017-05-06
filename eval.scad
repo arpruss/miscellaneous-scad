@@ -1,5 +1,5 @@
 function _isString(v) = v >= "";
-function _isVector(v) = concat(v, []) == v;
+function _isVector(v) = !(v>="") && len(v) != undef;
 
 function _substr(s, start=0, stop=undef) =
     let( stop = stop==undef ? len(s) : stop )
@@ -448,11 +448,10 @@ function eval(c,v=[]) =
 // fixCommas 0
 // fixArguments 3
 // optimize 3
-
-/*    
+/*
 echo(compileFunction("x^(2*3)"));
 fc = compileFunction("x^3*y-x*y^3",optimize=true);
 echo(fc);
 echo(eval(fc,[["x",1],["y",1]]));
-z=[for(i=[0:99999]) eval(fc,[ ["x",1],["y",2] ])];
+z=[for(i=[0:9999]) compileFunction("x^3*y-x*y^3",optimize=false)];//fc,[ ["x",1],["y",2] ])];
 */

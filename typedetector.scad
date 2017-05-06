@@ -1,11 +1,11 @@
 // type detector library
 // public domain by Alexander Pruss
 
-function isVector(v) = concat(v, []) == v;
+function isVector(v) = !(v>="") && len(v) != undef;
 function isBoolean(v) = (v==true || v==false);
 function isFloat(v) = v+0 != undef;
 function isDefiniteFloat(v) = v==v && (let(a=v+1) a!=undef && a!=v); // float, neither NaN nor infinity
-function isRange(v) = len(v) == undef && v[0] != undef;
+function isRange(v) = !(v>="") && len(v)==undef && v[0]!=undef;
 function isString(v) = v >= ""; // this seems to be the fastest way
 function typeOf(v) = isVector(v) ? "vector" : 
                      isBoolean(v) ? "boolean" :
