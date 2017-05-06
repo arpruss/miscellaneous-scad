@@ -177,10 +177,10 @@ function _fixBrackets(pretok,start=0) =
         concat(["#", "("], _fixBrackets(pretok,start=start+1)) :
     pretok[start] == "]" ?
         concat([")"], _fixBrackets(pretok,start=start+1)) : 
-//    pretok[start] == "?" ? 
-//        concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
-//    pretok[start] == ":" ?
-//        concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
+    pretok[start] == "?" ? 
+        concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
+    pretok[start] == ":" ?
+        concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
         concat(pretok[start], _fixBrackets(pretok,start=start+1));
 
 function _fixUnaries(pretok) =
@@ -444,6 +444,5 @@ function eval(c,v=[]) =
 // 0.8 sec eval
     
 //echo(eval(["let", ["'", "x"], 3, ["+", "x", 1]]));
-echo(_mainOperator(_parsePass1("a?b:c"), 0, len(_parsePass1("a?b:c"))));    
-echo(compileFunction("a?b:c?let(x=1)d:e"));
-echo(_parseMain(_parsePass1("[a:b:c]")));
+echo(compileFunction("true?(true?(3):2):1"));
+echo(compileFunction("a?b?c:d:e"));
