@@ -160,8 +160,8 @@ _operators = [
     [ "!", 1, 4, 1, true, "!" ],
     [ "&&", 2, 5, 1, true, "&&" ],
     [ "||", 2, 5, 1, true, "||" ],
-    [ ":", 2, 20, -1, true, "," ],
     [ "?", 2, 10, -1, true, "?" ],
+    [ ":", 2, 10, -1, true, ":" ],
     [ "=", 2, 30, 1, true, "=" ], // for let()
     [ "let", 1, 25, 1, true, "let" ], 
     [ ",", 2, 100, 1, true, "," ]
@@ -177,10 +177,10 @@ function _fixBrackets(pretok,start=0) =
         concat(["#", "("], _fixBrackets(pretok,start=start+1)) :
     pretok[start] == "]" ?
         concat([")"], _fixBrackets(pretok,start=start+1)) : 
-    pretok[start] == "?" ? 
-        concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
-    pretok[start] == ":" ?
-        concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
+//    pretok[start] == "?" ? 
+//        concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
+//    pretok[start] == ":" ?
+//        concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
         concat(pretok[start], _fixBrackets(pretok,start=start+1));
 
 function _fixUnaries(pretok) =
@@ -235,10 +235,10 @@ function _getCandidatesForMainOperator(tok,start,stop) =
         _getCandidatesForMainOperator(tok,start+1,stop);
             
 // Find the operator with least precedence            
-function _findMainOperator(candidates,start=0) =
-    len(candidates) <= start ? [undef, 0] :
-    let(rest=_findMainOperator(candidates,start+1))
-    _prec(rest[0], rest[1], candidates[start][0], candidates[start][1]) ? candidates[start] : rest;
+function _findMainOperatorPos(candidates,start=0) =
+    len(candidates) <= start ? undef :
+    let(rest=_findMainOperatorPos(candidates,start+1))
+    _prec(candidates[rest][0], rest, candidates[start][0], start) ? start : rest;
 
 function _firstOccurrence(c,opName,start=0) =
     start >= len(c) ? undef :
@@ -253,8 +253,11 @@ function _mainQuestionOperator(c) =
     
 function _mainOperator(tok,start,stop) = 
     let(c=_getCandidatesForMainOperator(tok,start,stop),
-    m=_findMainOperator(c))
-     m[0][0] == "?" || m[0][0] == ":" ? _mainQuestionOperator(c) : m;
+        pos=_findMainOperatorPos(c),
+        m=c[pos])
+        m[0][0] == "?" ? 
+            concat(m, [_firstOccurrence(c,":",start=pos+1)[1]]) 
+            : m;
      
 function _doLets(assignments, final, start=0) =
     start >= len(assignments) ? final :
@@ -275,6 +278,8 @@ function _parseMain(tok,start=0,stop=undef) =
         let( lp = _mainOperator(tok,start,stop) )
             lp[0] == undef ? ( stop-start>1 ? undef : _parseLiteralOrVariable(tok[start][0]) ) :
             let( op = lp[0], pos = lp[1] )
+                op[_NAME] == "?" ?
+                    [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=lp[2]), _parseMain(tok,start=lp[2]+1,stop=stop) ] :
                 op[_NAME] == "let" ?
                     _letOperator( _parseMain(op[_EXTRA_DATA]), _parseMain(tok,start=pos+1,stop=stop)) :
                 op[_ARITY] == 2 ?
@@ -298,8 +303,8 @@ function _fixCommas(expression) =
 function _fixArguments(expression) = 
     let(i=_indexInTable(expression[0], _operators, _OPERATOR)) 
             i >=0 && _operators[i][_ARGUMENTS_FROM_VECTOR] && expression[1][0] == "[[" ? concat([expression[0]], [for (i=[1:len(expression[1])-1]) _fixArguments(expression[1][i])]) : 
-            expression[0] == "?" ?
-                concat([expression[0],expression[1]],[for (i=[1:len(expression[2])-1]) _fixArguments(expression[2][i])]) : 
+/*            expression[0] == "?" ?
+                concat([expression[0],expression[1]],[for (i=[1:len(expression[2])-1]) _fixArguments(expression[2][i])]) : */
             len(expression)>1 && expression[0] != "$" ? 
                 concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
                     : expression;
@@ -439,3 +444,6 @@ function eval(c,v=[]) =
 // 0.8 sec eval
     
 //echo(eval(["let", ["'", "x"], 3, ["+", "x", 1]]));
+echo(_mainOperator(_parsePass1("a?b:c"), 0, len(_parsePass1("a?b:c"))));    
+echo(compileFunction("a?b:c?let(x=1)d:e"));
+echo(_parseMain(_parsePass1("[a:b:c]")));
