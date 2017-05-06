@@ -163,19 +163,21 @@ _operators = [
     [ ":", 2, 20, -1, true, "," ],
     [ "?", 2, 10, -1, true, "?" ],
     [ "=", 2, 30, 1, true, "=" ], // for let()
-    [ "let", 1, 25, 1, true, "let" ], // for let()
+    [ "let", 1, 25, 1, true, "let" ], 
     [ ",", 2, 100, 1, true, "," ]
    ];
     
 _binary_or_unary = [ ["-", "#-"], ["+", "#+"], ["#", "["] ];
 
+// insert parentheses in some places to tweak the order of
+// operations in those contexts
 function _fixBrackets(pretok,start=0) =
     start >= len(pretok) ? [] :
     pretok[start] == "[" ?
         concat(["#", "("], _fixBrackets(pretok,start=start+1)) :
     pretok[start] == "]" ?
         concat([")"], _fixBrackets(pretok,start=start+1)) : 
-    pretok[start] == "?" ?
+    pretok[start] == "?" ? 
         concat([pretok[start],"("], _fixBrackets(pretok,start=start+1)) :
     pretok[start] == ":" ?
         concat([")",pretok[start]], _fixBrackets(pretok,start=start+1)) :
