@@ -34,6 +34,7 @@ function PointAlongBez4(p0, p1, p2, p3, u) = [for (i=[0:len(p0)-1])
 	BEZ03(u)*p0[i]+BEZ13(u)*p1[i]+BEZ23(u)*p2[i]+BEZ33(u)*p3[i]];
 // End public domain Bezier stuff
 
+function REPEAT_MIRRORED(v) = ["m",v];
 function SMOOTH_REL(x) = ["r",x];
 function SMOOTH_ABS(x) = ["a",x];
 function SYMMETRIC() = ["r",1];
@@ -74,16 +75,42 @@ function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item 
 
 function DecodeBezierOffset(control,node) = control[0] == "o" ? node+control[1] : control;
 
-// replace all OFFSET/SHARP/POLAR points with coordinates
-function DecodeBezierOffsets(p) = [for (i=[0:len(p)-1]) i%3==0?p[i]:(i%3==1?DecodeBezierOffset(p[i],p[i-1]):DecodeBezierOffset(p[i],p[i+1]))];
+function _mirrorMatrix(normalVector) = let(v = normalVector/norm(normalVector)) len(v)<3 ? [[1-2*v[0]*v[0],-2*v[0]*v[1]],[-2*v[0]*v[1],1-2*v[1]*v[1]]] : [[1-2*v[0]*v[0],-2*v[0]*v[1],-2*v[0]*v[2]],[-2*v[0]*v[1],1-2*v[1]*v[1],-2*v[1]*v[2]],[-2*v[0]*v[2],-2*v[1]*v[2],1-2*v[2]*v[2]]];
 
-function DecodeSpecialBezierPoints(p0) = let(p=DecodeBezierOffsets(p0)) [for (i=[0:len(p)-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))];
+function _correctLength(p) = 3*floor(len(p)/3)+1;
+
+function _trimArray(a, n) = [for (i=[0:n-1]) a[i]];
+
+function _transformPoint(matrix,a) = 
+    let(n=len(a))
+        len(matrix[0])==n+1 ? 
+            _trimArray(matrix * concat(a,[1]), n)
+            : matrix * a;
+
+function _transformPath(matrix,path) =
+    [for (a=path) _transformPoint(matrix,a)];
+
+function _reverseArray(array) = let(n=len(array)) [for (i=[0:n-1]) array[n-1-i]];
+
+function _stitchPaths(a,b) = let(na=len(a)) [for (i=[0:na+len(b)-2]) i<na? a[i] : b[i-na+1]-b[0]+a[na-1]];
+
+
+// replace all OFFSET/SHARP/POLAR points with coordinates
+function DecodeBezierOffsets(p) = [for (i=[0:_correctLength(p)-1]) i%3==0?p[i]:(i%3==1?DecodeBezierOffset(p[i],p[i-1]):DecodeBezierOffset(p[i],p[i+1]))];
+
+function DecodeSpecialBezierPoints(p0) = 
+    let(
+        l = _correctLength(p0),
+        doMirror = len(p0)>l && p0[l][0] == "m",
+        p=DecodeBezierOffsets(p0),
+        halfPath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))])
+        doMirror ? _stitchPaths(halfPath,_reverseArray(_transformPath(_mirrorMatrix( p0[l][1] ),halfPath))) : halfPath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
 
 function RemoveDuplicates(p,eps=0.00001) = let(safeEps = eps/len(p)) [for (i=[0:len(p)-1]) if(i==0 || i==len(p)-1 || Distance2D(p[i-1],p[i]) >= safeEps) p[i]];
 
-function Bezier(p,precision=0.05,eps=0.00001) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(p)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
+function Bezier(p,precision=0.05,eps=0.00001) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(q)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
     
 module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
     $fn = 16;
@@ -133,7 +160,7 @@ module _ribbon(thickness=2) {
 translate([-20,0,0])
 BezierVisualize([[0,0,10],[10,5,3],[10,10,20],[20,20,20],SYMMETRIC(),[0,0,8],[0,0,0]], lineThickness=1,nodeSize=2);
 
-translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]]);
+translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0], REPEAT_MIRRORED([0,1]) ]);
 linear_extrude(height=5) {
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,15])

@@ -1,4 +1,3 @@
-use <paths.scad>;
 use <bezier.scad>;
 
 //<params>
@@ -22,7 +21,7 @@ module dummy() {}
 nudge = 0.01;
 
 module section() {
-    left = [[-mountWidth/2,0], SHARP(), SHARP(), [-mountWidth/2,mountThickness], SHARP(), SYMMETRIC(),
+    curve = [[-mountWidth/2,0], SHARP(), SHARP(), [-mountWidth/2,mountThickness], SHARP(), SYMMETRIC(),
     [-webThickness/2-cornerRadius,mountThickness],
     OFFSET([cornerRadius/2,0]), OFFSET([0,-cornerRadius/2]),
     [-webThickness/2,mountThickness+cornerRadius],SYMMETRIC(),SYMMETRIC(),
@@ -31,11 +30,15 @@ module section() {
     SHARP(), [-baseWidth/2,mountThickness+offsetHeight], SHARP(), SHARP(), 
     [-baseWidth/2,mountThickness+offsetHeight+extraHeight],
     SHARP(), SHARP(),
-    [-dovetailWidth/2+dovetailHeight/2,mountThickness+offsetHeight+extraHeight],SHARP(),SHARP(),[-dovetailWidth/2,mountThickness+offsetHeight+extraHeight+dovetailHeight],SHARP(),SHARP(),[0,mountThickness+offsetHeight+extraHeight+dovetailHeight]    
+    [-dovetailWidth/2+dovetailHeight/2,mountThickness+offsetHeight+extraHeight],SHARP(),SHARP(),[-dovetailWidth/2,mountThickness+offsetHeight+extraHeight+dovetailHeight],SHARP(),SHARP(),[0,mountThickness+offsetHeight+extraHeight+dovetailHeight],
+    REPEAT_MIRRORED([1,0])
     ];
-    //BezierVisualize(left);
-    l = Bezier(left);
-    path=stitchPaths(l,reverseArray(transformPath(mirrorMatrix([1,0]),l)));
+    
+    //BezierVisualize(curve);
+    path = Bezier(curve);
+    
+    //    echo(curve);
+//    echo(path);
     polygon(path);
 }
 
