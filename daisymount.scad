@@ -5,12 +5,13 @@ length = 51;
 holeSpacing = 18;
 holeDiameter = 4.5;
 
+
 module dummy() {}
 
 extraWidth = dovetailWidth - 2*dovetailHeight;
 
-translate([0,0,extraHeight+dovetailHeight])
-rotate([0,180,0])
+//translate([0,0,extraHeight+dovetailHeight])
+//rotate([0,180,0])
 render(convexity=2)
 difference() {
 rotate([90,0,0])
