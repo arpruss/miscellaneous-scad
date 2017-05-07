@@ -77,7 +77,8 @@ function DecodeBezierOffset(control,node) = control[0] == "o" ? node+control[1] 
 
 function _mirrorMatrix(normalVector) = let(v = normalVector/norm(normalVector)) len(v)<3 ? [[1-2*v[0]*v[0],-2*v[0]*v[1]],[-2*v[0]*v[1],1-2*v[1]*v[1]]] : [[1-2*v[0]*v[0],-2*v[0]*v[1],-2*v[0]*v[2]],[-2*v[0]*v[1],1-2*v[1]*v[1],-2*v[1]*v[2]],[-2*v[0]*v[2],-2*v[1]*v[2],1-2*v[2]*v[2]]];
 
-function _correctLength(p) = 3*floor(len(p)/3)+1;
+function _correctLength(p,start=0) = 
+    start >= len(p) || p[start][0] == "m" ? 3*floor(start/3)+1 : _correctLength(p,start=start+1);
 
 function _trimArray(a, n) = [for (i=[0:n-1]) a[i]];
 
@@ -94,17 +95,19 @@ function _reverseArray(array) = let(n=len(array)) [for (i=[0:n-1]) array[n-1-i]]
 
 function _stitchPaths(a,b) = let(na=len(a)) [for (i=[0:na+len(b)-2]) i<na? a[i] : b[i-na+1]-b[0]+a[na-1]];
 
-
 // replace all OFFSET/SHARP/POLAR points with coordinates
 function DecodeBezierOffsets(p) = [for (i=[0:_correctLength(p)-1]) i%3==0?p[i]:(i%3==1?DecodeBezierOffset(p[i],p[i-1]):DecodeBezierOffset(p[i],p[i+1]))];
+    
+function _mirrorPaths(basePath, control, start) =
+    control[start][0] == "m" ? _mirrorPaths(_stitchPaths(basePath,_reverseArray(_transformPath(_mirrorMatrix( control[start][1] ),basePath))), control, start+1) : basePath;
 
 function DecodeSpecialBezierPoints(p0) = 
     let(
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
         p=DecodeBezierOffsets(p0),
-        halfPath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))])
-        doMirror ? _stitchPaths(halfPath,_reverseArray(_transformPath(_mirrorMatrix( p0[l][1] ),halfPath))) : halfPath;
+        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))])
+        doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
 
@@ -160,7 +163,7 @@ module _ribbon(thickness=2) {
 translate([-20,0,0])
 BezierVisualize([[0,0,10],[10,5,3],[10,10,20],[20,20,20],SYMMETRIC(),[0,0,8],[0,0,0]], lineThickness=1,nodeSize=2);
 
-translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0], REPEAT_MIRRORED([0,1]) ]);
+translate([0,-15]) BezierVisualize([[0,0],/*C*/[5,0],/*C*/OFFSET([-5,0]),[10,10],REPEAT_MIRRORED([1,0]),REPEAT_MIRRORED([0,1]) ]);
 linear_extrude(height=5) {
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SYMMETRIC(),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,15])
