@@ -42,10 +42,10 @@ module triangleEnd() {
 render(convexity=4)
 difference() {
     webbedMount(); 
-translate([mountWidth/4+webThickness/4,-mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness, $fn=16);
-translate([-(mountWidth/4+webThickness/4),-mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness, $fn=16);
-translate([mountWidth/4+webThickness/4,-length+mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness, $fn=16);
-translate([-(mountWidth/4+webThickness/4),-length+mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness, $fn=16);
+translate([mountWidth/4+webThickness/4,-mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness+0.75*offsetHeight, $fn=16);
+translate([-(mountWidth/4+webThickness/4),-mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness+0.75*offsetHeight, $fn=16);
+translate([mountWidth/4+webThickness/4,-length+mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness+0.75*offsetHeight, $fn=16);
+translate([-(mountWidth/4+webThickness/4),-length+mountWidth/2,-nudge]) cylinder(d=holeDiameter, h=3*nudge+mountThickness+0.75*offsetHeight, $fn=16);
 }
 triangleEnd();
 translate([0,-length,0]) rotate([0,0,180]) triangleEnd();
