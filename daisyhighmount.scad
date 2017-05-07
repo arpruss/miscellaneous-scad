@@ -1,7 +1,7 @@
 use <bezier.scad>;
 
 //<params>
-length = 51;
+length = 45;
 offsetHeight = 40;
 holeDiameter = 3;
 
@@ -10,10 +10,10 @@ dovetailHeight = 3;
 extraHeight = 4;
 baseWidth = 13;
 webThickness = 1.5;
-mountThickness = 2.5;
-mountWidth = 20;
-cornerRadius = 2;
-triangleSide = 6;
+mountThickness = 2.8;
+mountWidth = 22;
+cornerRadius = 3;
+flangeSize = 9;
 //</params>
 
 module dummy() {}
@@ -54,7 +54,7 @@ module webbedMount() {
 
 module triangleEnd() {
     linear_extrude(height=offsetHeight+mountThickness+nudge)
-    polygon([[-triangleSide/2,0], [0,-triangleSide*sqrt(3)/2], [triangleSide/2,0]]);
+    polygon([[-flangeSize/2,0], [0,-flangeSize*sqrt(3)/2], [flangeSize/2,0]]);
 }
 
 module main() {
