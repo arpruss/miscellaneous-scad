@@ -1,5 +1,4 @@
 use <bezier.scad>;
-use <paths.scad>;
 
 //<params>
 bodyNumberOfSides = 40;
@@ -32,16 +31,14 @@ module pinCrossSection(tipDiameter=tipDiameter, centerDiameter=centerDiameter, h
     tipR = tipDiameter / 2;
     centerR = centerDiameter / 2;
 
-    bezierPointsTop = [
+    bezierPoints = [
       [0,height],/*C*/OFFSET([1,0]),OFFSET([-1,0]), 
       /*N*/[tipR-chamferSize,height],
       /*C*/SMOOTH_ABS(chamferSize*0.5), 
       /*C*/SMOOTH_ABS(chamferSize*0.5), 
       /*N*/[tipR,height-chamferSize], 
-      [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height]];
-    pointsTop = DecodeSpecialBezierPoints(bezierPointsTop);
-    points = stitchPaths(pointsTop, transformPath(mirrorMatrix([0,1]), reverseArray(pointsTop)));
-    polygon(Bezier(points));
+      [tipR*0.25+centerR*0.75,0.75*height], [centerR,0.625*height], [centerR,0.5*height], REPEAT_MIRRORED([0,-1])];
+    polygon(Bezier(bezierPoints));
 }
 
 module pin(tipDiameter=tipDiameter, centerDiameter=centerDiameter, height=height, $fn=$fn) {
