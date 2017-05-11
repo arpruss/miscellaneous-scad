@@ -1,19 +1,20 @@
 use <pdgear.scad>;
 
-toothSize = 6.4;
+toothSize = 8.5;
 clearance = 0.5;
 backlash = 1.25;
-gearThickness = 3;
-innerThickness = 1.5; // cannot exceed gearThickness
+gearThickness = 4;
+innerThickness = 1.25; // cannot exceed gearThickness
 rimSize = 2;
 holderDepth = 3.3;
 holderWidth = 7;
 holderRim = 2;
-ringTeeth1=68;
-ringTeeth2=92;
-circleTeeth=28;
-spikeHeight=8;
+ringTeeth1=51;
+ringTeeth2=69;
+circleTeeth=30;
+spikeHeight=8*3/4;
 spikeDiameter=3;
+holes=6;
 
 
 module dummy(){}
@@ -42,16 +43,16 @@ module ring(outerTeeth=ringTeeth2, innerTeeth=ringTeeth1, outerClearance=0) {
 }
 
 function getHoles(holes, radius) =
-    [for(i=[0:holes-1]) let(angle=i*360/(holes-1)) [cos(angle), sin(angle)] * ((radius-holderWidth-holderRim-spikeDiameter-holderRim) * i/(holes-1)+spikeDiameter+holderRim+holderWidth/2)];
+    [for(i=[0:holes-1]) let(angle=i*360/(holes-1)) [cos(angle), sin(angle)] * ((radius-holderWidth-holderRim-spikeDiameter-holderRim) * i/(holes-1)+spikeDiameter+holderRim)];
 
-module innerGear(holes=5) {
+module innerGear(holes=holes) {
     holeCenters = getHoles(holes, rootRadius(number_of_teeth=circleTeeth, mm_per_tooth=toothSize));
     echo(holeCenters);
     render(convexity=3) {
         difference() {
             union() {
                 for(i=[0:holes-1]) translate(holeCenters[i]) cylinder(r=holderWidth/2+holderRim, h=holderDepth);
-                ring(outerTeeth=7*3, innerTeeth=0, outerClearance=clearance);
+                ring(outerTeeth=circleTeeth, innerTeeth=0, outerClearance=clearance);
             }
             for (i=[0:holes-1]) translate(holeCenters[i]-[0,0,nudge]) cylinder(d=holderWidth, h=3*nudge+max(holderDepth, gearThickness));
             }

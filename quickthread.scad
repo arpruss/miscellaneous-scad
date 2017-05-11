@@ -72,7 +72,7 @@ module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false,
 function inch_to_mm(x) = x * 25.4;
 
 // internal = female
-module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lead=undef, leadInch=undef, angle=30, internal=false, $fn=72) {
+module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lead=undef, leadInch=undef, angle=30, internal=false, starts=1, $fn=72) {
 
     P = (tpi==undef) ? pitch : tpi;
 
@@ -95,7 +95,9 @@ module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lea
         [(5/8)*H,P/16],[0,(3/8)*P] ];
     Dmin = Dmaj-2*H/4;
     myFN=$fn;
-    rawThread(profile,d=Dmin,h=height,lead=_lead,$fn=myFN,adjustRadius=true);        
+    for (i=[0:starts-1]) {
+        rotate([0,0,360/starts*i]) rawThread(profile,d=Dmin,h=height,lead=_lead,$fn=myFN,adjustRadius=true);        
+    }
 }
 
 //rawThread([[0,0],[1.5,1.5],[0,3]], d=50, h=91, pitch=3);

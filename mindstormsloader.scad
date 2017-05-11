@@ -2,7 +2,7 @@ sides = 5;
 supportThickness = 3;
 strutThickness = 2.2;
 strutAngle = 50;
-numberOfSegments = 13;
+numberOfSegments = 11;
 insideDiameter = 17.5;
 crossTolerance = 0.2;
 addSupport = 1;
@@ -108,4 +108,5 @@ if (crossModuleOnly) {
 else {
     tube();
     cross();
+
 }
