@@ -1,6 +1,6 @@
 sphereDiameter=16.54;
 horizontalTolerance = 0.3;
-verticalTolerance = 0.6;
+verticalTolerance = 1.2; // 0.6;
 
 module half() {
     difference() {

@@ -5,8 +5,8 @@ strutAngle = 50;
 numberOfSegments = 11;
 insideDiameter = 17.5;
 crossTolerance = 0.2;
-addSupport = 1;
-crossModuleOnly = 0;
+addSupport = 1; // [1:yes, 0:no]
+crossModuleOnly = 0; // [1:yes, 0:no]
 
 module dummy();
 
@@ -22,7 +22,6 @@ inradius = insideDiameter / 2;
 diameter = inradius * 2 / cos(180/sides);
 
 sideLength = diameter * sin(180/sides);
-echo(inradius);
 segmentHeight = sideLength * tan(strutAngle);
 totalHeight = numberOfSegments*segmentHeight;
 echo(str("Height ",totalHeight,"mm"));
