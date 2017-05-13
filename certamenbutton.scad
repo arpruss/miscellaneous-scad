@@ -1,12 +1,12 @@
 height = 50;
-outerDiameter = 65; // FIX to fit wood disc
+innerDiameter = 60;
 label = "C4";
 font = "Arial Black:style=Bold";
 labelSize = 9;
 textPositionAdjustment = 1;
-baseThickness = 8; // FIX to fit wood disc
+baseThickness = 5.53; // FIX to fit wood disc
 screwHoleSize = 2.5;
-screwPillarDiameter = 8;
+screwPillarDiameter = 12;
 cablePortThickness = 3;
 
 holeDiameterMain = 28.88;
@@ -19,17 +19,29 @@ wallThickness = 2.5;
 topThickness = 3;
 textDepth = 2;
 chamfer = 3;
-cableHoleDiameter = 5; //FIX
+cableHoleDiameter = 4.9; //FIX
 cableHoleBottomSquish = 1;
+screwCountersinkDepth = 2;
+screwCountersinkDiameter = 5;
 
+includeBase = 1;
+includeMain = 1;
 
 module dummy() {}
 
+outerDiameter = innerDiameter + 2*wallThickness + 2*tolerance; 
 nudge = 0.01;
 
 module chamferedCylinder(h=height, d=outerDiameter, chamfer=chamfer) {
     cylinder(h=chamfer*1.5+nudge, d1=d-2*chamfer, d2=d);
     translate([0,0,chamfer*1.5]) cylinder(h=h-chamfer*1.5, d=d);
+}
+
+module screws() {
+    for(angle=[0:180:180]) rotate([0,0,angle]) {
+            translate([-outerDiameter/2+wallThickness/2+screwPillarDiameter/2,-screwPillarDiameter/2-cableHoleDiameter/2-tolerance,-nudge]) children();
+            translate([-outerDiameter/2+wallThickness/2+screwPillarDiameter/2,screwPillarDiameter/2+cableHoleDiameter/2+tolerance,-nudge]) children();
+    }
 }
 
 module screwPillar() {
@@ -58,7 +70,6 @@ module portCover() {
 }
 
 
-
 module mainCylinder() {
     render(convexity=4)
     difference() {
@@ -70,10 +81,7 @@ module mainCylinder() {
                         chamferedCylinder();
                         translate([0,0,topThickness]) chamferedCylinder(h=height-topThickness+nudge, d=outerDiameter-wallThickness);
                     }
-                    for(angle=[0:180:180]) rotate([0,0,angle]) {
-                        translate([-outerDiameter/2+wallThickness/2+screwPillarDiameter/2,-screwPillarDiameter/2-cableHoleDiameter/2-tolerance,0]) screwPillar();
-                        translate([-outerDiameter/2+wallThickness/2+screwPillarDiameter/2,screwPillarDiameter/2+cableHoleDiameter/2+tolerance,0]) screwPillar();
-                    }
+                    screws() screwPillar();
                 }
             }
             for(angle=[0:180:180]) rotate([0,0,angle]) translate([-outerDiameter/2+wallThickness/2,0,0])  portCover();
@@ -92,4 +100,19 @@ module mainCylinder() {
 }
 
 $fn = 72;
-mainCylinder();
+if (includeMain)
+ mainCylinder();
+
+if (includeBase) 
+{
+    render(convexity=3)
+    translate([outerDiameter+cablePortThickness,0,0]) {    difference() {
+            cylinder(d=innerDiameter-2*tolerance, h=baseThickness);
+            screws() {
+                cylinder(d=screwHoleSize+2*tolerance,h=baseThickness+2*nudge);
+                translate([0,0,baseThickness-screwCountersinkDepth-tolerance])
+                cylinder(d=screwCountersinkDiameter+2*tolerance,h=screwCountersinkDepth+tolerance+nudge);
+            }
+        }
+    }
+}
