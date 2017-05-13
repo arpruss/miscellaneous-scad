@@ -19,15 +19,17 @@ wallThickness = 2.5;
 topThickness = 3;
 textDepth = 2;
 chamfer = 3;
-cableHoleDiameter = 4.9; //FIX
+cableHoleDiameter = 4.9; 
 cableHoleBottomSquish = 1;
 screwCountersinkDepth = 2;
 screwCountersinkDiameter = 5;
 
-includeBase = 1;
-includeMain = 1;
+includeBase = 1; // [1:yes, 0:no]
+includeMain = 1; // [1:yes, 0:no]
 
 module dummy() {}
+
+baseThicknessAdj = baseThickness + tolerance;
 
 outerDiameter = innerDiameter + 2*wallThickness + 2*tolerance; 
 nudge = 0.01;
@@ -46,17 +48,17 @@ module screws() {
 
 module screwPillar() {
     difference() {
-        cylinder(d=screwPillarDiameter, h=height-baseThickness);
-        translate([0,0,height-baseThickness-15+nudge])
-        cylinder(d=screwHoleSize+2*tolerance, h=15);
+        cylinder(d=screwPillarDiameter, h=height-baseThicknessAdj,$fn=12);
+        translate([0,0,height-baseThicknessAdj-15+nudge])
+        cylinder(d=screwHoleSize+2*tolerance, h=15, $fn=12);
     }
 }
 
 module cable() {
-    translate([0,0,height-cableHoleDiameter/2-tolerance-baseThickness+cableHoleBottomSquish])
+    translate([0,0,height-cableHoleDiameter/2-tolerance-baseThicknessAdj+cableHoleBottomSquish])
 rotate([0,90,0]) {
-    translate([-cableHoleDiameter/2-tolerance-baseThickness/2,0,0])
-    cube([cableHoleDiameter+2*tolerance+baseThickness,cableHoleDiameter+2*tolerance,1.5*outerDiameter+2*cablePortThickness], center=true);
+    translate([-cableHoleDiameter/2-tolerance-baseThicknessAdj/2,0,0])
+    cube([cableHoleDiameter+2*tolerance+baseThicknessAdj,cableHoleDiameter+2*tolerance,1.5*outerDiameter+2*cablePortThickness], center=true);
     translate([0,0,-0.75*outerDiameter-cablePortThickness]) 
     cylinder(h=1.5*outerDiameter,d=cableHoleDiameter+2*tolerance);
 }
@@ -66,7 +68,7 @@ module portCover() {
     translate([0,cableHoleDiameter/2+tolerance+cablePortThickness,height])
     rotate([90,0,0])
     linear_extrude(height=cableHoleDiameter+2*tolerance+2*cablePortThickness)
-    polygon([[-cablePortThickness,0],[0,0],[0,-baseThickness-cableHoleDiameter+cableHoleBottomSquish-2*tolerance-cablePortThickness*2],[-cablePortThickness,-baseThickness-cableHoleDiameter-cablePortThickness+cableHoleBottomSquish-2*tolerance]]);
+    polygon([[-cablePortThickness,0],[0,0],[0,-baseThicknessAdj-cableHoleDiameter+cableHoleBottomSquish-2*tolerance-cablePortThickness*2],[-cablePortThickness,-baseThicknessAdj-cableHoleDiameter-cablePortThickness+cableHoleBottomSquish-2*tolerance]]);
 }
 
 
@@ -109,9 +111,9 @@ if (includeBase)
     translate([outerDiameter+cablePortThickness,0,0]) {    difference() {
             cylinder(d=innerDiameter-2*tolerance, h=baseThickness);
             screws() {
-                cylinder(d=screwHoleSize+2*tolerance,h=baseThickness+2*nudge);
+                cylinder(d=screwHoleSize+2*tolerance,h=baseThicknessAdj+2*nudge,$fn=12);
                 translate([0,0,baseThickness-screwCountersinkDepth-tolerance])
-                cylinder(d=screwCountersinkDiameter+2*tolerance,h=screwCountersinkDepth+tolerance+nudge);
+                cylinder(d=screwCountersinkDiameter+2*tolerance,h=screwCountersinkDepth+tolerance+nudge,$fn=12);
             }
         }
     }
