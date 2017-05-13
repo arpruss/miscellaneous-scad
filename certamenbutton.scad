@@ -1,6 +1,6 @@
 height = 45;
 outerDiameter = 60;
-label = "A1";
+label = "C4";
 font = "Arial Black:style=Bold";
 labelSize = 7;
 textPositionAdjustment = 1;
