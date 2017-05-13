@@ -1,8 +1,8 @@
-height = 45;
-outerDiameter = 60;
+height = 50;
+outerDiameter = 65; // FIX to fit wood disc
 label = "C4";
 font = "Arial Black:style=Bold";
-labelSize = 7;
+labelSize = 9;
 textPositionAdjustment = 1;
 
 holeDiameterMain = 28.88;
