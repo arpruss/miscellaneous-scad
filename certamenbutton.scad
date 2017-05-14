@@ -1,11 +1,11 @@
 height = 50;
-innerDiameter = 60;
+innerDiameter = 59.44;
 label = "C4";
 font = "Arial Black:style=Bold";
 labelSize = 9;
 textPositionAdjustment = 1;
-baseThickness = 5.53; // FIX to fit wood disc
-screwHoleSize = 2.5;
+baseThickness = 8.5; // leave clearance for screw heads 5.32 
+screwHoleSize = 2.6;
 screwPillarDiameter = 12;
 cablePortThickness = 3;
 
@@ -24,7 +24,7 @@ cableHoleBottomSquish = 1;
 screwCountersinkDepth = 2;
 screwCountersinkDiameter = 5;
 
-includeBase = 1; // [1:yes, 0:no]
+includeBase = 0; // [1:yes, 0:no]
 includeMain = 1; // [1:yes, 0:no]
 
 module dummy() {}
