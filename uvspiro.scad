@@ -3,7 +3,7 @@ use <pdgear.scad>;
 toothSize = 8.5;
 clearance = 0.5;
 backlash = 1.25;
-gearThickness = 4;
+gearThickness = 5;
 innerThickness = 1.25; // cannot exceed gearThickness
 rimSize = 2;
 holderDepth = 3.3;
