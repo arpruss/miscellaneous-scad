@@ -14,6 +14,7 @@ ringTeeth2=69;
 circleTeeth=30;
 spikeHeight=8*3/4;
 spikeDiameter=3;
+centralVacancy=5;
 holes=6;
 
 
@@ -43,7 +44,7 @@ module ring(outerTeeth=ringTeeth2, innerTeeth=ringTeeth1, outerClearance=0) {
 }
 
 function getHoles(holes, radius) =
-    [for(i=[0:holes-1]) let(angle=i*360/(holes-1)) [cos(angle), sin(angle)] * ((radius-holderWidth-holderRim-spikeDiameter-holderRim) * i/(holes-1)+spikeDiameter+holderRim)];
+    [for(i=[0:holes-1]) let(angle=i*360/(holes-1)) [cos(angle), sin(angle)] * ((radius-holderWidth-holderRim-spikeDiameter-holderRim-centralVacancy) * i/(holes-1)+spikeDiameter+holderRim+centralVacancy)];
 
 module innerGear(holes=holes) {
     holeCenters = getHoles(holes, rootRadius(number_of_teeth=circleTeeth, mm_per_tooth=toothSize));

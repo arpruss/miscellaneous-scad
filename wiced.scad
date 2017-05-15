@@ -1,9 +1,9 @@
 use <ribbon.scad>;
 
 snapThickness = 2;
-snapStart = 5;
-snapInset = 3;
-snapRatio = 1.25;
+snapStart = 7.5;
+snapInset = 2;
+snapRatio = 1.3;
 screwHoleDiameter = 3;
 baseHeight = 1.5;
 edgeWidth = 1;
@@ -110,6 +110,7 @@ points_screw_hole_2_1 = [ [0.000000000,0.748354649],[0.113930234,1.321120504],[0
 
 module baseplate() {
  color(color_wiced_1) {
+  offset(r=1)
   polygon(points=points_wiced_1_1);
  }
 }
@@ -197,8 +198,9 @@ module positive() {
         linear_extrude(height=edgeHeight+baseHeight)
         render(convexity=2)
         difference() {
-            offset(r=edgeWidth)
+            offset(r=edgeWidth+1.5)
             polygon_outline();
+            offset(r=1.5)
             polygon_outline();
         }
     }
@@ -211,7 +213,7 @@ module snap(p1, p2) {
     translate(p1) rotate([0,0,angle]) 
     translate([length,0,0]) rotate([90,0,0]) rotate([0,-90,0])
     linear_extrude(height=length) 
-    translate([-1.5,0])
+    translate([-1.5+2,0])
     polygon([[0,0],[snapThickness,0],[snapThickness,snapStart+2*snapInset*snapRatio],[-snapInset,snapStart+snapInset*snapRatio],[0,snapStart]]);
 }
 
