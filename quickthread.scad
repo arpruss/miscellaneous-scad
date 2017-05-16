@@ -74,7 +74,7 @@ function inch_to_mm(x) = x * 25.4;
 // internal = female
 module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lead=undef, leadInch=undef, angle=30, internal=false, starts=1, $fn=72) {
 
-    P = (tpi==undef) ? pitch : tpi;
+    P = (tpi==undef) ? pitch : inch_to_mm(1/tpi);
 
     radius = dInch != undef ? inch_to_mm(dInch)/2 : d/2;    
     height = hInch != undef ? inch_to_mm(hInch) : h;
