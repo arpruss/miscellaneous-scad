@@ -18,9 +18,9 @@ nudge = 0.01;
 
 points = [for (i=[0:numberOfHooks-1]) let(a=270+i*360/numberOfHooks) radius*[cos(a),sin(a)]];
 
-module base() 
+module base(height=thickness) 
 {
-    linear_extrude(height=thickness)     
+    linear_extrude(height=height)     
     for (i=[0:numberOfHooks-1]) {
         hull() {
             translate(points[i]) circle(d=width);
@@ -71,7 +71,7 @@ module nailHole() {
 hooks();
 render(convexity=2)
 difference() {
-    base();
+    #base();
     if (numberOfHooks % 2 == 1) {
         translate([0,innerRadius,0]) nailHole();
     }
