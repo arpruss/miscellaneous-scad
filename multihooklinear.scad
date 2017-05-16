@@ -1,5 +1,5 @@
 numberOfHooks = 5;
-height = 30;
+height = 15;
 hookWidth = 11;
 thickness = 2;
 hookLength = 22;
