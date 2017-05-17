@@ -332,7 +332,9 @@ function _optimize(expression) =
             concat([expression[0]], [for(i=[1:len(expression)-1]) _optimize(expression[i])]) :
         expression;
         
-function compileFunction(expression,optimize=true) = let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
+function compileFunction(expression,optimize=true) = 
+            _isVector(expression) ? expression :
+            let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
 function evaluateFunction(expression,variables) = eval(compileFunction(expression,optimize=false),variables);
@@ -345,6 +347,9 @@ function _lookupVariable(var, table) =
 
 function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
+        
+function _safeNorm(v) =
+    ! _isVector(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
 
 function eval(c,v=[]) = 
     ""<=c ? _lookupVariable(c,v) :
@@ -365,13 +370,13 @@ function eval(c,v=[]) =
     op == "asin" ? asin(eval(c[1],v)) :
     op == "atan" ? atan(eval(c[1],v)) :
     op == "atan2" ? atan2(eval(c[1],v),eval(c[2],v)) :
-    op == "COS" ? cos(eval(c[1],v)*180/pi) :
-    op == "SIN" ? sin(eval(c[1],v)*180/pi) :
-    op == "TAN" ? tan(eval(c[1],v)*180/pi) :
-    op == "ACOS" ? acos(eval(c[1],v))*pi/180 :
-    op == "ASIN" ? asin(eval(c[1],v))*pi/180 :
-    op == "ATAN" ? atan(eval(c[1],v))*pi/180 :
-    op == "ATAN2" ? atan2(eval(c[1],v),eval(c[2],v))*pi/180 :
+    op == "COS" ? cos(eval(c[1],v)*180/PI) :
+    op == "SIN" ? sin(eval(c[1],v)*180/PI) :
+    op == "TAN" ? tan(eval(c[1],v)*180/PI) :
+    op == "ACOS" ? acos(eval(c[1],v))*PI/180 :
+    op == "ASIN" ? asin(eval(c[1],v))*PI/180 :
+    op == "ATAN" ? atan(eval(c[1],v))*PI/180 :
+    op == "ATAN2" ? atan2(eval(c[1],v),eval(c[2],v))*PI/180 :
     op == "abs" ? abs(eval(c[1],v)) :
     op == "ceil" ? ceil(eval(c[1],v)) :
     op == "cross" ? cross(eval(c[1],v),eval(c[2],v)) :
@@ -382,7 +387,8 @@ function eval(c,v=[]) =
     op == "log" ? log(eval(c[1],v)) :
     op == "max" ? (len(c) == 2 ? max(eval(c[1],v)) : max([for(i=[1:len(c)-1]) eval(c[i],v)])) :
     op == "min" ? (len(c) == 2 ? min(eval(c[1],v)) : min([for(i=[1:len(c)-1]) eval(c[i],v)])) :
-    op == "norm" ? norm(eval(c[1],v)) :
+    op == "norm" ? 
+        (!$careful ? norm(eval(c[1],v)) : _safeNorm(eval(c[1],v))) :
     op == "rands" ? rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
     op == "round" ? round(eval(c[1],v)) :
     op == "sign" ? sign(eval(c[1],v)) :

@@ -206,21 +206,22 @@ module positive() {
     }
 }
 
-module snap(p1, p2) {
+module snap(p1, p2, forward, down) {
+    snapStart1 = snapStart-down;
     delta = p2-p1;
     length = norm(delta);
     angle = atan2(delta[1],delta[0]);
     translate(p1) rotate([0,0,angle]) 
     translate([length,0,0]) rotate([90,0,0]) rotate([0,-90,0])
     linear_extrude(height=length) 
-    translate([-1.5+2,0])
-    polygon([[0,0],[snapThickness,0],[snapThickness,snapStart+2*snapInset*snapRatio],[-snapInset,snapStart+snapInset*snapRatio],[0,snapStart]]);
+    translate([-1.5+2-forward,0])
+    polygon([[0,0],[snapThickness,0],[snapThickness,snapStart1+2*snapInset*snapRatio],[-snapInset,snapStart1+snapInset*snapRatio],[0,snapStart1]]);
 }
 
 module main() {
     render(convexity=3)
     difference() {
-        positive();
+        scale([.95,1]) positive();
         translate(center_screw_hole_1-[0,0,.001]) cylinder(d=screwHoleDiameter, h=baseHeight+0.001,$fn=12);
         translate(center_screw_hole_2-[0,0,.001]) cylinder(d=screwHoleDiameter, h=baseHeight+.001, $fn=12);
     }
@@ -230,7 +231,7 @@ main();
 
 function fixCenter(points,center) = center(points)+center;
 
-snap(fixCenter(points_wiced_4_1,center_wiced_4),fixCenter(points_wiced_3_1,center_wiced_3));
-snap(fixCenter(points_wiced_8_1,center_wiced_8),fixCenter(points_wiced_7_1,center_wiced_7));
-snap(fixCenter(points_wiced_9_1,center_wiced_9), fixCenter(points_wiced_10_1,center_wiced_10));
-snap(fixCenter(points_wiced_12_1,center_wiced_12),fixCenter(points_wiced_11_1,center_wiced_11));
+snap(fixCenter(points_wiced_4_1,center_wiced_4),fixCenter(points_wiced_3_1,center_wiced_3),0.10,1);
+snap(fixCenter(points_wiced_8_1,center_wiced_8),fixCenter(points_wiced_7_1,center_wiced_7),1.1,1);
+snap(fixCenter(points_wiced_9_1,center_wiced_9), fixCenter(points_wiced_10_1,center_wiced_10),1.5,1);
+snap(fixCenter(points_wiced_12_1,center_wiced_12),fixCenter(points_wiced_11_1,center_wiced_11),0.75,1.5);
