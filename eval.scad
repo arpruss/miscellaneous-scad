@@ -375,11 +375,11 @@ function eval(c,v=[]) =
     op == "abs" ? abs(eval(c[1],v)) :
     op == "ceil" ? ceil(eval(c[1],v)) :
     op == "cross" ? cross(eval(c[1],v),eval(c[2],v)) :
-    op == "exp" ? exp(eval(c[1])) :
-    op == "floor" ? floor(eval(c[1])) :
-    op == "ln" ? ln(eval(c[1])) :
-    op == "len" ? len(eval(c[1])) :
-    op == "log" ? log(eval(c[1])) :
+    op == "exp" ? exp(eval(c[1],v)) :
+    op == "floor" ? floor(eval(c[1],v)) :
+    op == "ln" ? ln(eval(c[1],v)) :
+    op == "len" ? len(eval(c[1],v)) :
+    op == "log" ? log(eval(c[1],v)) :
     op == "max" ? (len(c) == 2 ? max(eval(c[1],v)) : max([for(i=[1:len(c)-1]) eval(c[i],v)])) :
     op == "min" ? (len(c) == 2 ? min(eval(c[1],v)) : min([for(i=[1:len(c)-1]) eval(c[i],v)])) :
     op == "norm" ? norm(eval(c[1],v)) :
