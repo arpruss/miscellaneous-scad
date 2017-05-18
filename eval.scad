@@ -222,6 +222,7 @@ function _prec(op1, pos1, op2, pos2) =
             op1[_ASSOC_DIR] * pos1 < op2[_ASSOC_DIR] * pos2;
     
 function _parseLiteralOrVariable(s) = 
+        s == "PI" ? PI :
         s == "true" ? true :
         s == "false" ? false :
         s == "undef" ? undef :
