@@ -10,6 +10,7 @@ cutLengthBottom = 10; // the cut is only valid if the compartmentDepthCount is 1
 cutLengthTop = 20;
 cutdrawerHeight = 12;
 catchSize = 20;
+catchLip = 2;
 outerWall = 1.5;
 drawerCount = 6;
 tolerance = 0.4;
@@ -77,8 +78,13 @@ compartmentWidth = (drawerWidth-wall)/compartmentHorizontalCount+wall;
         translate([compartmentWidth/2,depth/2,drawerHeight-cutdrawerHeight+nudge]) 
         rotate([0,90,0]) linear_extrude(drawerHeight=drawerWidth-compartmentWidth) polygon([[-cutdrawerHeight,-cutLengthTop/2],[0,-cutLengthBottom/2],[0,cutLengthBottom/2],[-cutdrawerHeight,cutLengthTop/2]]);
     }
+    render(convexity=2)
     translate([drawerWidth/2,0,0])
-    cylinder(d=catchSize,h=wall);
+    difference() {
+        cylinder(d=catchSize,h=wall+catchLip);
+        translate([0,0,wall]) cylinder(d=catchSize-catchLip*2,h=catchLip+nudge);
+        translate([-catchSize/2,0,0]) cube([catchSize,catchSize,catchSize]);
+    }
     if (compartmentDepthCount > 1) {
         for (i=[0:compartmentDepthCount-2]) {
             translate([0,(depth-2*wall)/compartmentDepthCount*(1+i)+wall/2,0])
