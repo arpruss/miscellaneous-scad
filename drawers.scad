@@ -4,8 +4,9 @@ tolerance=0.4;
 depth = 70;
 drawerHeight = 14;
 drawerWidth = 120;
-compartmentCount = 8;
-cutLengthBottom = 10;
+compartmentHorizontalCount = 8;
+compartmentDepthCount = 1;
+cutLengthBottom = 10; // the cut is only valid if the compartmentDepthCount is 1
 cutLengthTop = 20;
 cutdrawerHeight = 12;
 catchSize = 20;
@@ -14,11 +15,11 @@ drawerCount = 6;
 tolerance = 0.4;
 slideWidth = 6;
 slideThickness = 1;
-gridStripWidth = 4;
-gridHoleWidth = 12;
+gridStripWidth = 3;
+gridHoleWidth = 9;
 gridAngle = 60;
 
-drawer = 0; // [0:chest, 1:drawer]
+drawer = 1; // [0:chest, 1:drawer]
 
 module dummy() {}
 nudge = 0.01;
@@ -48,7 +49,7 @@ module drawerHull(inset=0,drawerHeight=drawerHeight) {
 }
 
 module baseDrawer(count) {
-compartmentWidth = (drawerWidth-wall)/compartmentCount+wall;
+compartmentWidth = (drawerWidth-wall)/compartmentHorizontalCount+wall;
 
     intersection() {
         union() {
@@ -66,17 +67,24 @@ compartmentWidth = (drawerWidth-wall)/compartmentCount+wall;
     }
 }
 
-module drawer(compartmentCount) {
-compartmentWidth = (drawerWidth-wall)/compartmentCount+wall;
+module drawer(compartmentHorizontalCount) {
+compartmentWidth = (drawerWidth-wall)/compartmentHorizontalCount+wall;
 
     render(convexity=4)
     difference() {
-        baseDrawer(compartmentCount);
+        baseDrawer(compartmentHorizontalCount);
+        if (compartmentDepthCount == 1) 
         translate([compartmentWidth/2,depth/2,drawerHeight-cutdrawerHeight+nudge]) 
         rotate([0,90,0]) linear_extrude(drawerHeight=drawerWidth-compartmentWidth) polygon([[-cutdrawerHeight,-cutLengthTop/2],[0,-cutLengthBottom/2],[0,cutLengthBottom/2],[-cutdrawerHeight,cutLengthTop/2]]);
     }
     translate([drawerWidth/2,0,0])
     cylinder(d=catchSize,h=wall);
+    if (compartmentDepthCount > 1) {
+        for (i=[0:compartmentDepthCount-2]) {
+            translate([0,(depth-2*wall)/compartmentDepthCount*(1+i)+wall/2,0])
+            cube([drawerWidth,wall,drawerHeight]);
+        }
+    }
 }
 
 chestWidth = drawerWidth+2*outerWall+2*tolerance;
@@ -145,6 +153,7 @@ module chest(drawerCount) {
 }
 
 if (drawer) 
-    drawer(compartmentCount);
+    drawer(compartmentHorizontalCount);
 else
+    rotate([-90,0,0])
     chest(drawerCount);
