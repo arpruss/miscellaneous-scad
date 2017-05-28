@@ -3,7 +3,7 @@ use <Bezier.scad>;
 //<params>
 rounded=3.5;
 wall=0.75;
-tolerance=0.5*10;
+tolerance=0.5;
 depth = 70;
 drawerHeight = 16;
 drawerWidth = 136;
