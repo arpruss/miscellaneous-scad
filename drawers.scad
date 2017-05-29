@@ -1,17 +1,17 @@
 use <Bezier.scad>;
 
 //<params>
-compartmentHorizontalCount = 2;
-compartmentDepthCount = 1;
+compartmentHorizontalCount = 5;
+compartmentDepthCount = 2;
 
 // you can subdivide into two types of compartments by setting the right side width ratio to something bigger than zero
-rightSideWidthRatio = 0.75;
+rightSideWidthRatio = 0;
 rightSideHorizontalCount = 3;
 rightSideDepthCount = 2;
 
 dividerWall=0.45;
 wall=0.75;
-tolerance=0.5;
+tolerance=0.75;
 depth = 70;
 drawerHeight = 16;
 drawerWidth = 136;
@@ -25,7 +25,7 @@ cutHeight = 13.5;
 catchSize = 20;
 catchLip = 2;
 outerWall = 1.3;
-drawerCount = 6;
+drawerCount = 7;
 slideWidth = 6;
 slideThickness = 1;
 gridStripWidth = 3;
@@ -33,7 +33,7 @@ gridHoleWidth = 9;
 gridAngle = 60;
 rearCrossbars = 2;
 
-drawer = 1; // [0:chest, 1:drawer]
+drawer = 0; // [0:chest, 1:drawer]
 //</params>
 
 module dummy() {}
@@ -224,7 +224,7 @@ module fullDrawer() {
             drawer(rightSideHorizontalCount, rightSideDepthCount, rightWidth, roundOnLeft=false);
     }
     else {
-        drawer(compartmentHorizontalCount, drawerWidth);
+        drawer(compartmentHorizontalCount, compartmentDepthCount, drawerWidth);
     }
 }
 
@@ -232,6 +232,6 @@ if (drawer) {
     fullDrawer();
 }
 else
-    //rotate([-90,0,0])
+    rotate([-90,0,0])
     chest(drawerCount);
 
