@@ -1,14 +1,15 @@
 use <Bezier.scad>;
 
 //<params>
-compartmentHorizontalCount = 4;
-compartmentDepthCount = 2;
+compartmentHorizontalCount = 2;
+compartmentDepthCount = 1;
 
 // you can subdivide into two types of compartments by setting the right side width ratio to something bigger than zero
-rightSideWidthRatio = 0.125;
-rightSideHorizontalCount = 1;
-rightSideDepthCount = 1;
+rightSideWidthRatio = 0.75;
+rightSideHorizontalCount = 3;
+rightSideDepthCount = 2;
 
+dividerWall=0.45;
 wall=0.75;
 tolerance=0.5;
 depth = 70;
@@ -124,8 +125,8 @@ module drawer(compartmentHorizontalCount, compartmentDepthCount, drawerWidth, ro
     }
     if (compartmentDepthCount > 1) {
         for (i=[0:compartmentDepthCount-2]) {
-            translate([0,(depth-2*wall)/compartmentDepthCount*(1+i)+wall/2,0])
-            cube([drawerWidth,wall,drawerHeight]);
+            translate([0,wall+(depth-2*wall)/compartmentDepthCount*(1+i)-dividerWall/2,0])
+            cube([drawerWidth,dividerWall,drawerHeight]);
         }
     }
 }
@@ -216,8 +217,8 @@ module chest(drawerCount) {
 module fullDrawer() {
     catch();
     if (rightSideWidthRatio>0) {
-        leftWidth = drawerWidth * (1-rightSideWidthRatio) + wall;
-        rightWidth = drawerWidth * rightSideWidthRatio + wall;
+        leftWidth = drawerWidth * (1-rightSideWidthRatio) + wall/2;
+        rightWidth = drawerWidth * rightSideWidthRatio + wall/2;
         drawer(compartmentHorizontalCount, compartmentDepthCount, leftWidth, roundOnRight=false);
         translate([leftWidth-wall,0,0])
             drawer(rightSideHorizontalCount, rightSideDepthCount, rightWidth, roundOnLeft=false);
@@ -233,3 +234,4 @@ if (drawer) {
 else
     //rotate([-90,0,0])
     chest(drawerCount);
+

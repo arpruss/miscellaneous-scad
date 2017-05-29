@@ -14,8 +14,8 @@ grilleSolidWidth = 2;
 grilleHoleWidth = 2.5;
 rounded = 5;
 tolerance = 0.4;
-includeBox = 1;
-includeLid = 0;
+includeBox = 0;
+includeLid = 1;
 screenHoleDiameter = 3.6;
 screenPCBThickness = 1.63;
 screenPCBWidth = 58.1;
@@ -36,10 +36,10 @@ lidMountHoleOffset=3;
 lidScrewHeadThickness=1.2; 
 lidScrewHeadDiameter=4.6; 
 lidSolderInset=1.75;
-usbZOffsetFromPCBBase=12.5;
+usbZOffsetFromPCBBase=11.5;
 usbThickness=3.5;
 usbWidth=8.3;
-usbYOffsetFromLip=8.7;
+usbYOffsetFromLip=9.5;
 usbTolerance=1;
 ventHeight=20;
 ventWidth=50;
@@ -148,7 +148,7 @@ module pcbMount() {
 }
 
 module usbHole() {
-    translate([boxWidth-wall-nudge,boxHeight-pcbMountYSize-usbYOffsetFromLip-usbWidth1,boxHeight-lidThickness-lidScrewHeadThickness-usbZOffsetFromPCBBase-usbThickness1])
+    translate([boxWidth-wall-nudge,boxHeight-pcbMountYSize-usbYOffsetFromLip-usbWidth1+usbTolerance,boxHeight-lidThickness-lidScrewHeadThickness-usbZOffsetFromPCBBase-usbThickness1+usbTolerance])
     cube([wall+2*nudge,usbWidth1,usbThickness1]);
 }
 
@@ -186,6 +186,11 @@ module lid() {
         translate([boxWidth-(wall+lidMountHoleOffset),wall+lidMountHoleOffset,-nudge]) cylinder(h=lidThickness+2*nudge,d=lidMountHole,$fn=16);
         translate([wall+lidMountHoleOffset,boxHeight-(wall+lidMountHoleOffset),-nudge]) cylinder(h=lidThickness+2*nudge,d=lidMountHole,$fn=16);
         translate([boxWidth-(wall+lidMountHoleOffset),boxHeight-(wall+lidMountHoleOffset),-nudge]) cylinder(h=lidThickness+2*nudge,d=lidMountHole,$fn=16);
+        translate([0,0,lidThickness-lidSolderInset]) {
+            translate([boxWidth-50,0,0]) cube([50,12,lidSolderInset+nudge]);
+            translate([boxWidth-50,boxHeight-24,0]) cube([50,24,lidSolderInset+nudge]);
+            translate([boxWidth-59,boxHeight-31,0] ) cube([9,31,lidSolderInset+nudge]);
+        }
     }
 }
 
