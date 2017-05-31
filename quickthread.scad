@@ -1,48 +1,35 @@
-function _ringPoints(param) = len(param[0]);
-function _ringValue(param,point) = param[0][point];
-function _numTurns(param) = param[2];
-function _numRings(param) = 1+_numTurns(param)*$fn;
-function _radius(param) = param[1];
-function _lead(param) = param[3];
+function _numSections(numTurns) = 1+numTurns*$fn;
 
-extrNudge = 0.001;
+extrusionNudge = 0.001;
 
-function extrPoints(param) = 
-    let (n=_ringPoints(param),
-        r=_radius(param),
-        m=_numRings(param),
-        l=_lead(param)
+function threadPoints(section,radius,numTurns,lead) =
+    let (n=len(section),
+        m=_numSections(numTurns)
         ) 
         [ for (i=[0:m-1]) for (j=[0:n-1]) 
-            let (z=i/$fn*l,
+            let (z=i/$fn*lead,
                 angle=(i%$fn)/$fn*360,
-                v=_ringValue(param,j))
-            [ (r+v[0])*cos(angle), (r+v[0])*sin(angle),z+v[1]] ];
+                v=section[j])
+            [ (radius+v[0])*cos(angle), (radius+v[0])*sin(angle),z+v[1]] ];
         
 function mod(m,n) = let(mm = m%n) mm<0 ? n+mm : mm;
         
-function extrPointIndex(param,ring,point) = 
-    let (n=_ringPoints(param)) 
-        n*ring + mod(point,n);
+function extrusionPointIndex(pointsPerSection,sectionNumber,pointInSection) = pointsPerSection*sectionNumber + mod(pointInSection,pointsPerSection);
         
-function startFacePoints(param) = 
-    let (n=_ringPoints(param)) 
-        [for (i=[0:n-1]) extrPointIndex(param,0,i)];
+function _extrusionStartFace(pointsPerSection) = 
+    [for (i=[0:pointsPerSection-1]) extrusionPointIndex(pointsPerSection,0,i)];
             
-function endFacePoints(param) = 
-    let (m=_numRings(param), n=_ringPoints(param)) 
-            [for (i=[n-1:-1:0]) extrPointIndex(param,m-1,i)];
+function _extrusionEndFace(pointsPerSection, numSections) = 
+    [for (i=[pointsPerSection-1:-1:0]) extrusionPointIndex(pointsPerSection,numSections-1,i)];
                 
-function tubeFaces(param) =
-    let (m=_numRings(param), n=_ringPoints(param))
-            [for (i=[0:m-2]) for (j=[0:n-1]) for(tri=[0:1])
+function extrusionTubeFaces(pointsPerSection, numSections) =
+            [for (i=[0:numSections-2]) for (j=[0:pointsPerSection-1]) for(tri=[0:1])
                 tri==0 ? 
-                    [extrPointIndex(param,i,j),extrPointIndex(param,i+1,j),extrPointIndex(param,i,j+1)] :
-                    [extrPointIndex(param,i,j+1), extrPointIndex(param,i+1,j),
-            extrPointIndex(param,i+1,j+1)]];
+                    [extrusionPointIndex(pointsPerSection,i,j),extrusionPointIndex(pointsPerSection,i+1,j),extrusionPointIndex(pointsPerSection,i,j+1)] :
+                    [extrusionPointIndex(pointsPerSection,i,j+1), extrusionPointIndex(pointsPerSection,i+1,j),
+            extrusionPointIndex(pointsPerSection,i+1,j+1)]];
                 
-
-function extrFaces(param) = concat([startFacePoints(param)],concat(tubeFaces(param),[endFacePoints(param)]));
+function extrusionFaces(pointsPerSection, numSections) = concat([_extrusionStartFace(pointsPerSection),_extrusionEndFace(pointsPerSection,numSections)],extrusionTubeFaces(pointsPerSection, numSections));
 
                     
 module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false, clip=true, includeCylinder=true) {
@@ -51,21 +38,21 @@ module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false,
     vMin = min([for(v=profile) v[0]]);
     radiusAdjustment = adjustRadius ? vMin : 0;
     _lead = lead==undef ? vSize : lead;
-    profileScale = vSize <= _lead-extrNudge ? 1 : (_lead-extrNudge)/vSize;
+    profileScale = vSize <= _lead-extrusionNudge ? 1 : (_lead-extrusionNudge)/vSize;
     adjProfile = [for(v=profile) [v[0]-radiusAdjustment,v[1]*profileScale]];
     adjRadius = radius + radiusAdjustment;
     hSize = 1+2*adjRadius + 2*max([for (v=adjProfile) v[0]]);
     numTurns = 2+ceil(h/_lead);
-    param = [adjProfile, adjRadius, numTurns, _lead];
     render(convexity=10)
     union() {
         intersection() {
             if (clip)
                 translate([-hSize/2,-hSize/2,0]) cube([hSize,hSize,h]);
-            translate([0,0,-_lead]) polyhedron(faces=extrFaces(param),points=extrPoints(param));
+            translate([0,0,-_lead]) polyhedron(faces=extrusionFaces(len(adjProfile), _numSections(numTurns)), points=threadPoints(
+            adjProfile,adjRadius,numTurns,_lead));
         }
         if (includeCylinder) 
-            cylinder(r=adjRadius+extrNudge,$fn=$fn,h=h);
+            cylinder(r=adjRadius+extrusionNudge,$fn=$fn,h=h);
     }
 }
 
@@ -102,8 +89,9 @@ module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lea
 
 //rawThread([[0,0],[1.5,1.5],[0,3]], d=50, h=91, pitch=3);
 //rawThread([[0,0],[0,3],[3,3],[3,0]], d=50, h=50, pitch=6, $fn=80);
+render(convexity=5)
 difference() {
     isoThread(d=50,h=30,pitch=3,angle=40,internal=false,$fn=60);
-    translate([0,0,-extrNudge]) isoThread(d=42,h=30+2*extrNudge,pitch=3,angle=40,internal=true,$fn=60);
+    translate([0,0,-extrusionNudge]) isoThread(d=42,h=30+2*extrusionNudge,pitch=3,angle=40,internal=true,$fn=60);
 }
 //rawThread([[0,0],[1,0],[.5,.5],[1,1],[0,1]],r=20,h=10,lead=1.5);

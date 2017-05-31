@@ -1,54 +1,62 @@
 use <Bezier.scad>;
 
 //<params>
-compartmentHorizontalCount = 5;
-compartmentDepthCount = 2;
+numberOfDrawerCompartmentsHorizontally = 5;
+numberOfDrawerCompartmentsInDepth = 2;
 
-// you can subdivide into two types of compartments by setting the right side width ratio to something bigger than zero
+// You can subdivide the drawer into two types of compartments by setting the right side width ratio to something bigger than zero.
 rightSideWidthRatio = 0;
-rightSideHorizontalCount = 3;
-rightSideDepthCount = 2;
+rightSideNumberOfDrawerCompartmentsHorizontally = 3;
+rightSideNumberOfDrawerCompartmentsInDepth = 2;
 
-dividerWall=0.45;
-wall=0.75;
-tolerance=0.75;
-depth = 70;
-drawerHeight = 16;
+numberOfDrawersInChest = 7;
+
+generate = 1; // [0:chest, 1:drawer]
+
+drawerWall=0.75; // Thickness of main drawer walls and dividers running forward and back
+dividerWall=0.45; // Thickness of divider walls running horizontally
 drawerWidth = 136;
-rounded=3.5;
+drawerDepth = 70; 
+drawerHeight = 16;
+roundedCornerRadius=3.5;
 
+tolerance=0.75;
 
-cutLengthBottom = 8; // the cut is only valid if the compartmentDepthCount is 1
-cutLengthTop = 16;
+// Divider walls between full-depth compartments can have a cut in them to make it easier to put things in and take them out.
+cutHeight = 13.5; // Set to zero to disable.
+cutLengthAtTop = 16;
+cutLengthAtBottom = 8; 
 cutSmoothingSize = 5;
-cutHeight = 13.5;
+
 catchSize = 20;
 catchLip = 2;
-outerWall = 1.3;
-drawerCount = 7;
+outerWall = 1.3; // Thickness 
+
 slideWidth = 6;
 slideThickness = 1;
-gridStripWidth = 3;
-gridHoleWidth = 9;
-gridAngle = 60;
-rearCrossbars = 2;
 
-drawer = 0; // [0:chest, 1:drawer]
+// Three of the walls are made in a grid pattern to save plastic. If you want them solid, set the grid hole width to zero.
+gridHoleWidth = 9;
+gridStripWidth = 3;
+gridAngle = 60;
+
+numberOfRearCrossbars = 2; // Can be 0, 1 or 2
+
 //</params>
 
 module dummy() {}
 nudge = 0.01;
 
-module compartment(width, depth, drawerHeight) {
+module compartment(width, drawerDepth, drawerHeight) {
     render(convexity=2)
     difference() {
-        cube([width,depth,drawerHeight]);
+        cube([width,drawerDepth,drawerHeight]);
         hull() {
-            translate([wall,wall,rounded+wall]) cube([width-2*wall,depth-2*wall,drawerHeight]);
-            translate([0,wall,rounded+wall]) 
+            translate([drawerWall,drawerWall,roundedCornerRadius+drawerWall]) cube([width-2*drawerWall,drawerDepth-2*drawerWall,drawerHeight]);
+            translate([0,drawerWall,roundedCornerRadius+drawerWall]) 
                 rotate([-90,0,0]) {
-                translate([wall+rounded,0,0]) cylinder(h=depth-2*wall,r=rounded,$fn=24);
-                translate([width-wall-rounded,0,0]) cylinder(h=depth-2*wall,r=rounded,$fn=24);
+                translate([drawerWall+roundedCornerRadius,0,0]) cylinder(h=drawerDepth-2*drawerWall,r=roundedCornerRadius,$fn=24);
+                translate([width-drawerWall-roundedCornerRadius,0,0]) cylinder(h=drawerDepth-2*drawerWall,r=roundedCornerRadius,$fn=24);
                 }
             }
     }
@@ -58,28 +66,28 @@ module drawerHull(drawerWidth,inset=0,drawerHeight=drawerHeight,roundOnLeft=true
     
     module post(roundPost) {
        if (roundPost) 
-           cylinder(h=drawerHeight+nudge,r=rounded,$fn=24);
+           cylinder(h=drawerHeight+nudge,r=roundedCornerRadius,$fn=24);
        else 
-           translate([-rounded,-rounded,0]) cube([rounded*2,rounded*2,drawerHeight+nudge]);
+           translate([-roundedCornerRadius,-roundedCornerRadius,0]) cube([roundedCornerRadius*2,roundedCornerRadius*2,drawerHeight+nudge]);
     }
     
         hull() {
-            translate([inset+rounded,depth-rounded-inset])
+            translate([inset+roundedCornerRadius,drawerDepth-roundedCornerRadius-inset])
             post(roundOnLeft);
-    translate([drawerWidth-rounded-inset,depth-rounded-inset]) post(roundOnRight);
-    translate([inset,inset,0]) cube([rounded,rounded,drawerHeight]);
-    translate([drawerWidth-inset-rounded,inset,0]) cube([rounded,rounded,drawerHeight]);
+    translate([drawerWidth-roundedCornerRadius-inset,drawerDepth-roundedCornerRadius-inset]) post(roundOnRight);
+    translate([inset,inset,0]) cube([roundedCornerRadius,roundedCornerRadius,drawerHeight]);
+    translate([drawerWidth-inset-roundedCornerRadius,inset,0]) cube([roundedCornerRadius,roundedCornerRadius,drawerHeight]);
         }
 }
 
-module baseDrawer(compartmentHorizontalCount, drawerWidth, roundOnLeft=true, roundOnRight=true) {
-    compartmentWidth = (drawerWidth-wall)/compartmentHorizontalCount+wall;
+module baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=true, roundOnRight=true) {
+    compartmentWidth = (drawerWidth-drawerWall)/numberOfDrawerCompartmentsHorizontally+drawerWall;
 
     intersection() {
         union() {
-            for (i=[0:compartmentHorizontalCount-1]) {
-                translate([(compartmentWidth-wall)*i,0,0])
-                compartment(compartmentWidth,depth,drawerHeight);
+            for (i=[0:numberOfDrawerCompartmentsHorizontally-1]) {
+                translate([(compartmentWidth-drawerWall)*i,0,0])
+                compartment(compartmentWidth,drawerDepth,drawerHeight);
             }
         }
         drawerHull(drawerWidth,roundOnLeft=roundOnLeft,roundOnRight=roundOnRight);
@@ -87,14 +95,14 @@ module baseDrawer(compartmentHorizontalCount, drawerWidth, roundOnLeft=true, rou
     render(convexity=2)
     difference() {
         drawerHull(drawerWidth,roundOnLeft=roundOnLeft,roundOnRight=roundOnRight);
-        drawerHull(drawerWidth,roundOnLeft=roundOnLeft,roundOnRight=roundOnRight,inset=wall,drawerHeight=drawerHeight+nudge);
+        drawerHull(drawerWidth,roundOnLeft=roundOnLeft,roundOnRight=roundOnRight,inset=drawerWall,drawerHeight=drawerHeight+nudge);
     }
 }
 
 module cut() {
- //polygon([[-cutHeight,-cutLengthTop/2],[0,-cutLengthBottom/2],[0,cutLengthBottom/2],[-cutHeight,cutLengthTop/2]]);
-    polygon(Bezier([ [-cutHeight,-cutLengthTop/2-cutSmoothingSize],OFFSET([0,cutSmoothingSize]), OFFSET([0,-cutSmoothingSize]),
-    [nudge,-cutLengthBottom/2], 
+ //polygon([[-cutHeight,-cutLengthAtTop/2],[0,-cutLengthAtBottom/2],[0,cutLengthAtBottom/2],[-cutHeight,cutLengthAtTop/2]]);
+    polygon(Bezier([ [-cutHeight,-cutLengthAtTop/2-cutSmoothingSize],OFFSET([0,cutSmoothingSize]), OFFSET([0,-cutSmoothingSize]),
+    [nudge,-cutLengthAtBottom/2], 
     OFFSET([0,0]), 
     OFFSET([0,0]), 
     [nudge,0], REPEAT_MIRRORED([0,1])
@@ -106,26 +114,26 @@ module catch() {
     render(convexity=2)
     translate([drawerWidth/2,0,0])
     difference() {
-        cylinder(d=catchSize,h=wall+catchLip);
-        translate([0,0,wall]) cylinder(d=catchSize-catchLip*2,h=catchLip+nudge);
+        cylinder(d=catchSize,h=drawerWall+catchLip);
+        translate([0,0,drawerWall]) cylinder(d=catchSize-catchLip*2,h=catchLip+nudge);
         translate([-catchSize/2,0,0]) cube([catchSize,catchSize,catchSize]);
     }
 }
 
-module drawer(compartmentHorizontalCount, compartmentDepthCount, drawerWidth, roundOnLeft=true, roundOnRight=true) {
+module drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, drawerWidth, roundOnLeft=true, roundOnRight=true) {
     
-    compartmentWidth = (drawerWidth-wall)/compartmentHorizontalCount+wall;
+    compartmentWidth = (drawerWidth-drawerWall)/numberOfDrawerCompartmentsHorizontally+drawerWall;
 
     render(convexity=4)
     difference() {
-        baseDrawer(compartmentHorizontalCount, drawerWidth, roundOnLeft=roundOnLeft, roundOnRight=roundOnRight);
-        if (compartmentDepthCount == 1) 
-        translate([compartmentWidth/2,depth/2,drawerHeight-cutHeight+nudge]) 
+        baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=roundOnLeft, roundOnRight=roundOnRight);
+        if (numberOfDrawerCompartmentsInDepth == 1) 
+        translate([compartmentWidth/2,drawerDepth/2,drawerHeight-cutHeight+nudge]) 
         rotate([0,90,0]) linear_extrude(height=drawerWidth-compartmentWidth) cut();
     }
-    if (compartmentDepthCount > 1) {
-        for (i=[0:compartmentDepthCount-2]) {
-            translate([0,wall+(depth-2*wall)/compartmentDepthCount*(1+i)-dividerWall/2,0])
+    if (numberOfDrawerCompartmentsInDepth > 1) {
+        for (i=[0:numberOfDrawerCompartmentsInDepth-2]) {
+            translate([0,drawerWall+(drawerDepth-2*drawerWall)/numberOfDrawerCompartmentsInDepth*(1+i)-dividerWall/2,0])
             cube([drawerWidth,dividerWall,drawerHeight]);
         }
     }
@@ -133,19 +141,18 @@ module drawer(compartmentHorizontalCount, compartmentDepthCount, drawerWidth, ro
 
 chestWidth = drawerWidth+2*outerWall+2*tolerance;
 drawerSpacing = drawerHeight+2*tolerance+slideThickness;
-echo(drawerSpacing);
-chestHeight = drawerSpacing*drawerCount+2*outerWall;
-chestDepth = depth+tolerance+outerWall;
+chestHeight = drawerSpacing*numberOfDrawersInChest+2*outerWall;
+chestDepth = drawerDepth+tolerance+outerWall;
 
-module strips(width,depth) {
+module strips(width,drawerDepth) {
     n = floor(1+width/(gridStripWidth+gridHoleWidth));
     for (i=[0:n]) {
-        translate([i*(gridStripWidth+gridHoleWidth),0,0]) square([gridStripWidth,depth]);
+        translate([i*(gridStripWidth+gridHoleWidth),0,0]) square([gridStripWidth,drawerDepth]);
     }
 }
 
-module gridFace(width,depth) {
-    stripLength = 1.5*(width+depth);
+module gridFace(width,drawerDepth) {
+    stripLength = 1.5*(width+drawerDepth);
     intersection() {
         union() {
             rotate(-gridAngle/2) translate([-stripLength/2,-stripLength/2]) 
@@ -153,12 +160,12 @@ module gridFace(width,depth) {
             rotate(gridAngle/2) translate([-stripLength/2,-stripLength/2]) 
             strips(stripLength,stripLength);
         }
-        square([width,depth]);
+        square([width,drawerDepth]);
     }
     difference() {
-        square([width,depth]);
+        square([width,drawerDepth]);
         translate([gridStripWidth,gridStripWidth])
-        square([width-gridStripWidth*2,depth-gridStripWidth*2]);
+        square([width-gridStripWidth*2,drawerDepth-gridStripWidth*2]);
     }
 }
 
@@ -175,7 +182,7 @@ module drawerSupport(bottom,top) {
     }
 }
 
-module chest(drawerCount) {
+module chest(numberOfDrawersInChest) {
     render(convexity=8) {
         linear_extrude(height=outerWall)
         gridFace(chestWidth,chestDepth);
@@ -186,16 +193,16 @@ module chest(drawerCount) {
         translate([chestWidth,0,0]) rotate([0,-90,0])
         linear_extrude(height=outerWall)
         gridFace(chestHeight,chestDepth,outerWall);
-        for (i=[0:drawerCount-1]) {
+        for (i=[0:numberOfDrawersInChest-1]) {
             translate([0,0,outerWall+i*drawerSpacing]) drawerSupport(i==0);
         }
-        for (i=[1:drawerCount-1]) {
+        for (i=[1:numberOfDrawersInChest-1]) {
             translate([0,chestDepth-outerWall,outerWall+i*drawerSpacing-slideWidth/2+slideThickness/2]) cube([chestWidth,outerWall,slideWidth]);
         }
             translate([0,chestDepth-outerWall,0]) cube([chestWidth,outerWall,slideWidth/2]);
             translate([0,chestDepth-outerWall,chestHeight-slideWidth/2]) cube([chestWidth,outerWall,slideWidth/2]);
     }
-    if (rearCrossbars > 0) {
+    if (numberOfRearCrossbars > 0) {
         angle = atan2(chestHeight,chestWidth);
         translate([0,chestDepth,0])
         rotate([90,0,0])
@@ -204,7 +211,7 @@ module chest(drawerCount) {
             union() {
                 rotate(angle)
                 translate([-0.5*(chestHeight+chestDepth),0]) square([2*(chestHeight+chestDepth),slideWidth]);
-                if (rearCrossbars > 1) 
+                if (numberOfRearCrossbars > 1) 
                 translate([0,chestHeight])
                 rotate(-angle)
                 translate([-0.5*(chestHeight+chestDepth),0]) square([2*(chestHeight+chestDepth),slideWidth]);
@@ -217,21 +224,21 @@ module chest(drawerCount) {
 module fullDrawer() {
     catch();
     if (rightSideWidthRatio>0) {
-        leftWidth = drawerWidth * (1-rightSideWidthRatio) + wall/2;
-        rightWidth = drawerWidth * rightSideWidthRatio + wall/2;
-        drawer(compartmentHorizontalCount, compartmentDepthCount, leftWidth, roundOnRight=false);
-        translate([leftWidth-wall,0,0])
-            drawer(rightSideHorizontalCount, rightSideDepthCount, rightWidth, roundOnLeft=false);
+        leftWidth = drawerWidth * (1-rightSideWidthRatio) + drawerWall/2;
+        rightWidth = drawerWidth * rightSideWidthRatio + drawerWall/2;
+        drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, leftWidth, roundOnRight=false);
+        translate([leftWidth-drawerWall,0,0])
+            drawer(rightSideNumberOfDrawerCompartmentsHorizontally, rightSideNumberOfDrawerCompartmentsInDepth, rightWidth, roundOnLeft=false);
     }
     else {
-        drawer(compartmentHorizontalCount, compartmentDepthCount, drawerWidth);
+        drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, drawerWidth);
     }
 }
 
-if (drawer) {
+if (generate == 1) {
     fullDrawer();
 }
 else
     rotate([-90,0,0])
-    chest(drawerCount);
+    chest(numberOfDrawersInChest);
 
