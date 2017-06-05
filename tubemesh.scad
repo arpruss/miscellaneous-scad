@@ -8,7 +8,7 @@ function _subtotals(list,soFar=[]) =
             let(n1=len(soFar))
             concat(soFar, n1>0 ? soFar[n1-1]+list[n1-1] : 0));
 
-function flatten(list) = [for (a=list) for(b=a) b];
+function _flatten(list) = [for (a=list) for(b=a) b];
             
 function _reverseTriangle(t) = [t[2], t[1], t[0]];
 
@@ -41,11 +41,40 @@ function _endCaps(counts,subtotals,startCap=true,endCap=true) =
          cap2 = counts[n-1]<=2 || !endCap ? undef : [for(i=[counts[n-1]-1:-1:0]) subtotals[n-1]+i] )
        [for (c=[cap1,cap2]) if (c!=undef) c];
            
-function tubeFaces(sections,startCap=true,endCap=true) =
+function _tubeFaces(sections,startCap=true,endCap=true) =
                 let(
         counts = [for (s=sections) len(s)],
         subtotals = _subtotals(counts)) 
             concat(_tubeMiddleFaces(counts,subtotals),_endCaps(counts,subtotals,startCap=true,endCap=true));
+
+function _removeDuplicates1(points,soFar=[[],[]]) =
+        len(soFar[0]) >= len(points) ? soFar :
+            _removeDuplicates1(points,
+               let( 
+                mapSoFar=soFar[0],
+                pointsSoFar=soFar[1],
+                j=len(mapSoFar),
+                k=search([points[j]], pointsSoFar)[0])
+                k == []? [concat(mapSoFar,[len(pointsSoFar)]),
+                            concat(pointsSoFar,[points[j]])] :
+                           [concat(mapSoFar,[k]),pointsSoFar]);
+        
+function _removeDuplicates(points, faces) =
+    let(fix=_removeDuplicates1(points),
+        map=fix[0],
+        newPoints=fix[1],
+        newFaces=[for(f=faces) [for(v=f) map[v]]])
+            [newPoints, newFaces];
+
+function pointsAndFaces(sections,startCap=true,endCap=true) =
+        let(
+            points0=_flatten(sections),
+            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap))
+        _removeDuplicates(points0,faces0);
+
+        
+z=[[1,2],[3,4],[1,2],[1,2],[4,5]];
+//echo(_removeDuplicates1(z));
         
 // increase number of points from len(section) to n
 function _interpolateSection(section,n) =
@@ -60,11 +89,11 @@ function _interpolateSection(section,n) =
                         let(t=j/k)
                             section[i]*(1-t)+section[i2]*t];
 
-function ngonPoints(n=4,r=10,d=undef,rotation=0) =
+function ngonPoints(n=4,r=10,d=undef,rotate=0) =
             let(r=d==undef?r:d/2)
-            r*[for(i=[0:n-1]) let(angle=i*360/n+rotation) [cos(angle),sin(angle)]];
-function starPoints(n=10,r1=5,r2=10,rotation=0) =
-            [for(i=[0:2*n-1]) let(angle=i*180/n+rotation) (i%2?r1:r2) * [cos(angle),sin(angle)]];
+            r*[for(i=[0:n-1]) let(angle=i*360/n+rotate) [cos(angle),sin(angle)]];
+function starPoints(n=10,r1=5,r2=10,rotate=0) =
+            [for(i=[0:2*n-1]) let(angle=i*180/n+rotate) (i%2?r1:r2) * [cos(angle),sin(angle)]];
 
 // warning: no guarantee of perfect convexity
 module mySphere(r=10,d=undef) {
@@ -85,25 +114,23 @@ module mySphere(r=10,d=undef) {
                     [for(j=[0:count-1]) 
                         let(long = j*360/count)
                         [r1*cos(long),r1*sin(long),z1]]];
-    polyhedron(points=flatten(sections), faces=tubeFaces(sections));
+    data = pointsAndFaces(sections);
+    polyhedron(points=data[0], faces=data[1]);
 }
 
 module morphExtrude(section1,section2,height=undef,numSlices=10,startCap=true,endCap=true) {
     n = max(len(section1),len(section2));
     section1interp = _interpolateSection(section1,n);
     section2interp = _interpolateSection(section2,n);
-    if (height==undef) {
-        sections = [for(i=[0:numSlices]) 
+    sections = height == undef ?
+                      [for(i=[0:numSlices]) 
                         let(t=i/numSlices)
-                        (1-t)*section1interp+t*section1interp];
-        polyhedron(points=flatten(sections), faces=tubeFaces(sections,startCap=startCap,endCap=endCap));
-    }
-    else {
-        sections = [ [for(i=[0:n-1])
+                        (1-t)*section1interp+t*section1interp] :
+                      [ [for(i=[0:n-1])
                         [section1interp[i][0],section1interp[i][1],0]], [for(i=[0:n-1])
                         [section2interp[i][0],section2interp[i][1],height]] ];
-        polyhedron(points=flatten(sections), faces=tubeFaces(sections,startCap=startCap,endCap=endCap));
-    }
+    data = pointsAndFaces(sections,startCap=startCap,endCap=endCap);   
+    polyhedron(points=data[0], faces=data[1]);
 }
 
 module cone(r=10,d=undef,height=10) {
@@ -115,5 +142,7 @@ module cone(r=10,d=undef,height=10) {
 }
 
 translate([15,0,0]) morphExtrude(ngonPoints(30,r=3), ngonPoints(2,r=2), height=10);
-translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0,r2=4), height=10, endCap=false);
+// for some reason this gives a CGAL error if we put in r1=0 and endCap=false
+translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=8);
+translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
