@@ -14,11 +14,15 @@ function _reverseTriangle(t) = [t[2], t[1], t[0]];
 
 // smallest angle in triangle
 function _minAngle(p1,p2,p3) =
-    let(v1 = cross(p2-p1,p3-p1),
-        v2 = cross(p3-p2,p1-p2))
-       v1 == [0,0,0] || v2 == [0,0,0] ? 0 :
-        let( a1 = asin(norm(v1) / (norm(p2-p1)*norm(p3-p1))),
-             a2 = asin(norm(v2) / (norm(p3-p2)*norm(p1-p2))) )
+    let(a = p2-p1,
+        b = p3-p1,
+        c = p3-p2,
+        v1 = a*b,
+        v2 = -(c*a)) 
+        v1 == 0 || v2 == 0 ? 0 :
+        let( na = norm(a),
+             a1 = acos(v1 / (na*norm(b))),
+             a2 = acos(v2 / (na*norm(c))) )
         min(a1,a2,180-(a1+a2));
 
 // triangulate square to maximize smallest angle
@@ -28,16 +32,58 @@ function _doSquare(points,i11,i21,i22,i12,optimize=true) =
     !optimize ? [[i11,i21,i22], [i22,i12,i11]] :
     let (m1 = min(_minAngle(points[i11],points[i21],points[i22]), _minAngle(points[i22],points[i12],points[i11])),
         m2 = min(_minAngle(points[i11],points[i21],points[i12]),
-                _minAngle(points[i21],points[i12],points[i22])) )
-        m2 < m1 ? [[i11,i21,i22], [i22,i12,i11]] :
+                _minAngle(points[i21],points[i22],points[i12])) )
+        m2 <= m1 ? [[i11,i21,i22], [i22,i12,i11]] :
                   [[i11,i21,i12], [i21,i22,i12]];
-         
+    
+/*
+function _inTriangle(v1,t) = (v1==t[0] || v1==t[1] || v1==t[2]);
+   
+function _findTheDistinctVertex(t1,t2) = 
+    let(in = [for(i=[0:2]) _inTriangle(t1[i],t2)])
+    ! in[0] && in[1] && in[2] ? 0 :
+    ! in[1] && in[0] && in[2] ? 1 :
+    ! in[2] && in[0] && in[1] ? 2 :
+    undef;
+
+// make vertex i come first
+function _rotateTriangle(t,i) = 
+    [for (j=[0:2]) t[(j+i)%3]];
+  
+function _optimize2Triangles(points,t1,t2) = 
+    let(i1 = _findTheDistinctVertex(t1,t2))
+    i1 == undef ? [t1,t2] :
+    let(i2 = _findTheDistinctVertex(t2,t1))
+    i2 == undef ? [t1,t2] :
+    let(t1 = _rotateTriangle(t1,i1),
+        t2 = _rotateTriangle(t2,i2)) 
+    _doSquare(points,t1[1],t2[0],t2[1],t1[0],optimize=true); 
+     
+// a greedy optimization for a strip of triangles most of which adjoin one another; written for tail-recursion        
+function _optimizeTriangles(points,triangles,position=0,optimize=true,iterations=4) =
+        !optimize || position >= iterations*len(triangles) ? triangles : 
+            _optimizeTriangles(points, 
+                let(
+                    n = len(triangles),
+                    position1=position%n,
+                    position2=(position+1)%n,
+                    opt=_optimize2Triangles(points,triangles[position1],triangles[position2]))
+                    [for (i=[0:len(triangles)-1])
+                        i == position1 ? opt[0] :
+                        i == position2 ? opt[1] :
+                            triangles[i]],
+                position=position+1);
+*/
+
+function _removeEmptyTriangles(points,triangles) = 
+    [for(t=triangles)
+        if(points[t[0]] != points[t[1]] && points[t[1]] != points[t[2]] && points[t[2]] != points[t[0]]) t]; 
 
 // n1 and n2 should be fairly small, so this doesn't need
 // tail-recursion
 // this assumes n1<=n2
 function _tubeSegmentTriangles(points,index1,n1,index2,n2,i=0,soFar=[],optimize=true)
-    = i>=n2 ? soFar :
+    = i>=n2 ? _removeEmptyTriangles(points,soFar) :
             let(i21=i,
                 i22=(i+1)%n2,
                 i11=floor((i21)*n1/n2+0.5)%n1,
@@ -53,7 +99,7 @@ function _tubeSegmentFaces(points,index,n1,n2,optimize=true)
             
 function _tubeMiddleFaces(points,counts,subtotals,optimize=true) = 
        [ for (i=[1:len(counts)-1])
-           for (face=_tubeSegmentFaces(points,subtotals[i-1],counts[i-1],counts[i],optimize=optimize)) face ]; 
+           for (face=_tubeSegmentFaces(points,subtotals[i-1],counts[i-1],counts[i],optimize=optimize)) face ];
                
 function _endCaps(counts,subtotals,startCap=true,endCap=true) =
     let( n = len(counts),
@@ -86,17 +132,13 @@ function _removeDuplicates(points, faces) =
         newPoints=fix[1],
         newFaces=[for(f=faces) [for(v=f) map[v]]])
             [newPoints, newFaces];
-
+        
 function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
         let(
             points0=_flatten(sections),
             faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize))
         _removeDuplicates(points0,faces0);
-
-        
-z=[[1,2],[3,4],[1,2],[1,2],[4,5]];
-//echo(_removeDuplicates1(z));
-        
+                
 // increase number of points from len(section) to n
 function _interpolateSection(section,n) =
         let(m=len(section))
@@ -118,6 +160,7 @@ function starPoints(n=10,r1=5,r2=10,rotate=0) =
 
 // warning: no guarantee of perfect convexity
 module mySphere(r=10,d=undef) {
+    GA = 2.39996322972865332 * 180 / PI;
     radius = d==undef ? r : d/2;
     pointsAround = 
         $fn ? $fn :
@@ -131,9 +174,10 @@ module mySphere(r=10,d=undef) {
                         lat = (i-numSlices/2)/(numSlices/2)*90,
                         z1 = sin(lat),
                         r1 = cos(lat),
-                        count = max(3,floor(0.5 + pointsAround * abs(r1))) )
+                        count = max(3,floor(0.5 + pointsAround * abs(r1))),
+                        delta = (i-numSlices/2)%2 ? 0*180/count : 0 )
                     [for(j=[0:count-1]) 
-                        let(long = j*360/count)
+                        let(long = j*360/count+delta)
                         [r1*cos(long),r1*sin(long),z1]]];
     data = pointsAndFaces(sections,optimize=true);
     polyhedron(points=data[0], faces=data[1]);
@@ -165,5 +209,5 @@ module cone(r=10,d=undef,height=10) {
 translate([15,0,0]) morphExtrude(ngonPoints(30,r=3), ngonPoints(2,r=2), height=10);
 // for some reason this gives a CGAL error if we put in r1=0 and endCap=false
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
-mySphere($fn=4);
+mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);

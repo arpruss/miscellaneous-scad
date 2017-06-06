@@ -9,7 +9,6 @@ equalSizeHoles = 0; // [0:no, 1:yes]
 module dummy() {}
 
 symmetric = 0;
-GA = 2.39996322972865332 * 180 / PI;
 
 function spiral(n,numberOfHoles) = [for(i=[0:n-1])
      let (ratio = (i+1)/(numberOfHoles+1),
