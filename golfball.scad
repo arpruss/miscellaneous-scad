@@ -20,7 +20,7 @@ module golfBallEqualSizeHoles(points) {
     render(convexity=2)
     difference() {
      sphere(r=1,$fn=36);
-     for(i=[0:len(points)-1]) translate(points[i]) sphere(r=minD/2,$fn=12);
+     for(i=[0:len(points)-1]) translate(points[i]) scale(minD/2) children();
     }    
 }
 
@@ -30,13 +30,13 @@ module golfBallUnequalSizeHoles(points) {
          sphere(r=1,$fn=36);
          for(i=[0:len(points)-1]) {
             d=min([for(j=[0:len(points)-1]) if(j!=i) norm(points[i]-points[j])]);
-            translate(points[i]) sphere(r=d/2,$fn=12);
+            translate(points[i]) scale(d/2) children();
         }
     }
 }
 
 
 if (equalSizeHoles)
-    golfBallEqualSizeHoles(points);
+    golfBallEqualSizeHoles(points) sphere($fn=12);
 else
-    golfBallUnequalSizeHoles(points);
+    golfBallUnequalSizeHoles(points) sphere($fn=12);
