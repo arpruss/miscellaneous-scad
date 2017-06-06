@@ -1,12 +1,14 @@
 use <tubemesh.scad>;
 
+//<params>
 numberOfHoles = 333;
-
-equalSizeHoles = 0;
-symmetric = 0;
+diameter = 42.7;
+equalSizeHoles = 0; // [0:no, 1:yes]
+//</params>
 
 module dummy() {}
 
+symmetric = 0;
 GA = 2.39996322972865332 * 180 / PI;
 
 function spiral(n,numberOfHoles) = [for(i=[0:n-1])
@@ -38,7 +40,8 @@ module golfBallUnequalSizeHoles(points) {
 }
 
 
+scale(diameter/2)
 if (equalSizeHoles)
-    golfBallEqualSizeHoles(points) mySphere(r=1,$fn=8);
+    golfBallEqualSizeHoles(points) mySphere(r=1,$fn=10);
 else
-    golfBallUnequalSizeHoles(points) mySphere(r=1,$fn=8);
+    golfBallUnequalSizeHoles(points) mySphere(r=1,$fn=10);
