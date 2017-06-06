@@ -152,11 +152,16 @@ function _interpolateSection(section,n) =
                         let(t=j/k)
                             section[i]*(1-t)+section[i2]*t];
 
-function ngonPoints(n=4,r=10,d=undef,rotate=0) =
+function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)
-            r*[for(i=[0:n-1]) let(angle=i*360/n+rotate) [cos(angle),sin(angle)]];
-function starPoints(n=10,r1=5,r2=10,rotate=0) =
-            [for(i=[0:2*n-1]) let(angle=i*180/n+rotate) (i%2?r1:r2) * [cos(angle),sin(angle)]];
+            z==undef ?
+            r*[for(i=[0:n-1]) let(angle=i*360/n+rotate) [cos(angle),sin(angle)]] :
+            [for(i=[0:n-1]) let(angle=i*360/n+rotate) [r*cos(angle),r*sin(angle),z]];
+                
+function starPoints(n=10,r1=5,r2=10,rotate=0,z=undef) =
+          z==undef ? 
+            [for(i=[0:2*n-1]) let(angle=i*180/n+rotate) (i%2?r1:r2) * [cos(angle),sin(angle)]] :
+            [for(i=[0:2*n-1]) let(angle=i*180/n+rotate, r=i%2?r1:r2) [r*cos(angle),r*sin(angle),z]];
 
 // warning: no guarantee of perfect convexity
 module mySphere(r=10,d=undef) {
@@ -174,12 +179,9 @@ module mySphere(r=10,d=undef) {
                         lat = (i-numSlices/2)/(numSlices/2)*90,
                         z1 = sin(lat),
                         r1 = cos(lat),
-                        count = max(3,floor(0.5 + pointsAround * abs(r1))),
-                        delta = (i-numSlices/2)%2 ? 0*180/count : 0 )
-                    [for(j=[0:count-1]) 
-                        let(long = j*360/count+delta)
-                        [r1*cos(long),r1*sin(long),z1]]];
-    data = pointsAndFaces(sections,optimize=true);
+                        count = max(3,floor(0.5 + pointsAround * abs(r1))))
+                        ngonPoints(count,r=r1,z=z1)];
+    data = pointsAndFaces(sections,optimize=false);
     polyhedron(points=data[0], faces=data[1]);
 }
 
