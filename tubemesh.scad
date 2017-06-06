@@ -15,6 +15,22 @@ function _reverseTriangle(t) = [t[2], t[1], t[0]];
 // n1 and n2 should be fairly small, so this doesn't need
 // tail-recursion
 // this assumes n1<=n2
+/*
+function _tubeSegmentTrianglesOptimized(points,index1,n1,index2,n2,i1=undef,i2=undef,soFar=[])
+    = i1>=n1 && i2>=n2 ? soFar :
+            let(i21=i,
+                i22=(i+1)%n2,
+                i11=floor((i21)*n1/n2+0.5)%n1,
+                i12=floor((i22)*n1/n2+0.5)%n1,
+                t1 = [index1+i11,index2+i21,index2+i22],
+                add = i11==i12 ? [t1] :
+                    [t1, [index1+i12,index1+i11,index2+i22]])
+                _tubeSegmentTriangles(index1,n1,index2,n2,i=i+1,soFar=concat(soFar,add));         
+*/
+
+// n1 and n2 should be fairly small, so this doesn't need
+// tail-recursion
+// this assumes n1<=n2
 function _tubeSegmentTriangles(index1,n1,index2,n2,i=0,soFar=[])
     = i>=n2 ? soFar :
             let(i21=i,
