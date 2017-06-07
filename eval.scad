@@ -1,10 +1,9 @@
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
 
-function _substr(s, start=0, stop=undef) =
-    let( stop = stop==undef ? len(s) : stop )
-        start >= stop || start >= len(s) ? "" :
-        str(s[start], _substr(s, start=start+1, stop=stop));
+function _substr(s, start=0, stop=undef, soFar = "") =
+    start >= (stop==undef ? len(s) : stop) ? soFar :
+        _substr(s, start=start+1, stop=stop, soFar=str(soFar, s[start]));
         
 function _parseInt(s, start=0, stop=undef, accumulated=0) =
     let( stop = stop==undef ? len(s) : stop )
@@ -15,9 +14,8 @@ function _parseInt(s, start=0, stop=undef, accumulated=0) =
             digit == [] ? 0 : _parseInt(s, start=start+1, stop=stop, accumulated=accumulated*10+digit[0]);
     
 function _findNonDigit(s, start=0) =
-    start >= len(s) ? len(s) :
-        "0" <= s[start] && s[start] <= "9" ? 
-        _findNonDigit(s, start=start+1) : start;
+    start >= len(s) || s[start]<"0" || s[start]>"9" ? start :
+    _findNonDigit2(s, start=start+1);
 
 function _parseUnsignedFloat(s) =
     len(s) == 0 ? 0 :
@@ -38,14 +36,14 @@ function _isalpha_(c) = _isalpha(c)  || c=="_";
 function _isalnum_(c) = _isalpha(c) || _isdigit(c) || c=="_";
 function _flattenLists(ll) = [for(a=ll) for(b=a) b];
 
-function _spaceSequence(s, start=0) = 
-    len(s)>start && _isspace(s[start]) ? 1+_spaceSequence(s, start=start+1) : 0;
-function _digitSequence(s, start=0) =
-    len(s)>start && _isdigit(s[start]) ? 1+_digitSequence(s, start=start+1) : 0;
-function _alnum_Sequence(s, start=0) = 
-    len(s)>start && _isalnum_(s[start]) ? 1+_alnum_Sequence(s, start=start+1) : 0;
-function _identifierSequence(s, start=0) = 
-    len(s)>start && _isalpha_(s[start]) ? 1+_alnum_Sequence(s, start=start+1) : 0;
+function _spaceSequence(s, start=0, count=0) = 
+    len(s)>start && _isspace(s[start]) ? _spaceSequence(s, start=start+1, count=count+1) : count;
+function _digitSequence(s, start=0, count=0) =
+    len(s)>start && _isdigit(s[start]) ? _digitSequence(s, start=start+1,count=count+1) : count;
+function _alnum_Sequence(s, start=0, count=0) = 
+    len(s)>start && _isalnum_(s[start]) ? _alnum_Sequence(s, start=start+1,count=count+1) : count;
+function _identifierSequence(s, start=0, count=0) = 
+    len(s)>start && _isalpha_(s[start]) ? _alnum_Sequence(s, start=start+1, count=count+1) : count;
 function _signedDigitSequence(s, start=0) = 
     len(s) <= start ? 0 :
         (s[start] == "+" || s[start] == "-" ) ? 1+_digitSequence(s,start=start+1) : _digitSequence(s,start=start);
@@ -462,3 +460,8 @@ echo(fc);
 echo(eval(fc,[["x",1],["y",1]]));
 z=[for(i=[0:9999]) compileFunction("x^3*y-x*y^3",optimize=false)];//fc,[ ["x",1],["y",2] ])];
 */
+
+//z = [for(i=[1:10000]) compileFunction("x^3*y-x*y^3")];
+// normal: 23
+
+//function repeat(s, copies, soFar="") = copies <= 0 ? soFar : repeat(s, copies-1, soFar=str(soFar,s));
