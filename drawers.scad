@@ -28,8 +28,9 @@ cutLengthAtTop = 16;
 cutLengthAtBottom = 8; 
 cutSmoothingSize = 5;
 
-catchSize = 20;
-catchLip = 2;
+handleSize = 20;
+handleLip = 2;
+handleFloorThickness = 0.75;
 outerWall = 1.3; // Thickness 
 
 slideWidth = 6;
@@ -110,13 +111,13 @@ module cut() {
              
 }
 
-module catch() {
+module handle() {
     render(convexity=2)
     translate([drawerWidth/2,0,0])
     difference() {
-        cylinder(d=catchSize,h=drawerWall+catchLip);
-        translate([0,0,drawerWall]) cylinder(d=catchSize-catchLip*2,h=catchLip+nudge);
-        translate([-catchSize/2,0,0]) cube([catchSize,catchSize,catchSize]);
+        cylinder(d=handleSize,h=handleFloorThickness+handleLip);
+        translate([0,0,handleFloorThickness-nudge]) cylinder(d=handleSize-handleLip*2,h=handleLip+2*nudge);
+        translate([-handleSize/2,0,0]) cube([handleSize,handleSize,handleSize]);
     }
 }
 
@@ -222,7 +223,7 @@ module chest(numberOfDrawersInChest) {
 }
 
 module fullDrawer() {
-    catch();
+    handle();
     if (rightSideWidthRatio>0) {
         leftWidth = drawerWidth * (1-rightSideWidthRatio) + drawerWall/2;
         rightWidth = drawerWidth * rightSideWidthRatio + drawerWall/2;

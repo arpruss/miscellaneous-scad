@@ -169,7 +169,7 @@ module mySphere(r=10,d=undef) {
     radius = d==undef ? r : d/2;
     pointsAround = 
         $fn ? $fn :
-        max(3, 360/$fa, 2*radius*PI/$fs);
+        max(3, floor(0.5+360/$fa), floor(0.5+2*radius*PI/$fs));
     numSlices0 = (pointsAround + pointsAround % 2)/2;
     numSlices = numSlices0 + (numSlices0%2);
     sections = radius*[for(i=[0:numSlices]) 
@@ -204,7 +204,7 @@ module cone(r=10,d=undef,height=10) {
     radius = d==undef ? r : d/2;
     pointsAround = 
         $fn ? $fn :
-        max(3, 360/$fa, 2*radius*PI/$fs);
+        max(3, floor(0.5+360/$fa), floor(0.5+2*radius*PI/$fs));
     morphExtrude(ngonPoints(n=pointsAround,r=radius), [[0,0]], height=height,optimize=false);
 }
 
