@@ -1,78 +1,3 @@
-/*
-This distribution is made possible through the collective encouragement
-of the Usenet Font Consortium, a mailing list that sprang to life to get
-this accomplished and that will now most likely disappear into the mists
-of time... Thanks are especially due to Jim Hurt, who provided the packed
-font data for the distribution, along with a lot of other help.
-
-This file describes the Hershey Fonts in general, along with a description of
-the other files in this distribution and a simple re-distribution restriction.
-
-USE RESTRICTION:
-	This distribution of the Hershey Fonts may be used by anyone for
-	any purpose, commercial or otherwise, providing that:
-		1. The following acknowledgements must be distributed with
-			the font data:
-			- The Hershey Fonts were originally created by Dr.
-				A. V. Hershey while working at the U. S.
-				National Bureau of Standards.
-			- The format of the Font data in this distribution
-				was originally created by
-					James Hurt
-					Cognition, Inc.
-					900 Technology Park Drive
-					Billerica, MA 01821
-					(mit-eddie!ci-dandelion!hurt)
-		2. The font data in this distribution may be converted into
-			any other format *EXCEPT* the format distributed by
-			the U.S. NTIS (which organization holds the rights
-			to the distribution and use of the font data in that
-			particular format). Not that anybody would really
-			*want* to use their format... each point is described
-			in eight bytes as "xxx yyy:", where xxx and yyy are
-			the coordinate values as ASCII numbers.
-
-*PLEASE* be reassured: The legal implications of NTIS' attempt to control
-a particular form of the Hershey Fonts *are* troubling. HOWEVER: We have
-been endlessly and repeatedly assured by NTIS that they do not care what
-we do with our version of the font data, they do not want to know about it,
-they understand that we are distributing this information all over the world,
-etc etc etc... but because it isn't in their *exact* distribution format, they
-just don't care!!! So go ahead and use the data with a clear conscience! (If
-you feel bad about it, take a smaller deduction for something on your taxes
-next week...)
-
-The Hershey Fonts:
-	- are a set of more than 2000 glyph (symbol) descriptions in vector 
-		( <x,y> point-to-point ) format
-	- can be grouped as almost 20 'occidental' (english, greek,
-		cyrillic) fonts, 3 or more 'oriental' (Kanji, Hiragana,
-		and Katakana) fonts, and a few hundred miscellaneous
-		symbols (mathematical, musical, cartographic, etc etc)
-	- are suitable for typographic quality output on a vector device
-		(such as a plotter) when used at an appropriate scale.
-	- were digitized by Dr. A. V. Hershey while working for the U.S.
-		Government National Bureau of Standards (NBS).
-	- are in the public domain, with a few caveats:
-		- They are available from NTIS (National Technical Info.
-			Service) in a computer-readable from which is *not*
-			in the public domain. This format is described in
-			a hardcopy publication "Tables of Coordinates for
-			Hershey's Repertory of Occidental Type Fonts and
-			Graphic Symbols" available from NTIS for less than
-			$20 US (phone number +1 703 487 4763).
-		- NTIS does not care about and doesn't want to know about
-			what happens to Hershey Font data that is not
-			distributed in their exact format.
-		- This distribution is not in the NTIS format, and thus is
-			only subject to the simple restriction described
-			at the top of this file.
-
-Hard Copy samples of the Hershey Fonts are best obtained by purchasing the
-book described above from NTIS. It contains a sample of all of the Occidental
-symbols (but none of the Oriental symbols).
-*/
-
 cursive=[
 [" ",0.762,[]],
 ["!",0.476,[[[0.238,0.571],[0.238,-0.095]],[[0.238,-0.333],[0.190,-0.381]],[[0.190,-0.381],[0.238,-0.429]],[[0.238,-0.429],[0.286,-0.381]],[[0.286,-0.381],[0.238,-0.333]]]],
@@ -1837,7 +1762,7 @@ timesrb=[
 ["~",1.143,[[[0.143,-0.143],[0.143,-0.048]],[[0.143,-0.048],[0.190,0.095]],[[0.190,0.095],[0.286,0.143]],[[0.286,0.143],[0.381,0.143]],[[0.381,0.143],[0.476,0.095]],[[0.476,0.095],[0.667,-0.048]],[[0.667,-0.048],[0.762,-0.095]],[[0.762,-0.095],[0.857,-0.095]],[[0.857,-0.095],[0.952,-0.048]],[[0.952,-0.048],[1.000,0.048]],[[0.143,-0.048],[0.190,0.048]],[[0.190,0.048],[0.286,0.095]],[[0.286,0.095],[0.381,0.095]],[[0.381,0.095],[0.476,0.048]],[[0.476,0.048],[0.667,-0.095]],[[0.667,-0.095],[0.762,-0.143]],[[0.762,-0.143],[0.857,-0.143]],[[0.857,-0.143],[0.952,-0.095]],[[0.952,-0.095],[1.000,0.048]],[[1.000,0.048],[1.000,0.143]]]]
 ];
 
-hersheyFonts=[cursive,futural,futuram,gothgbt,gothgrt,gothiceng,gothicger,gothicita,gothitt,rowmand,rowmans,rowmant,scriptc,scripts,timesi,timesib,timesr,timesrb];
+hersheyFonts=[["cursive", cursive],["futural", futural],["futuram", futuram],["gothgbt", gothgbt],["gothgrt", gothgrt],["gothiceng", gothiceng],["gothicger", gothicger],["gothicita", gothicita],["gothitt", gothitt],["rowmand", rowmand],["rowmans", rowmans],["rowmant", rowmant],["scriptc", scriptc],["scripts", scripts],["timesi", timesi],["timesib", timesib],["timesr", timesr],["timesrb", timesrb]];
 
 hersheyFontNames=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
 
@@ -1859,10 +1784,14 @@ module drawHersheyGlyph(glyph,size=10) {
     }
 }
 
-module drawHersheyText(text,font=timesr,halign="left",valign="baseline",size=10,extraSpacing=0) {
+module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0) {
+    f1 = hersheyFonts[search([font], hersheyFonts, index_col_num=0)[0][0]][1];
+    f = f1 == undef ? timesr : f1;
     offsetY =
-        halign=="top" ? -size : 0; // "bottom" is same as "baseline": TODO: Fix
-    glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],font)];
+        valign=="top" ? -size :
+        valign=="center" ? -size/2 : 
+        0; // "bottom" is same as "baseline": TODO: Fix
+    glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)];
     widths=[for (g=glyphs) g[1]*size+extraSpacing];
     function cumulativeSums(data,soFar=[]) =
         len(soFar)>=len(data)+1 ? soFar :
@@ -1883,9 +1812,9 @@ module drawHersheyText(text,font=timesr,halign="left",valign="baseline",size=10,
 module demo() {
     for (i=[0:len(hersheyFonts)-1]) {
         translate([0,15*i])
-        drawHersheyText(hersheyFontNames[i], font=hersheyFonts[i], extraSpacing=0.5)
+        drawHersheyText(hersheyFontNames[i], font=hersheyFontNames[i], extraSpacing=0.5)
     cylinder(r1=0.5,r2=0,h=2,$fn=8);
     }
 }
 
-demo();
+//demo();
