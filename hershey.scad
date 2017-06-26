@@ -1,3 +1,5 @@
+function _isString(s) = s >= "";
+
 cursive=[
 [" ",0.762,[]],
 ["!",0.476,[[[0.238,0.571],[0.238,-0.095]],[[0.238,-0.333],[0.190,-0.381]],[[0.190,-0.381],[0.238,-0.429]],[[0.238,-0.429],[0.286,-0.381]],[[0.286,-0.381],[0.238,-0.333]]]],
@@ -1772,9 +1774,14 @@ function findHersheyGlyph(c, font) =
     let(g=font[search(c, font, 1, 0)[0]])
     g==undef?font[0]:g;
 
-function widthHersheyText(text,size=10,extraSpacing=0,start=0,soFar=0) =
-    start<len(text) ? widthHershey(text,size=size,start=start+1,soFar=soFar+extraSpacing+size*findHersheyGlyph(text[0])[0]) : soFar;
+function findHersheyFont(name) =
+    let(f1 = hersheyFonts[search([name], hersheyFonts, index_col_num=0)[0][0]][1])
+    f1 == undef ? timesr : f1;
 
+function widthHersheyText(text,font=font,size=10,extraSpacing=0,start=0,soFar=0) =
+    _isString(font) ? widthHersheyText(text,font=findHersheyFont(font),size=size,extraSpacing=extraSpacing) :
+    start<len(text) ? widthHersheyText(text,font=font,size=size,extraSpacing=extraSpacing, start=start+1,soFar=soFar+extraSpacing+size*findHersheyGlyph(text[start],font=font)[1]) : soFar;
+    
 module drawHersheyGlyph(glyph,size=10) {
     for (line=glyph[2]) {
         hull() {
@@ -1785,11 +1792,10 @@ module drawHersheyGlyph(glyph,size=10) {
 }
 
 module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0) {
-    f1 = hersheyFonts[search([font], hersheyFonts, index_col_num=0)[0][0]][1];
-    f = f1 == undef ? timesr : f1;
+    f = findHersheyFont(font);
     offsetY =
         valign=="top" ? -size :
-        valign=="center" ? -size/2 : 
+        valign=="center" ? size/2 : 
         0; // "bottom" is same as "baseline": TODO: Fix
     glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)];
     widths=[for (g=glyphs) g[1]*size+extraSpacing];
@@ -1817,4 +1823,4 @@ module demo() {
     }
 }
 
-demo();
+//demo();
