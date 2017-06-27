@@ -27,8 +27,8 @@ function _minAngle(p1,p2,p3) =
 
 // triangulate square to maximize smallest angle
 function _doSquare(points,i11,i21,i22,i12,optimize=true) =
-    points[i11]==points[i12] ? [i11,i21,i22] :
-    points[i21]==points[i22] ? [i22,i12,i11] :
+    points[i11]==points[i12] ? [[i11,i21,i22]] :
+    points[i21]==points[i22] ? [[i22,i12,i11]] :
     !optimize ? [[i11,i21,i22], [i22,i12,i11]] :
     let (m1 = min(_minAngle(points[i11],points[i21],points[i22]), _minAngle(points[i22],points[i12],points[i11])),
         m2 = min(_minAngle(points[i11],points[i21],points[i12]),
@@ -77,7 +77,7 @@ function _optimizeTriangles(points,triangles,position=0,optimize=true,iterations
 
 function _removeEmptyTriangles(points,triangles) = 
     [for(t=triangles)
-        if(points[t[0]] != points[t[1]] && points[t[1]] != points[t[2]] && points[t[2]] != points[t[0]]) t]; 
+        if(true || points[t[0]] != points[t[1]] && points[t[1]] != points[t[2]] && points[t[2]] != points[t[0]]) t]; 
 
 // n1 and n2 should be fairly small, so this doesn't need
 // tail-recursion
@@ -94,11 +94,9 @@ function _tubeSegmentTriangles(points,index1,n1,index2,n2,i=0,soFar=[],optimize=
 
 function _tubeSegmentFaces(points,index,n1,n2,optimize=true)
     = n1<n2 ? _tubeSegmentTriangles(points,index,n1,index+n1,n2,optimize=optimize) :
-        [for (f=_tubeSegmentTriangles(points,index+n1,n2,index,n1,optimize=optimize))
-           _reverseTriangle(f)];
+        [for (f=_tubeSegmentTriangles(points,index+n1,n2,index,n1,optimize=optimize)) _reverseTriangle(f)];
             
-function _tubeMiddleFaces(points,counts,subtotals,optimize=true) = 
-       [ for (i=[1:len(counts)-1])
+function _tubeMiddleFaces(points,counts,subtotals,optimize=true) = [ for (i=[1:len(counts)-1])
            for (face=_tubeSegmentFaces(points,subtotals[i-1],counts[i-1],counts[i],optimize=optimize)) face ];
                
 function _endCaps(counts,subtotals,startCap=true,endCap=true) =
@@ -136,8 +134,8 @@ function _removeDuplicates(points, faces) =
 function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
         let(
             points0=_flatten(sections),
-            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize))
-        _removeDuplicates(points0,faces0);
+            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) [points0,faces0]; 
+//        _removeDuplicates(points0,faces0);
                 
 // increase number of points from len(section) to n
 function _interpolateSection(section,n) =
@@ -208,8 +206,9 @@ module cone(r=10,d=undef,height=10) {
     morphExtrude(ngonPoints(n=pointsAround,r=radius), [[0,0]], height=height,optimize=false);
 }
 
-translate([15,0,0]) morphExtrude(ngonPoints(30,r=3), ngonPoints(2,r=2), height=10);
+translate([15,0,0]) morphExtrude(ngonPoints(30,d=6), ngonPoints(2,d=4), height=10);
 // for some reason this gives a CGAL error if we put in r1=0 and endCap=false
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
+translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20 );
