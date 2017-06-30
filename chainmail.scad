@@ -36,4 +36,4 @@ module main() {
 }
 
 main();
-translate([linkWidth/2-wireWidth/2,linkLength/2+spacing/2,0]) main();
+translate([linkWidth/2+spacing/2,linkLength/2+spacing/2,0]) main();
