@@ -3,14 +3,14 @@ use <eval.scad>;
 
 //<params>
 // The bottom and top shape are given as polar graphs; the "angle" variable varies from 0 to 360 and the "theta" variable varies from 0 to 2*PI; lowercase trigonometric functions (e.g., cos()) are in degrees; all-caps trigonometric functions (e.g., COS()) are in radians.
-topShape = "50*(1+0.4*cos(3*angle))";
-bottomShape = "50*(1+0.4*cos(6*angle))";
+topShape = "40*(1+0.4*cos(3*angle))";
+bottomShape = "40*(1+0.4*cos(6*angle))";
 // This function scales the diameter as t varies from 0 (bottom) to 1 (top). Set to 1 for constant diameter.
 diameterAdjust = "1.5+0.15*sin(t*450)";
 twist = 45;
 pointsPerLayer = 80;
 numberOfLayers = 30;
-height = 150;
+height = 170;
 bottomThickness = 2;
 wallThickness = 1;
 //</params>
