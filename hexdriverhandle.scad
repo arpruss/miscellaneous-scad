@@ -1,5 +1,6 @@
 use <tubemesh.scad>;
 use <bezier.scad>;
+use <eval.scad>;
 
 inchesAcrossFlats = 0.25;
 tolerance = 0.35; // 0.5 loose
@@ -31,6 +32,7 @@ render(convexity=2)
 difference() {
     polyhedron(points=data[0], faces=data[1]);
     translate([0,0,handleLength-driverHoleLength]) cylinder(h=driverHoleLength+0.01, d=hexDiameter, $fn=6);
+    if(ejectionHoleLowerDiameter>0)
     translate([0,0,-0.01])
-    cylinder(h=handleLength-driverHoleLength+0.02, d1=ejectionHoleLowerDiameter, d2=hexDiameter*0.8, $fn=32);
+    cylinder(h=handleLength-driverHoleLength+0.02, d1=ejectionHoleLowerDiameter, d2=hexDiameter*0.7, $fn=32);
 }

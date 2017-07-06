@@ -183,17 +183,22 @@ module mySphere(r=10,d=undef) {
     polyhedron(points=data[0], faces=data[1]);
 }
 
-module morphExtrude(section1,section2,height=undef,numSlices=10,startCap=true,endCap=true,optimize=false) {
+module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap=true,endCap=true,optimize=false) {
     n = max(len(section1),len(section2));
+    slices = height == undef || twist != 0 ? numSlices : 2;
+             
     section1interp = _interpolateSection(section1,n);
     section2interp = _interpolateSection(section2,n);
     sections = height == undef ?
                       [for(i=[0:numSlices]) 
                         let(t=i/numSlices)
                         (1-t)*section1interp+t*section1interp] :
-                      [ [for(i=[0:n-1])
-                        [section1interp[i][0],section1interp[i][1],0]], [for(i=[0:n-1])
-                        [section2interp[i][0],section2interp[i][1],height]] ];
+                      [for(i=[0:numSlices])
+                        let(t=i/numSlices,
+                            theta = t*twist,
+                            section=(1-t)*section1interp+t*section2interp)
+                        [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[1]*sin(theta)+p[1]*cos(theta),height*t]]];
+                            
     data = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=false);   
     polyhedron(points=data[0], faces=data[1]);
 }
@@ -206,9 +211,12 @@ module cone(r=10,d=undef,height=10) {
     morphExtrude(ngonPoints(n=pointsAround,r=radius), [[0,0]], height=height,optimize=false);
 }
 
+//<skip>
 translate([15,0,0]) morphExtrude(ngonPoints(30,d=6), ngonPoints(2,d=4), height=10);
 // for some reason this gives a CGAL error if we put in r1=0 and endCap=false
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
 translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20 );
+translate([80,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, twist=90 );
+//</skip>
