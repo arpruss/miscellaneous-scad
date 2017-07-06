@@ -15,7 +15,7 @@ function _parseInt(s, start=0, stop=undef, accumulated=0) =
     
 function _findNonDigit(s, start=0) =
     start >= len(s) || s[start]<"0" || s[start]>"9" ? start :
-    _findNonDigit2(s, start=start+1);
+    _findNonDigit(s, start=start+1);
 
 function _parseUnsignedFloat(s) =
     len(s) == 0 ? 0 :

@@ -185,7 +185,6 @@ module mySphere(r=10,d=undef) {
 
 module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap=true,endCap=true,optimize=false) {
     n = max(len(section1),len(section2));
-    slices = height == undef || twist != 0 ? numSlices : 2;
              
     section1interp = _interpolateSection(section1,n);
     section2interp = _interpolateSection(section2,n);
@@ -197,7 +196,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap
                         let(t=i/numSlices,
                             theta = t*twist,
                             section=(1-t)*section1interp+t*section2interp)
-                        [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[1]*sin(theta)+p[1]*cos(theta),height*t]]];
+                        [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[0]*sin(theta)+p[1]*cos(theta),height*t]]];
                             
     data = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=false);   
     polyhedron(points=data[0], faces=data[1]);
