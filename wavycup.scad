@@ -3,16 +3,18 @@ use <eval.scad>;
 
 //<params>
 // The bottom and top shape are given as polar graphs; the "angle" variable varies from 0 to 360 and the "theta" variable varies from 0 to 2*PI; lowercase trigonometric functions (e.g., cos()) are in degrees; all-caps trigonometric functions (e.g., COS()) are in radians.
-topShape = "40*(1+0.4*cos(3*angle))";
-bottomShape = "40*(1+0.4*cos(6*angle))";
+topShape = "30*(1+0.4*cos(6*angle))";
+bottomShape = "20*(1+0.4*abs(cos(6*angle)))";
 // This function scales the diameter as t varies from 0 (bottom) to 1 (top). Set to 1 for constant diameter.
-diameterAdjust = "1.5+0.15*sin(t*450)";
-twist = 45;
-pointsPerLayer = 80;
+diameterAdjust = "1.5+0.3*sin(t*450)";
+twist = 90;
+pointsPerLayer = 100;
 numberOfLayers = 30;
 height = 170;
 bottomThickness = 2;
-wallThickness = 1;
+wallThickness = 1.5;
+// If you have sharper overhangs, the default 2D-based wall calculation will generate walls that are too thin. Turning on this parameter will greatly increase generation time, but may help.
+slowWalls = 0; // [0:no, 1:yes]
 //</params>
 
 module dummy() {}
@@ -29,7 +31,7 @@ function polarEval(rf,angle,t) =
 function polarSection(rf,t) =
     [for(i=[0:pointsPerLayer-1]) polarEval(rf,i*360/pointsPerLayer,t)];
 
-function mod(a,b) = let(c=a%b) c<0 ? a+b : c;
+function mod(a,b) = let(c=a%b) c<0 ? c+b : c;
         
 function innerSection(rf,t) =
     [for(i=[0:pointsPerLayer-1]) 
@@ -47,9 +49,10 @@ topPoints = polarSection(top);
 function getMaxR(points) =
     max([for(p=points) norm(p)]);
 
-maxR = max(getMaxR(bottomPoints,topPoints));
+daf = compileFunction(diameterAdjust1);
+maxR = max(getMaxR(bottomPoints,topPoints))*max([for (i=[0:numberOfLayers]) eval(daf,[["t",i/numberOfLayers]])]);
    
-module cup(inner=false) {
+module cup(inner=false,extendedTop=0) {
     sections = [
         for (i=[0:numberOfLayers])
            let(t=i/numberOfLayers,
@@ -58,22 +61,58 @@ module cup(inner=false) {
             [for(p=section) 
                 let(p1=rotate(p,twist*t))
                 [p1[0],p1[1],h]]];
-    data = pointsAndFaces(sections);
+    extSections = extendedTop>0 ? concat(sections,[[
+            for(p=sections[numberOfLayers]) [p[0],p[1],height+extendedTop]]]) : sections;
+    data = pointsAndFaces(extSections);
     polyhedron(points=data[0],faces=data[1]);
+}
+
+function spherePoints(n) = 
+      n==8 ? 
+      [for(x=[-1:2:1]) for(y=[-1:2:1]) for(z=[-1:2:1]) [x,y,z]*sqrt(1/3)]
+      :
+      let(GA = 2.39996322972865332 * 180 / PI)
+      [for(i=[0:n-1])
+      let(t = i/(n-1),
+          z = (-1+1/n)*t + (1-1/n)*(1-t),
+          r=sqrt(1-z*z),
+          angle = GA*i)
+      [r*cos(angle),r*sin(angle),z]];
+
+module innerize(quality=8) {    
+    radius = wallThickness;
+    n = quality;
+    points = spherePoints(quality);
+    
+    intersection() {
+        intersection_for(p=points)
+            translate(p) children();
+    }
 }
 
 module hollowCup() {
     render(convexity=6)
-    intersection() {
-        cylinder(r=2*maxR+1,h=height-0.001);
-        difference() {
-            cup();
-            intersection() {
-                cup(inner=true);
-                translate([0,0,bottomThickness]) cylinder(r=2*maxR+1,h=height);
-            }
+    difference() {
+        cup();
+        intersection() {
+            cup(inner=true,extendedTop=1);
+            translate([0,0,bottomThickness]) cylinder(r=2*maxR+1,h=height);
         }
     }
 }
 
-hollowCup();
+module hollowCup2(quality=8) {
+    render(convexity=6)
+    difference() {
+        cup();
+        difference() {
+            innerize(quality=quality) cup(extendedTop=wallThickness+1);
+            cylinder(r=2*maxR+1,h=bottomThickness);
+        }
+    }
+}
+
+if (slowWalls) 
+    hollowCup2(quality=8);
+else
+    hollowCup();
