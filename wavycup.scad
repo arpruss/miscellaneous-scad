@@ -8,14 +8,18 @@ bottomShape = "20*(1+0.4*abs(cos(6*angle)))";
 // This function scales the diameter as t varies from 0 (bottom) to 1 (top). Set to 1 for constant diameter.
 diameterAdjust = "1.5+0.3*sin(t*450)";
 twist = 90;
-pointsPerLayer = 100;
+pointsPerLayer = 90;
 numberOfLayers = 30;
 height = 170;
 bottomThickness = 2;
 wallThickness = 1.5;
 // If you have sharper overhangs, the default 2D-based wall calculation will generate walls that are too thin. Turning on this parameter will greatly increase generation time, but may help.
 slowWalls = 0; // [0:no, 1:yes]
+mode = 0; // [0:walls, 1:solid shape (fast), 2:inside-only]
 //</params>
+
+/* Some things to try:
+topShape = "30*(2+(((abs(cos(angle*3)))+(0.25-(abs(cos(angle*3+90))))*2)/(2+abs(cos(angle*6+90))*8)))"; // lotus cup; works with slowWalls or 150 points per layer */
 
 module dummy() {}
 
@@ -34,12 +38,13 @@ function polarSection(rf,t) =
 function mod(a,b) = let(c=a%b) c<0 ? c+b : c;
         
 function innerSection(rf,t) =
+    let(delta = 0.5*360/pointsPerLayer)
     [for(i=[0:pointsPerLayer-1]) 
         let(angle = i*360/pointsPerLayer,
-            v = polarEval(rf,mod(angle+0.1,360),t)-polarEval(rf,mod(angle-0.1,360),t),
+            v = polarEval(rf,mod(angle+delta,360),t)-polarEval(rf,mod(angle-delta,360),t),
             v1 = v/norm(v)) 
             polarEval(rf,angle,t) + wallThickness*[-v1[1],v1[0]]];
-
+    
 function rotate(p,angle) =
     [ p[0]*cos(angle)-p[1]*sin(angle),p[0]*sin(angle)+p[1]*cos(angle) ];
             
@@ -112,7 +117,22 @@ module hollowCup2(quality=8) {
     }
 }
 
-if (slowWalls) 
-    hollowCup2(quality=8);
-else
-    hollowCup();
+if (mode==0) {
+    if (slowWalls) 
+        hollowCup2(quality=8);
+    else
+        hollowCup();
+}
+else if (mode==1) {
+    cup();
+}
+else if (mode==2) {
+    if (slowWalls) 
+        innerize(quality=8) cup(extendedTop=wallThickness+1);
+    else
+        cup(inner=true);
+}
+else {
+    %cup();
+    cup(inner=true,extendedTop=1);
+}

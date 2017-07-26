@@ -1,4 +1,3 @@
-front = 1; // [1:yes, 0:no]
 thickness = 0.7;
 textThickness = 2;
 cakeThickness = 2;
@@ -88,23 +87,4 @@ color("red")
 cube([width,height,thickness]);
 }
 
-module back() {
-    difference() {
-        union() {
-            translate([width,height-20,thickness-nudge])
-            rotate([0,-90,0])
-            linear_extrude(height=width)
-            polygon([[0,0],[0,20],[10,0]]);
-        cube([width,height,thickness]);
-        }
-        translate([width/2,height/2-10,-nudge]) scale([1.8,1.1,1.]) #cylinder(r=40,h=6);
-    }
-}
-
-
-if (front) {
-    front();
-}
-else {
-    back();
-}
+front();

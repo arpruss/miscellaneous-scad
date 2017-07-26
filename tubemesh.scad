@@ -191,7 +191,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap
     sections = height == undef ?
                       [for(i=[0:numSlices]) 
                         let(t=i/numSlices)
-                        (1-t)*section1interp+t*section1interp] :
+                        (1-t)*section1interp+t*section2interp] :
                       [for(i=[0:numSlices])
                         let(t=i/numSlices,
                             theta = t*twist,
@@ -208,6 +208,10 @@ module cone(r=10,d=undef,height=10) {
         $fn ? $fn :
         max(3, floor(0.5+360/$fa), floor(0.5+2*radius*PI/$fs));
     morphExtrude(ngonPoints(n=pointsAround,r=radius), [[0,0]], height=height,optimize=false);
+}
+
+module prism(base=[[0,0,0],[1,0,0],[0,1,0]], vertical=[0,0,1]) {
+    morphExtrude(base,[for(v=base) v+vertical],numSlices=1);
 }
 
 //<skip>

@@ -1,14 +1,15 @@
 module roundedSquare(size=[10,10], radius=1, center=false, $fn=16) {
+    size1 = (size+0==size) ? [size,size] : size;
     if (radius <= 0) {
-        square(size, center=center);
+        square(size1, center=center);
     }
     else {
-        translate(center ? -size/2 : [0,0])
+        translate(center ? -size1/2 : [0,0])
         hull() {
             translate([radius,radius]) circle(r=radius);
-            translate([size[0]-radius,radius]) circle(r=radius);
-            translate([size[0]-radius,size[1]-radius]) circle(r=radius);
-            translate([radius,size[1]-radius]) circle(r=radius);
+            translate([size1[0]-radius,radius]) circle(r=radius);
+            translate([size1[0]-radius,size1[1]-radius]) circle(r=radius);
+            translate([radius,size1[1]-radius]) circle(r=radius);
         }
     }
 }
