@@ -8,7 +8,6 @@ sideStrapHeight = 50;
 rearSlope = 2.02;
 strapThickness = 3;
 
-screwTolerance = 0.125;
 screwHoleSize = 2.6;
 screwSpacingY = 9.96;
 screwSpacingX = 27.9;
@@ -19,23 +18,24 @@ module dummy() {}
 
 nudge = 0.001;
 
-screwHoleSize1 = screwHoleSize + 2*screwTolerance;
 topLength = attachmentBlockLength+attachmentBlockHeight;
 
 module straps() {
+    module spike(l) {
+       morphExtrude([[0,-nudge,0],[spikeThickness,-nudge,0],[spikeThickness,-nudge,spikeThickness],[0,-nudge,spikeThickness]], [[0,l,0],[0,l,spikeThickness]], numSlices=1);
+         }
     module sideStrap() {
         bottomLength = topLength - sideStrapHeight / rearSlope;
         prism(base=[[-topLength,0,-sideStrapHeight],[-sideStrapHeight/rearSlope,0,-sideStrapHeight],[0,0,0],[-topLength,0,0]],vertical=[0,strapThickness,0]);
-        module spike(l) {
-           morphExtrude([[0,0,0],[spikeThickness,0,0],[spikeThickness,0,spikeThickness],[0,0,spikeThickness]], [[0,l,0],[0,l,spikeThickness]], numSlices=1);
-             }
-        translate([-topLength,strapThickness-nudge,-sideStrapHeight]) spike(spikeLength);
-        translate([-topLength,strapThickness-nudge,-sideStrapHeight*0.65]) spike(spikeLength*0.65);
+        translate([-topLength,strapThickness,-sideStrapHeight]) spike(spikeLength);
+        translate([-topLength,strapThickness,-sideStrapHeight*0.65]) spike(spikeLength*0.65);
     }
     sideStrap();
     translate([0,boatWidth+2*strapThickness,0]) mirror([0,1,0]) sideStrap();
     translate([-topLength,0,0])
     cube([topLength,boatWidth+2*strapThickness+nudge,nudge+strapThickness]);
+    translate([-topLength,strapThickness,0])
+        for(t=[1/4,1/2,3/4]) translate([0,t*boatWidth,0]) rotate([-90,0,0]) spike(spikeLength*1.1);
 }
 
 module attachmentBlock() {
@@ -52,7 +52,7 @@ module mainBody() {
 
 module screwHole() {
     translate([0,0,-nudge])
-    cylinder(d=screwHoleSize1,h=attachmentBlockHeight+2*nudge,$fn=16);
+    cylinder(d=screwHoleSize,h=attachmentBlockHeight+2*nudge,$fn=16);
 }
 
 module screwHoles() {
@@ -70,5 +70,5 @@ module main() {
     }
 }
 
-rotate([0,-90,0])
+//rotate([0,-90,0])
 main();
