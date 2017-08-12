@@ -1,14 +1,14 @@
-numberOfHooks = 5;
+numberOfHooks = 6;
 height = 15;
-hookWidth = 11;
+hookWidth = 9;
 thickness = 2;
 hookLength = 22;
 hookAngle = 75;
 supportRatio = 0.6;
 nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
-numberOfHooks = 5;
-spacing = 35;
+spacing = 44;
+endSpacing = 10;
 
 module dummy() {}
 
@@ -16,17 +16,20 @@ $fn = 12;
 
 nudge = 0.01;
 
-points = [for (i=[0:numberOfHooks-1]) [spacing*0.5+spacing*i,height/2]];
+width = spacing*(numberOfHooks-1) + 2*endSpacing;
 
+points = [for (i=[0:numberOfHooks-1]) [endSpacing+spacing*i,height/2]];
+ 
 module base(h=thickness) 
 {
     linear_extrude(height=h)
     offset(r=hookWidth/2)
-    square([spacing*numberOfHooks,height]);
+    square([width,height]);
 }
 
 module hook()
 {
+    render(convexity=2)
     rotate([0,0,180])
     rotate([90-hookAngle,0,0])
     translate([-hookWidth/2,0,thickness/2]) 
@@ -63,12 +66,16 @@ module nailHole() {
     translate([0,0,-thickness*5]) cylinder(h=thickness*10,d=nailHoleDiameter);
 }
 
-hooks();
-render(convexity=4)
-difference() {
-    base();
-    translate([0,0]) nailHole();
-    translate([spacing*numberOfHooks,0]) nailHole();
-    translate([spacing*numberOfHooks,height]) nailHole();
-    translate([0,height]) nailHole();
+module all() {
+    hooks();
+    render(convexity=4)
+    difference() {
+        base();
+        translate([0,0]) nailHole();
+        translate([width,0]) nailHole();
+        translate([width,height]) nailHole();
+        translate([0,height]) nailHole();
+    }
 }
+
+all();
