@@ -9,6 +9,7 @@ nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
 spacing = 44;
 endSpacing = 10;
+centralHoles = 1; //[1:yes, 0:no]
 
 module dummy() {}
 
@@ -75,6 +76,15 @@ module all() {
         translate([width,0]) nailHole();
         translate([width,height]) nailHole();
         translate([0,height]) nailHole();
+        if (centralHoles) {
+            if (numberOfHooks % 2 == 1) {
+                translate([width/2-spacing/2,height/2]) nailHole();
+                translate([width/2+spacing/2,height/2]) nailHole();
+            }
+            else {
+                translate([width/2,height/2]) nailHole();
+            }
+        }
     }
 }
 
