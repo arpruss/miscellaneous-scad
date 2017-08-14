@@ -1812,7 +1812,7 @@ module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=1
         0;
 
     for (i=[0:len(text)-1])
-        translate([offsetX+cWidths[i],offsetY]) drawHersheyGlyph(glyphs[i],size=10) children();
+        translate([offsetX+cWidths[i],offsetY]) drawHersheyGlyph(glyphs[i],size=size) children();
 }
 
 module demo() {
