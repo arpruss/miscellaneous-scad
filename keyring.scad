@@ -11,6 +11,7 @@ letterSquish = 5;
 ringOuterDiameter = 14; // set to 0 not to include ring
 ringLineWidth = 3.5;
 ringHeight = 5;
+ringPosition = 0.5; // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
 //</params>
 
 fonts=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
@@ -29,7 +30,7 @@ ringInnerDiameter = ringOuterDiameter - 2*ringLineWidth;
 
 if (ringOuterDiameter) {
     render(convexity=2)
-    translate([-ringInnerDiameter/2,textSize/2,0])
+    translate([-ringInnerDiameter/2,textSize*ringPosition,0])
     difference() {
         cylinder(d=ringOuterDiameter,h=ringHeight);
         translate([0,0,-1])

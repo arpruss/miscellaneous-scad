@@ -24,13 +24,15 @@ module basicHolder2D(filled=false) {
     [tabletThickness+wall/2,tabletHolderVertical],
     [tabletThickness+wall/2,-wall/2],
     [-wall/2,-wall/2],
+    [-wall/2,tabletHolderVertical/2],
+    [-wall/2,tabletHeight+wall/2-tabletHolderVertical/2],
     [-wall/2,tabletHeight+wall/2],
     [tabletThickness+wall/2,tabletHeight+wall/2],
     [tabletThickness+wall/2,tabletHeight-tabletHolderVertical]];
     ribbon(holderPoints, thickness=wall);
     if (filled) {
-       hull() ribbon([for (i=[0:2]) holderPoints[i]],thickness=wall,closed=true);
-       hull() ribbon([for (i=[len(holderPoints)-3:len(holderPoints)-1]) holderPoints[i]],thickness=wall,closed=true);
+       hull() ribbon([for (i=[0:3]) holderPoints[i]],thickness=wall,closed=true);
+       hull() ribbon([for (i=[len(holderPoints)-4:len(holderPoints)-1]) holderPoints[i]],thickness=wall,closed=true);
     }
     triangle = [[-wall/2,-wall/2], [-wall/2,tabletHeight+wall/2], [-wall/2-(tabletHeight+wall/2)*tan(angle), tabletHeight+wall/2]];
     if (filled)
@@ -77,5 +79,11 @@ module wireHolder() {
     }
 }
 
-basicHolder();
-wireHolder();
+module full() {
+    basicHolder();
+    wireHolder();
+}
+
+full();
+translate([tabletThickness*2+4*wall+5,0,0]) 
+mirror([1,0,0]) full();
