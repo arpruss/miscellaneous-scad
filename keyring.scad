@@ -24,7 +24,7 @@ module chamferedCylinder(d=10,r=undef,h=10,chamfer=1) {
     cylinder(d1=diameter,d2=diameter-chamfer*2,h=chamfer);
 }
 
-drawHersheyText("NAME", font=fonts[font], size=textSize, extraSpacing=-letterSquish) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
+drawHersheyText(name, font=fonts[font], size=textSize, extraSpacing=-letterSquish) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
 
 ringInnerDiameter = ringOuterDiameter - 2*ringLineWidth;
 
