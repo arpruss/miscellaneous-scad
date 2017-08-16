@@ -8,10 +8,12 @@ lineHeight = 8;
 lineWidth = 10;
 lineChamfer = 4;
 letterSquish = 5;
-ringOuterDiameter = 14; // set to 0 not to include ring
+// set to 0 not to include ring
+ringOuterDiameter = 14; 
 ringLineWidth = 3.5;
 ringHeight = 5;
-ringPosition = 0.5; // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
+// 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
+ringPosition = 0.5; 
 //</params>
 
 fonts=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
