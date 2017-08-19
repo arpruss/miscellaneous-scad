@@ -17,7 +17,7 @@ function pointToLineDistance(v,line) =
             let(p = (v-line[0])*dir/(l*l))
             p <= 0 ? norm(v-line[0]) :
             p >= 1 ? norm(v-line[1]) :
-            norm(v-line[0]+p*dir);
+            norm(v-(line[0]+p*dir));
             
 function distanceBetweenLineSegments2D(line1,line2)
     = plusSignish2D(line1,line2) ? 0 :
@@ -36,4 +36,3 @@ function distanceBetweenLineDrawings2D(d1,d2)
     len(d1) == 0 || len(d2) == 0 ? infinity() :
     min( [for(s1=d1) for(s2=d2) distanceBetweenStrokes2D(s1,s2)] );
 
-echo(distanceBetweenLineDrawings2D( [  [ [1,2],[3,4] ] ], [  [ [11,12],[13,14] ] ] ));

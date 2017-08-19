@@ -1812,8 +1812,8 @@ function pointToLineDistance(v,line) =
             let(p = (v-line[0])*dir/(l*l))
             p <= 0 ? norm(v-line[0]) :
             p >= 1 ? norm(v-line[1]) :
-            norm(v-line[0]+p*dir);
-            
+            norm(v-(line[0]+p*dir));
+             
 function distanceBetweenLineSegments2D(line1,line2)
     = plusSignish2D(line1,line2) ? 0 :
         min(pointToLineDistance(line1[0],line2),
