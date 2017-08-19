@@ -9,7 +9,7 @@ lineWidth = 10;
 lineChamfer = 4;
 smartOverlap = 1; // [1:yes, 0:no]
 // increase to make letters be more squashed together; in smart overlap mode, this is the number of millimeters letters overlap by
-letterSquish = 5;
+letterSquish = 3.5;
 // set to 0 not to include ring
 ringOuterDiameter = 14; 
 ringLineWidth = 3.5;
