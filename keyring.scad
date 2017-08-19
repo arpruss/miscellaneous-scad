@@ -7,6 +7,8 @@ textSize = 30;
 lineHeight = 8;
 lineWidth = 10;
 lineChamfer = 4;
+smartOverlap = 1; // [1:yes, 0:no]
+// increase to make letters be more squashed together
 letterSquish = 5;
 // set to 0 not to include ring
 ringOuterDiameter = 14; 
@@ -26,11 +28,11 @@ module chamferedCylinder(d=10,r=undef,h=10,chamfer=1) {
     cylinder(d1=diameter,d2=diameter-chamfer*2,h=chamfer);
 }
 
-drawHersheyText(name, font=fonts[font], size=textSize, extraSpacing=-letterSquish) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
+drawHersheyText(name, font=fonts[font], size=textSize, extraSpacing=smartOverlap ? 0 : -letterSquish, forceMinimumDistance=smartOverlap ? max(0,lineWidth-letterSquish) : undef) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
 
 ringInnerDiameter = ringOuterDiameter - 2*ringLineWidth;
 
-if (ringOuterDiameter) {
+if (ringOuterDiameter>0) {
     render(convexity=2)
     translate([-ringInnerDiameter/2,textSize*ringPosition,0])
     difference() {
