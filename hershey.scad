@@ -1,3 +1,5 @@
+use <linesegmentutilities.scad>;
+
 function _isString(s) = s >= "";
 
 cursive=[
@@ -1791,14 +1793,70 @@ module drawHersheyGlyph(glyph,size=10) {
     }
 }
 
-module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0) {
+function cross2D(a,b) = a[0]*b[1]-a[1]*b[0];
+
+function pointLeftOfLineSegment2D(v,line) =
+    cross2D(line[1]-line[0],v-line[0]) > 0;
+
+// do the two lines meet in a plus sign?
+function plusSignish2D(line1,line2) =
+    pointLeftOfLineSegment2D(line1[0],line2) !=
+      pointLeftOfLineSegment2D(line1[1],line2) &&
+    pointLeftOfLineSegment2D(line2[0],line1) !=
+      pointLeftOfLineSegment2D(line2[1],line1);
+      
+function pointToLineDistance(v,line) =
+    let(dir = line[1]-line[0],
+        l = norm(dir))
+        l == 0 ? norm(v-line[0]) :
+            let(p = (v-line[0])*dir/(l*l))
+            p <= 0 ? norm(v-line[0]) :
+            p >= 1 ? norm(v-line[1]) :
+            norm(v-line[0]+p*dir);
+            
+function distanceBetweenLineSegments2D(line1,line2)
+    = plusSignish2D(line1,line2) ? 0 :
+        min(pointToLineDistance(line1[0],line2),
+            pointToLineDistance(line1[1],line2),
+            pointToLineDistance(line2[0],line1),
+            pointToLineDistance(line2[1],line1));
+
+function infinity() = 1e200 * 1e200;
+
+function distanceBetweenStrokes2D(s1,s2) =
+    min( [for(i=[1:len(s1)-1]) for(j=[1:len(s2)-1]) distanceBetweenLineSegments2D([s1[i-1],s1[i]],[s2[i-1],s2[i]])] );
+
+function distanceBetweenLineDrawings2D(d1,d2)
+    = 
+    len(d1) == 0 || len(d2) == 0 ? infinity() :
+    min( [for(s1=d1) for(s2=d2) distanceBetweenStrokes2D(s1,s2)] );
+
+function shiftDrawing(vector,drawing) =
+    [for(stroke=drawing) [for(p=stroke) vector+p]];
+
+// tail recursion
+function iterateToAutoDistance(drawing1,drawing2,minimumDistance,w,precision=0.1) =
+    w <= 0 ? 0 :
+    distanceBetweenLineDrawings2D(drawing1,shiftDrawing([w,0],drawing2)) <= minimumDistance ? w : iterateToAutoDistance(drawing1,drawing2,minimumDistance,w-precision,precision=precision);
+
+function getAutoDistance(glyph,nextGlyph,minimumDistance,precision=0.1) =
+    len(glyph[2]) == 0 || len(nextGlyph[2]) == 0 ? glyph[1] :
+    iterateToAutoDistance(glyph[2],nextGlyph[2],minimumDistance,glyph[1],precision=precision);
+               
+module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
     f = findHersheyFont(font);
     offsetY =
         valign=="top" ? -size :
         valign=="center" ? size/2 : 
         0; // "bottom" is same as "baseline": TODO: Fix
     glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)];
-    widths=[for (g=glyphs) g[1]*size+extraSpacing];
+    widths=
+        forceMinimumDistance==undef ? [for (g=glyphs) g[1]*size+extraSpacing] :
+            [for (i=[0:len(glyphs)-1]) 
+                extraSpacing + (
+                    i==len(glyphs)-1 ? glyphs[i][1]*size :
+                    size*getAutoDistance(glyphs[i],glyphs[i+1],forceMinimumDistance/size,precision=minimumDistancePrecision/size) )];
+
     function cumulativeSums(data,soFar=[]) =
         len(soFar)>=len(data)+1 ? soFar :
         len(soFar)==0 ? cumulativeSums(data,soFar=[0]) :
@@ -1823,4 +1881,4 @@ module demo() {
     }
 }
 
-//demo();
+demo();
