@@ -3,18 +3,18 @@ use <tubemesh.scad>;
 // exponential horn
 
 length = 70;
-throatWidth = 30;
-throatHeight = 20;
-mouthWidth = 80;
-mouthHeight = 50;
+throatWidth = 45;
+throatHeight = 40;
+mouthWidth = 120;
+mouthHeight = 60;
 wallThickness = 1.5;
 numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
 
-watchHolder = 1; // [1:yes, 0:no]
-holderCutFromFront = 3;
-holderCutHeight = 15;
+watchHolder = 0; // [1:yes, 0:no]
+holderCutFromFront = 2;
+holderCutHeight = 23;
 holderCutThickness = 4;
 holderWall = 2.5;
 holderDepth = 20;
@@ -23,7 +23,6 @@ tolerance = 0.75;
 module dummy(){}
 
 // exponent^length = ratio
-
 
 function getExponent(ratio) = pow(ratio, 1/length);
 
@@ -89,6 +88,7 @@ nudge = 0.001;
 module holder() {
     w = throatWidth + 2*flangeFlare + 2*tolerance + 2*wallThickness;
     h0 = 0.5 * (mouthHeight - throatHeight);
+    echo(h0);
     h = throatHeight + 2*flangeFlare + h0;
     render(convexity=5)
     difference() {

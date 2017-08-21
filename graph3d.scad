@@ -2,16 +2,23 @@ use <eval.scad>;
 
 //<params>
 // specify function of x and y in standard OpenSCAD notation, plus you can use all-caps functions for radian-based trigonometry, and you can use the constants "pi" (or "PI") and "e"
-z="20*COS(norm([x,y]))/(1+norm([x,y]))";
+/*z="20*COS(norm([x,y]))/(1+norm([x,y]))";
 minX=-10;
 maxX=10;
 minY=-10;
-maxY=10;
+maxY=10; */
 resolution=50;
 style=0; // [0:flat bottom, 1:surface]
 // zero for automatic
 thickness=0; 
 //</params>
+
+minX = -PI;
+maxX = PI;
+minY = -PI;
+maxY = PI;
+
+z = "5*COS(x)+10*SIN(x*2)-5*COS((x+y)*3)+7*SIN(y)-3*COS(x-y)";
 
 graphFunction3D(z,minX,maxX,minY,maxY,surfaceThickness=style?thickness:undef,flatMinimumThickness=style?undef:thickness);
 
