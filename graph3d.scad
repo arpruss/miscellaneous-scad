@@ -8,7 +8,7 @@ maxX=10;
 minY=-10;
 maxY=10;
 resolution=50;
-style=1; // [0:flat bottom, 1:surface]
+style=0; // [0:flat bottom, 1:surface]
 // zero for automatic
 thickness=0; 
 //</params>
@@ -71,27 +71,31 @@ module graphArray3D(top, bottom=undef, thickness=undef, baseZ=undef) {
 // and bottom.
 // flatMinimumThickness does a surface with a flat bottom
 // and specifies the minimum thickness.
-module graphFunction3D(f,minX,maxX,minY,maxY,resolution=50,surfaceThickness=undef,flatMinimumThickness=undef,bottomFunction=undef) {
+module graphFunction3D(f,minX,maxX,minY,maxY,resolution=50,surfaceThickness=undef,flatMinimumThickness=undef,bottomFunction=undef,constants=[],realSize=false) {
     dx = (maxX-minX)/resolution;
     dy = (maxY-minY)/resolution;
     size = max(maxX-minX,maxY-minY);
     fc = compileFunction(f);
     smallSize = size/50;
     e = exp(1);
+    allConstants = concat(constants,[["pi", PI], ["PI", PI], ["e", e]]);
     top=[for(i=[0:resolution]) [for(j=[0:resolution])
-            eval(fc, [["x", minX+dx*i], ["y", minY+dy*j], ["pi", PI], ["PI", PI], ["e", e]])]];
-    if (bottomFunction != undef) {
-        bc = compileFunction(bottomFunction);
-        bottom=[for(i=[0:resolution]) [for(j=[0:resolution])
-                eval(bc, [["x", minX+dx*i], ["y", minY+dy*j], ["pi", PI], ["e", e]])]];
-        graphArray3D(top, bottom);
-    }
-    else if (flatMinimumThickness != undef) {
-        minZ = min([for(i=[0:resolution]) for(j=[0:resolution]) top[i][j]]);
-        graphArray3D(top, baseZ=minZ-(flatMinimumThickness != 0 ? flatMinimumThickness : smallSize));
-    }
-    else {
-        thickness = surfaceThickness!=undef && surfaceThickness!=0 ? surfaceThickness : smallSize;
-        graphArray3D(top, thickness=thickness);
+            eval(fc, concat([["x", minX+dx*i], ["y", minY+dy*j]], allConstants))]];
+    translate(realSize ? [minX,minY,0] : [0,0,0])
+    scale(realSize ? [(maxX-minX)/resolution,(maxY-minY)/resolution,1] : [1,1,1]) {
+        if (bottomFunction != undef) {
+            bc = compileFunction(bottomFunction);
+            bottom=[for(i=[0:resolution]) [for(j=[0:resolution])
+                    eval(bc, concat([["x", minX+dx*i], ["y", minY+dy*j]], allConstants))]];
+            graphArray3D(top, bottom);
+        }
+        else if (flatMinimumThickness != undef) {
+            minZ = min([for(i=[0:resolution]) for(j=[0:resolution]) top[i][j]]);
+            graphArray3D(top, baseZ=minZ-(flatMinimumThickness != 0 ? flatMinimumThickness : smallSize));
+        }
+        else {
+            thickness = surfaceThickness!=undef && surfaceThickness!=0 ? surfaceThickness : smallSize;
+            graphArray3D(top, thickness=thickness);
+        }
     }
 }
