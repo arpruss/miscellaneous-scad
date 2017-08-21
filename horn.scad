@@ -12,6 +12,14 @@ numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
 
+watchHolder = 1; // [1:yes, 0:no]
+holderCutFromFront = 3;
+holderCutHeight = 15;
+holderCutThickness = 4;
+holderWall = 2.5;
+holderDepth = 20;
+tolerance = 0.75;
+
 module dummy(){}
 
 // exponent^length = ratio
@@ -56,19 +64,46 @@ module hornShellGood() {
     }
 }
 
-module flange() {
+module flange(tolerance=0,hollow=true) {
     if (flangeLength>0) {
-        x1 = throatWidth/2+wallThickness;
-        y1 = throatHeight/2+wallThickness;
-        x2 = x1 + flangeFlare;
-        y2 = y1 + flangeFlare;
+        x1 = throatWidth/2+wallThickness+2*tolerance;
+        y1 = throatHeight/2+wallThickness+2*tolerance;
+        x2 = x1 + flangeFlare+2*tolerance;
+        y2 = y1 + flangeFlare+2*tolerance;
         render(convexity=2)
         difference() {
-            morphExtrude([[x1,y1],[-x1,y1],[-x1,-y1],[x1,-y1]], [[x2,y2],[-x2,y2],[-x2,-y2],[x2,-y2]], height=flangeLength);
+            morphExtrude([[x1,y1],[-x1,y1],[-x1,-y1],[x1,-y1]], [[x2,y2],[-x2,y2],[-x2,-y2],[x2,-y2]], height=flangeLength+tolerance);
+            if (hollow)
             translate([-throatWidth/2,-throatHeight/2,-1]) cube([throatWidth,throatHeight,flangeLength+2]);
         }
     }
 }
 
-hornShellGood();
-translate([0,0,length-0.001]) flange();
+module horn() {
+    hornShellGood();
+    translate([0,0,length-0.001]) flange();
+}
+
+nudge = 0.001;
+
+module holder() {
+    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*wallThickness;
+    h0 = 0.5 * (mouthHeight - throatHeight);
+    h = throatHeight + 2*flangeFlare + h0;
+    render(convexity=5)
+    difference() {
+        translate([-w/2,0,0])
+        cube([w,holderDepth,h]);
+        translate([0,-nudge,h0+throatHeight/2+wallThickness+tolerance])
+        rotate([-90,0,0])
+        flange(tolerance=tolerance,hollow=false);
+        translate([-w/2-nudge,-nudge,h0+throatHeight*0.1+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
+        translate([-w/2-nudge,tolerance+flangeLength+holderCutFromFront,h0+throatHeight/2+wallThickness+tolerance-holderCutHeight/2]) cube([w+2*nudge,holderCutThickness,h]);
+        translate([-w/2+holderWall,-nudge,h0]) cube([w-2*holderWall,holderDepth-holderWall+nudge,h+nudge]);
+    }
+}
+
+if (watchHolder)
+    holder();
+else
+    horn();
