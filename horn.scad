@@ -9,6 +9,8 @@ mouthWidth = 80;
 mouthHeight = 50;
 wallThickness = 1.5;
 numSections = 20;
+flangeLength = 4;
+flangeFlare = 3;
 
 module dummy(){}
 
@@ -54,4 +56,19 @@ module hornShellGood() {
     }
 }
 
+module flange() {
+    if (flangeLength>0) {
+        x1 = throatWidth/2+wallThickness;
+        y1 = throatHeight/2+wallThickness;
+        x2 = x1 + flangeFlare;
+        y2 = y1 + flangeFlare;
+        render(convexity=2)
+        difference() {
+            morphExtrude([[x1,y1],[-x1,y1],[-x1,-y1],[x1,-y1]], [[x2,y2],[-x2,y2],[-x2,-y2],[x2,-y2]], height=flangeLength);
+            translate([-throatWidth/2,-throatHeight/2,-1]) cube([throatWidth,throatHeight,flangeLength+2]);
+        }
+    }
+}
+
 hornShellGood();
+translate([0,0,length-0.001]) flange();
