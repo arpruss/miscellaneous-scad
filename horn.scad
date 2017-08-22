@@ -2,21 +2,21 @@ use <tubemesh.scad>;
 
 // exponential horn
 
-length = 70;
+length = 100;
 throatWidth = 45;
 throatHeight = 40;
 mouthWidth = 120;
 mouthHeight = 60;
-wallThickness = 1.5;
+wallThickness = 1.4;
 numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
 
 watchHolder = 0; // [1:yes, 0:no]
-holderCutFromFront = 2;
+holderCutFromFront = 3;
 holderCutHeight = 23;
 holderCutThickness = 4;
-holderWall = 2.5;
+holderWall = 4;
 holderDepth = 20;
 tolerance = 0.75;
 
@@ -86,20 +86,22 @@ module horn() {
 nudge = 0.001;
 
 module holder() {
-    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*wallThickness;
+    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*holderWall;
     h0 = 0.5 * (mouthHeight - throatHeight);
-    echo(h0);
-    h = throatHeight + 2*flangeFlare + h0;
+    h = throatHeight + 2*flangeFlare + h0 + wallThickness;
     render(convexity=5)
     difference() {
         translate([-w/2,0,0])
-        cube([w,holderDepth,h]);
+        cube([w,holderDepth+holderWall,h]);
         translate([0,-nudge,h0+throatHeight/2+wallThickness+tolerance])
         rotate([-90,0,0])
         flange(tolerance=tolerance,hollow=false);
         translate([-w/2-nudge,-nudge,h0+throatHeight*0.1+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
         translate([-w/2-nudge,tolerance+flangeLength+holderCutFromFront,h0+throatHeight/2+wallThickness+tolerance-holderCutHeight/2]) cube([w+2*nudge,holderCutThickness,h]);
-        translate([-w/2+holderWall,-nudge,h0]) cube([w-2*holderWall,holderDepth-holderWall+nudge,h+nudge]);
+        translate([-w/2+holderWall,-nudge,h0]) {
+            cube([w-2*holderWall,flangeLength+tolerance+holderDepth-holderWall+nudge,h-h0-holderWall]);
+            cube([w-2*holderWall,flangeLength+holderCutFromFront+holderCutThickness+nudge,h+nudge-h0]);
+        }
     }
 }
 
