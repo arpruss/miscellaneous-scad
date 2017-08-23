@@ -4,9 +4,13 @@ use <hershey.scad>;
 name = "NAME";
 font = 10; // [0:cursive, 1:futural, 2:futuram, 3:gothgbt, 4:gothgrt, 5:gothiceng, 6:gothicger, 7:gothicita, 8:gothitt, 9:rowmand, 10:rowmans, 11:rowmant, 12:scriptc, 13:scripts, 14:timesi, 15:timesib, 16:timesr, 17:timesrb]
 textSize = 30;
-lineHeight = 8;
+// how thick the letters are
+lineHeight = 8; 
+// how wide the line the letters are drawn with is
 lineWidth = 10;
+// you can increase chamfer up to half of line width to make the ridges sharper if rounded top mode is off
 lineChamfer = 4;
+roundedTop = 0; // [1:yes, 0:no]
 smartOverlap = 1; // [1:yes, 0:no]
 // increase to make letters be more squashed together; in smart overlap mode, this is the number of millimeters letters overlap by
 letterSquish = 3.5;
@@ -20,12 +24,23 @@ ringPosition = 0.5;
 
 fonts=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
 
-
+// for rounded top variant
 module chamferedCylinder(d=10,r=undef,h=10,chamfer=1) {
     diameter = r==undef ? d : 2*r;
     cylinder(d=diameter,h=h-chamfer+0.001);
-    translate([0,0,h-chamfer])
-    cylinder(d1=diameter,d2=diameter-chamfer*2,h=chamfer);
+
+    if (roundedTop) {
+        translate([0,0,h-chamfer])
+            scale([1,1,chamfer/(diameter/2)]) 
+                intersection() {
+                    sphere(d=diameter);
+                    translate([-diameter,-diameter,0]) cube([2*diameter,2*diameter,diameter]);
+                }
+    }
+    else {
+        translate([0,0,h-chamfer])
+        cylinder(d1=diameter,d2=diameter-chamfer*2,h=chamfer);
+    }
 }
 
 module doText() {
