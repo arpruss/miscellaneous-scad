@@ -1,4 +1,5 @@
 use <tubemesh.scad>;
+use <roundedsquare.scad>;
 
 // exponential horn
 
@@ -12,12 +13,16 @@ numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
 
-watchHolder = 0; // [1:yes, 0:no]
+watchHolder = 1; // [1:yes, 0:no]
 holderCutFromFront = 3;
 holderCutHeight = 23;
 holderCutThickness = 4;
-holderWall = 4;
+holderBackWall = 2.5;
+holderSideWall = 4;
+holderCeiling = 3;
 holderDepth = 20;
+holderFootWidth = 7;
+holderFootThickness = 2;
 tolerance = 0.75;
 
 module dummy(){}
@@ -86,23 +91,26 @@ module horn() {
 nudge = 0.001;
 
 module holder() {
-    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*holderWall;
+    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*holderSideWall;
     h0 = 0.5 * (mouthHeight - throatHeight);
     h = throatHeight + 2*flangeFlare + h0 + wallThickness;
     render(convexity=5)
     difference() {
         translate([-w/2,0,0])
-        cube([w,holderDepth+holderWall,h]);
+        cube([w,holderDepth+holderBackWall,h]);
         translate([0,-nudge,h0+throatHeight/2+wallThickness+tolerance])
         rotate([-90,0,0])
         flange(tolerance=tolerance,hollow=false);
-        translate([-w/2-nudge,-nudge,h0+throatHeight*0.1+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
+        translate([-w/2-nudge,-nudge,h0+throatHeight*0.5+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
         translate([-w/2-nudge,tolerance+flangeLength+holderCutFromFront,h0+throatHeight/2+wallThickness+tolerance-holderCutHeight/2]) cube([w+2*nudge,holderCutThickness,h]);
-        translate([-w/2+holderWall,-nudge,h0]) {
-            cube([w-2*holderWall,flangeLength+tolerance+holderDepth-holderWall+nudge,h-h0-holderWall]);
-            cube([w-2*holderWall,flangeLength+holderCutFromFront+holderCutThickness+nudge,h+nudge-h0]);
+        translate([-w/2+holderSideWall,-nudge,h0]) {
+            cube([w-2*holderSideWall,flangeLength+tolerance+holderDepth-holderBackWall+nudge,h-h0-holderCeiling]);
+            cube([w-2*holderSideWall,flangeLength+holderCutFromFront+holderCutThickness+nudge,h+nudge-h0]);
         }
     }
+    linear_extrude(height=holderFootThickness)
+    translate([-w/2-holderFootWidth,-holderFootWidth])
+    roundedSquare([w+2*holderFootWidth,holderDepth+holderBackWall+2*holderFootWidth],radius=holderFootWidth);
 }
 
 if (watchHolder)
