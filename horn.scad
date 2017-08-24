@@ -70,10 +70,10 @@ module hornShellGood() {
 
 module flange(tolerance=0,hollow=true) {
     if (flangeLength>0) {
-        x1 = throatWidth/2+wallThickness+2*tolerance;
-        y1 = throatHeight/2+wallThickness+2*tolerance;
-        x2 = x1 + flangeFlare+2*tolerance;
-        y2 = y1 + flangeFlare+2*tolerance;
+        x1 = throatWidth/2+wallThickness+tolerance;
+        y1 = throatHeight/2+wallThickness+tolerance;
+        x2 = x1 + flangeFlare+tolerance;
+        y2 = y1 + flangeFlare+tolerance;
         render(convexity=2)
         difference() {
             morphExtrude([[x1,y1],[-x1,y1],[-x1,-y1],[x1,-y1]], [[x2,y2],[-x2,y2],[-x2,-y2],[x2,-y2]], height=flangeLength+tolerance);
@@ -97,14 +97,14 @@ module holder() {
     render(convexity=5)
     difference() {
         translate([-w/2,0,0])
-        cube([w,holderDepth+holderBackWall,h]);
+        cube([w,flangeLength+tolerance+holderDepth+holderBackWall,h]);
         translate([0,-nudge,h0+throatHeight/2+wallThickness+tolerance])
         rotate([-90,0,0])
         flange(tolerance=tolerance,hollow=false);
-        translate([-w/2-nudge,-nudge,h0+throatHeight*0.5+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
+       // translate([-w/2-nudge,-nudge,h0+throatHeight*0.75+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
         translate([-w/2-nudge,tolerance+flangeLength+holderCutFromFront,h0+throatHeight/2+wallThickness+tolerance-holderCutHeight/2]) cube([w+2*nudge,holderCutThickness,h]);
         translate([-w/2+holderSideWall,-nudge,h0]) {
-            cube([w-2*holderSideWall,flangeLength+tolerance+holderDepth-holderBackWall+nudge,h-h0-holderCeiling]);
+            cube([w-2*holderSideWall,flangeLength+tolerance+holderDepth+nudge,h-h0-holderCeiling]);
             cube([w-2*holderSideWall,flangeLength+holderCutFromFront+holderCutThickness+nudge,h+nudge-h0]);
         }
     }
