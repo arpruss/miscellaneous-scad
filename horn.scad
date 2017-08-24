@@ -1,119 +1,75 @@
 use <tubemesh.scad>;
 use <roundedsquare.scad>;
 
-// exponential horn
-
-length = 100;
-throatWidth = 45;
-throatHeight = 40;
-mouthWidth = 120;
-mouthHeight = 60;
-wallThickness = 1.4;
-numSections = 20;
-flangeLength = 4;
-flangeFlare = 3;
-
-watchHolder = 1; // [1:yes, 0:no]
-holderCutFromFront = 3;
-holderCutHeight = 23;
-holderCutThickness = 4;
-holderBackWall = 2.5;
-holderSideWall = 4;
-holderCeiling = 3;
-holderDepth = 20;
-holderFootWidth = 7;
-holderFootThickness = 2;
-tolerance = 0.75;
-
 module dummy(){}
 
-// exponent^length = ratio
+module horn(throat=[45,40], mouth=[120,60], length=100, wallThickness=1.4, numSections=20, flangeLength=4, flangeFlare=3, rectangular=true, solidFlangeOnly=false) {
+    
+    function getExponent(ratio) = pow(ratio, 1/length);
+    
+    mouthWidth = len(mouth)==2 ? mouth[0] : mouth;
+    mouthHeight = len(mouth)==2 ? mouth[1] : mouth;
+    throatWidth = len(throat)==2 ? throat[0] : throat;
+    throatHeight = len(throat)==2 ? throat[1] : throat;
 
-function getExponent(ratio) = pow(ratio, 1/length);
+    wExp = getExponent(mouthWidth/throatWidth);
+    hExp = getExponent(mouthHeight/throatHeight);
+    
+    function section(x,y,z) = 
+        rectangular ? 
+            [ [x,y,z], [-x,y,z], [-x,-y,z], [x,-y,z] ]:
+            [ for(t=[0:10:350]) [x*cos(t), y*sin(t), z]];
+            
+    sections = 
+        [ for(i=[0:numSections])
+            let(z=i/numSections*length,
+                x=pow(wExp,length-z)*throatWidth/2,
+                y=pow(hExp,length-z)*throatHeight/2)
+            section(x,y,z) ];
 
-wExp = getExponent(mouthWidth/throatWidth);
-hExp = getExponent(mouthHeight/throatHeight);
-
-sections = 
-    [ for(i=[0:numSections])
-        let(z=i/numSections*length,
-            x=pow(wExp,length-z)*throatWidth/2,
-            y=pow(hExp,length-z)*throatHeight/2)
-        [ [x,y,z], [-x,y,z], [-x,-y,z], [x,-y,z] ] ];
-
-module hornShape() {
-    data = pointsAndFaces(sections,startCap=true,endCap=true,optimize=true);   
-    polyhedron(points=data[0], faces=data[1]);
-}
-
-module hornShellQuick() {
-    render(convexity=2)
-    difference() {
-        scale([(mouthWidth+wallThickness*2)/mouthWidth,(mouthHeight+wallThickness*2)/mouthHeight,1]) hornShape();
+    module hornShape() {
+        data = pointsAndFaces(sections,startCap=true,endCap=true,optimize=true);   
+        polyhedron(points=data[0], faces=data[1]);
     }
-}
 
-module hornShellGood() {
-    render(convexity=2)
-    intersection() {
-        difference() {
-            minkowski() {
-                hornShape();
-                sphere(r=wallThickness,$fn=12);
-            }
-            hornShape();
-        }
-        translate([-mouthWidth/2-wallThickness,-mouthHeight/2-wallThickness,0])
-        cube([mouthWidth+2*wallThickness,mouthHeight+2*wallThickness,length]);
-    }
-}
-
-module flange(tolerance=0,hollow=true) {
-    if (flangeLength>0) {
-        x1 = throatWidth/2+wallThickness+tolerance;
-        y1 = throatHeight/2+wallThickness+tolerance;
-        x2 = x1 + flangeFlare+tolerance;
-        y2 = y1 + flangeFlare+tolerance;
+/*    module hornShellQuick() {
         render(convexity=2)
         difference() {
-            morphExtrude([[x1,y1],[-x1,y1],[-x1,-y1],[x1,-y1]], [[x2,y2],[-x2,y2],[-x2,-y2],[x2,-y2]], height=flangeLength+tolerance);
-            if (hollow)
-            translate([-throatWidth/2,-throatHeight/2,-1]) cube([throatWidth,throatHeight,flangeLength+2]);
+            scale([(mouthWidth+wallThickness*2)/mouthWidth,(mouthHeight+wallThickness*2)/mouthHeight,1]) hornShape();
+        }
+    } */
+
+    module hornShellGood() {
+        render(convexity=2)
+        intersection() {
+            difference() {
+                minkowski() {
+                    hornShape();
+                    sphere(r=wallThickness,$fn=12);
+                }
+                hornShape();
+            }
+            translate([-mouthWidth/2-wallThickness,-mouthHeight/2-wallThickness,0])
+            cube([mouthWidth+2*wallThickness,mouthHeight+2*wallThickness,length]);
         }
     }
-}
 
-module horn() {
-    hornShellGood();
-    translate([0,0,length-0.001]) flange();
-}
-
-nudge = 0.001;
-
-module holder() {
-    w = throatWidth + 2*flangeFlare + 2*tolerance + 2*holderSideWall;
-    h0 = 0.5 * (mouthHeight - throatHeight);
-    h = throatHeight + 2*flangeFlare + h0 + wallThickness;
-    render(convexity=5)
-    difference() {
-        translate([-w/2,0,0])
-        cube([w,flangeLength+tolerance+holderDepth+holderBackWall,h]);
-        translate([0,-nudge,h0+throatHeight/2+wallThickness+tolerance])
-        rotate([-90,0,0])
-        flange(tolerance=tolerance,hollow=false);
-       // translate([-w/2-nudge,-nudge,h0+throatHeight*0.75+wallThickness+2*tolerance]) cube([w+2*nudge,flangeLength+tolerance+nudge,nudge+flangeFlare+throatHeight]);
-        translate([-w/2-nudge,tolerance+flangeLength+holderCutFromFront,h0+throatHeight/2+wallThickness+tolerance-holderCutHeight/2]) cube([w+2*nudge,holderCutThickness,h]);
-        translate([-w/2+holderSideWall,-nudge,h0]) {
-            cube([w-2*holderSideWall,flangeLength+tolerance+holderDepth+nudge,h-h0-holderCeiling]);
-            cube([w-2*holderSideWall,flangeLength+holderCutFromFront+holderCutThickness+nudge,h+nudge-h0]);
+    module flange(hollow=true) {
+        if (flangeLength>0) {
+            x1 = throatWidth/2+wallThickness;
+            y1 = throatHeight/2+wallThickness;
+            x2 = x1 + flangeFlare;
+            y2 = y1 + flangeFlare;
+            render(convexity=2)
+            difference() {
+                morphExtrude(section(x1,y1,0), section(x2,y2,flangeLength),numSlices=1);
+                if (hollow) 
+                    morphExtrude(section(throatWidth/2,throatHeight/2,-1), section(throatWidth/2,throatHeight/2,flangeLength+1),numSlices=1);
+            }
         }
     }
-    linear_extrude(height=holderFootThickness)
-    translate([-w/2-holderFootWidth,-holderFootWidth])
-    roundedSquare([w+2*holderFootWidth,holderDepth+holderBackWall+2*holderFootWidth],radius=holderFootWidth);
-}
 
-if (watchHolder)
-    holder();
-else
-    horn();
+    if (!solidFlangeOnly)
+        hornShellGood();
+    translate([0,0,solidFlangeOnly?0:length-0.001]) flange(hollow=!solidFlangeOnly);
+}
