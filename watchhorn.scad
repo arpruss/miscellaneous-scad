@@ -12,7 +12,7 @@ numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
 
-watchHolder = 0; // [1:yes, 0:no]
+watchHolder = 1; // [1:yes, 0:no]
 holderCutFromFront = 3;
 holderCutHeight = 23;
 holderCutThickness = 4;
