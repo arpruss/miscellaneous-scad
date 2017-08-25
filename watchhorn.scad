@@ -11,7 +11,7 @@ wallThickness = 1.4;
 numSections = 20;
 flangeLength = 4;
 flangeFlare = 3;
-
+// you can choose whether to generate the horn or the holder
 watchHolder = 1; // [1:yes, 0:no]
 holderCutFromFront = 3;
 holderCutHeight = 23;
