@@ -134,9 +134,14 @@ function _removeDuplicates(points, faces) =
 function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
         let(
             points0=_flatten(sections),
-            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) [points0,faces0]; 
-//        _removeDuplicates(points0,faces0);
+            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) 
+        _removeDuplicates(points0,faces0);
                 
+module tubeMesh(sections,startCap=true,endCap=true,optimize=true) {
+    pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
+    polyhedron(points=pAndF[0],faces=pAndF[1]);
+}
+
 // increase number of points from len(section) to n
 function _interpolateSection(section,n) =
         let(m=len(section))
@@ -198,8 +203,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap
                             section=(1-t)*section1interp+t*section2interp)
                         [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[0]*sin(theta)+p[1]*cos(theta),height*t]]];
                             
-    data = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=false);   
-    polyhedron(points=data[0], faces=data[1]);
+    tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=false);   
 }
 
 module cone(r=10,d=undef,height=10) {
