@@ -22,7 +22,7 @@ magnetCollarBevel = 0.25;
 shaftLength = 20;
 shaftSupports = true;
 
-tolerance = 0.2;
+tolerance = 0.3;
 
 wall = 1.5;
 
@@ -48,13 +48,22 @@ module topBeveledCube(size, bevel=1) {
         section(size[0]-bevel*2,size[1]-bevel*2,size[2])]);
 }
 
+// this is xy-centered for convenience
+module flaredCylinder(d=10, r=undef, h=10, flare=1) {
+    $fn = 64;
+    diameter = (r==undef)?d:(2*r);
+    tubeMesh([ngonPoints(n=$fn,d=diameter,z=0),
+        ngonPoints(n=$fn,d=diameter,z=h-flare),
+        ngonPoints(n=$fn,d=diameter+2*flare,z=h)]);
+}
+
 module bottom() {
     $fn = 64;
     render(convexity=2)
     difference() {
         cylinder(d=bearingOD+2*wall+2*tolerance, h=height);
         translate([0,0,pcbThickness1+bevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=height);
-        translate([0,0,height-bearingCollarHeight]) cylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge);
+        translate([0,0,height-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
         translate([0,0,-nudge])
         topBeveledCube([pcbSizeX+2*tolerance,pcbSizeY+2*tolerance,pcbThickness1+bevel+2*nudge], bevel=bevel);
     }
@@ -66,9 +75,8 @@ module top(supports=false) {
     render(convexity=2)
     difference() {
         cylinder(d=od,h=shaftLength+magnetCollarHeight);
-        tubeMesh([ngonPoints(n=$fn,d=magnetDiameter-2*tolerance,z=shaftLength),
-        ngonPoints(n=$fn,d=magnetDiameter-2*tolerance,z=shaftLength+magnetCollarHeight-magnetCollarBevel),
-        ngonPoints(n=$fn,d=magnetDiameter-2*tolerance+2*magnetCollarBevel,z=shaftLength+magnetCollarHeight+nudge)]);
+        translate([0,0,shaftLength])
+            flaredCylinder(d=magnetDiameter+2*tolerance,h=magnetCollarHeight,flare=magnetCollarBevel);
     }
     if (supports) {
         x = od/2;
