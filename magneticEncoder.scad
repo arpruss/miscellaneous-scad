@@ -8,34 +8,37 @@ bearingCollarHeight = 4;
 pcbSizeX = 11.94;
 pcbSizeY = 11.58;
 pcbThickness = 1.6;
-bottomExtraThickness = 1;
+bottomBevel = 0.5;
 
 icThickness = 1.54;
 
-verticalOffset = 1.5;
-bevel = 1;
+verticalOffset = 2.5;
+pcbHolderBevel = 1.4;
 
 magnetDiameter = 6;
 //magnetThickness = 2.5;
-magnetCollarHeight = 1.75;
-magnetCollarBevel = 0.25;
-shaftLength = 20;
-shaftSupports = true;
+magnetCollarHeight = 2.25;
+magnetCollarBevel = 0.25; //0.25;
+shaftLength = 14;
 
-tolerance = 0.3;
+tolerance = 0.2;
+pcbTolerance = 0.3;
+shaftOuterTolerance = 0.1;
+magnetTolerance = 0.15;
+
+supportSize = 7;
 
 wall = 1.5;
 
-
 module dummy() {}
 
-pcbThickness1 = pcbThickness+bottomExtraThickness;
+pcbThickness1 = pcbThickness+pcbTolerance;
 
 nudge = 0.001;
 height = bearingCollarHeight+verticalOffset+pcbThickness1;
 
 // this is xy-centered for convenience
-module topBeveledCube(size, bevel=1) {
+module topBeveledCube(size, bevel=1, bevelHeightToWidthRatio=1) {
     function section(xSize, ySize, zPos) = 
         [ [xSize/2,-ySize/2,zPos],
           [xSize/2,ySize/2,zPos],
@@ -44,7 +47,7 @@ module topBeveledCube(size, bevel=1) {
     
     tubeMesh([
         section(size[0],size[1],0),
-        section(size[0],size[1],size[2]-bevel),
+        section(size[0],size[1],size[2]-bevel*bevelHeightToWidthRatio),
         section(size[0]-bevel*2,size[1]-bevel*2,size[2])]);
 }
 
@@ -62,39 +65,39 @@ module bottom() {
     render(convexity=2)
     difference() {
         cylinder(d=bearingOD+2*wall+2*tolerance, h=height);
-        translate([0,0,pcbThickness1+bevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=height);
+        translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=height);
         translate([0,0,height-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
         translate([0,0,-nudge])
-        topBeveledCube([pcbSizeX+2*tolerance,pcbSizeY+2*tolerance,pcbThickness1+bevel+2*nudge], bevel=bevel);
+        topBeveledCube([pcbSizeX+2*pcbTolerance,pcbSizeY+2*pcbTolerance,pcbThickness1+pcbHolderBevel+2*nudge], bevel=pcbHolderBevel);
     }
 }
 
 module top(supports=false) {
-    $fn = 32;
-    od = bearingID-2*tolerance;
+    $fn = 64;
+    od = bearingID-2*shaftOuterTolerance;
     render(convexity=2)
     difference() {
         cylinder(d=od,h=shaftLength+magnetCollarHeight);
         translate([0,0,shaftLength])
-            flaredCylinder(d=magnetDiameter+2*tolerance,h=magnetCollarHeight,flare=magnetCollarBevel);
+            flaredCylinder(d=magnetDiameter+2*magnetTolerance,h=magnetCollarHeight,flare=magnetCollarBevel);
     }
-    if (supports) {
+    if (supportSize>0) {
         x = od/2;
         for (angle=[0:90:360-90]) rotate([0,0,angle]) {
             
             morphExtrude([ 
-                [ x-.1, 0, 0],
-                [ x+.4, -.4, 0],
-                [ x+10, -.4, 0],
-                [ x+10, .4, 0],
-                [ x+.4, .4, 0] ],
-                [ [ x-.1, 0, shaftLength-5],
-                  [ x+.4, -.4, shaftLength-5],
-                  [ x+.4, .4, shaftLength-5] ]);                
+                [ x-.05, 0, 0],
+                [ x+.6, -.4, 0],
+                [ x+supportSize, -.4, 0],
+                [ x+supportSize, .4, 0],
+                [ x+.6, .4, 0] ],
+                [ [ x-.05, 0, shaftLength-5],
+                  [ x+.6, -.4, shaftLength-5],
+                  [ x+.6, .4, shaftLength-5] ]);                
         }
     }
 }
 
-bottom();
-translate([10+bearingOD,0,0]) 
-top(supports=shaftSupports);
+//bottom();
+//translate([10+bearingOD,0,0]) 
+top();
