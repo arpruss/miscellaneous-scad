@@ -11,6 +11,8 @@ screwHoleDiameter=2.5;
 
 module dummy() {}
 
+$fn=32;
+
 cableDiameter1 = cableDiameter+2*tieThickness/2;
 
 curve = [ [-tieLength/2,0], OFFSET([tieLength/4,0]),
@@ -28,7 +30,7 @@ intersection() {
         linear_extrude(height=tieWidth) ribbon(Bezier(curve),tieThickness);           
         for(s=[-1:2:1])
            translate([s*tieLength*0.35,0,tieWidth/2]) 
-               rotate([90,0,0]) translate([0,0,-tieThickness*2]) cylinder(d=screwHoleDiameter,h=tieThickness*4,$fn=32);
+               rotate([90,0,0]) translate([0,0,-tieThickness*2]) cylinder(d=screwHoleDiameter,h=tieThickness*4);
     }
     translate([0,0,tieWidth/2])
     rotate([90,0,0])
