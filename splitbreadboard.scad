@@ -1,6 +1,7 @@
 use <roundedsquare.scad>;
 
-split = 11.34;
+//<params>
+split = 10;
 tolerance = 0.3;
 length = 82.72;
 leftHalfWidth = 26.95;
@@ -9,6 +10,7 @@ wallHeight = 8;
 wallThickness = 1.75;
 baseWidth = 8;
 baseThickness = 2.5;
+//</params>
 
 module dummy() {}
 nudge = 0.01;
@@ -30,6 +32,6 @@ difference() {
     linear_extrude(height=wallHeight) roundedSquare([w1+innerSplit+w2,l],radius=wallThickness);
     translate([wallThickness,wallThickness,-nudge]) cube([w1-wallThickness*2,l-wallThickness*2,wallHeight+2*nudge]);
    translate([wallThickness+w1+innerSplit,wallThickness,-nudge]) cube([w2-wallThickness*2,l-wallThickness*2,wallHeight+2*nudge]);
-    translate([w1,wallThickness,-nudge]) linear_extrude(height=wallHeight+2*nudge) roundedSquare([innerSplit,l-wallThickness*2],radius=wallThickness);
+    #translate([w1,wallThickness,-nudge]) linear_extrude(height=wallHeight+2*nudge) roundedSquare([innerSplit,l-wallThickness*2],radius=wallThickness);
     
 }

@@ -1,11 +1,12 @@
-wallThickness = 0.75;
+wallThickness = 1;
 length = 20;
 innerDiameterOfInnerCylinder = 15;
-tolerance = 0.4;
+tolerance = 0.25;
 hexStickout = 1;
 hexHeight = 3;
 hole = 3;
 baseThickness = 2;
+slit = 1; //[1:yes, 0:no]
 
 module dummy() {}
 
@@ -44,6 +45,9 @@ module inner() {
         translate([0,0,baseThickness]) cylinder(d=id1,h=length);
         translate([0,0,-nudge])
         cylinder(d=hole,h=baseThickness+2*nudge,$fn=16);
+        if (slit)
+        translate([-hole/2,0,-nudge]) 
+        cube([hole,od2*2,baseThickness+length+2*nudge]);
     }
 }
 
@@ -55,8 +59,11 @@ module outer() {
             hexRing();
         }
         translate([0,0,baseThickness]) cylinder(d=id2,h=length);
-        translate([0,0,-nudge])
+        translate([0,0,-nudge]) 
         cylinder(d=hole,h=baseThickness+2*nudge,$fn=16);
+        if (slit)
+        translate([-hole/2,0,-nudge]) 
+        cube([hole,od2*2,baseThickness+length+2*nudge]);
     }
 }
 
