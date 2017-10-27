@@ -38,5 +38,5 @@ module cover() {
     }
 }
 
-//rotate([0,-90,0])
+rotate([0,-90,0])
 cover();
