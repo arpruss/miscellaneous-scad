@@ -219,7 +219,7 @@ module barrel() {
     rotate([0,-90,0]) 
     {
         rotate_extrude($fn=36) barrelPoly();
-        translate([13,0,-97]) rotate([0,90,0]) rotate([90,0,0]) inflated_sight();
+        translate([13,0,-97]) rotate([0,90,0]) rotate([90,0,0]) sight();
     }
     translate([6.5,-7,0])
     cube([20,20,triggerGuardThickness], center=true);
@@ -245,6 +245,25 @@ module barrelfront() {
         barrel();
         translate([17,-75,-75])
         cube([150,150,150]);
+    }
+}
+
+module sight() {
+    module cuts() {
+        translate([5.5,-0.5,0])
+        rotate([0,-90,0])
+        cylinder(h=10,d1=1.5,d2=2,$fn=16);
+        translate([1.5,3.5,0])
+        rotate([0,-90,0])
+        cylinder(h=10,d1=1.5,d2=2,$fn=16);
+    }
+    render(convexity=2)
+    difference() {
+        inflated_sight();
+        translate([0,0,1.6])
+        cuts();
+        translate([0,0,-1.6])
+        cuts();
     }
 }
 
@@ -290,6 +309,9 @@ else if (side < 4)
 else if (side == 4)
     for (i=[0:len(jointPositionsAndHeights)-1]) 
         translate([i*(jointWidth+5),0,0]) jointPositive(jointPositionsAndHeights[i][1]);
+
+//sight();
+
 
 /*
 jointPositive();

@@ -28,5 +28,6 @@ outName = base + ".bounds" + ext
 triangles = loadMesh(argv[1])
 bounds = getBounds(triangles)
 mesh = makePrism(bounds)
-print bounds
+print(bounds)
+print(bounds[1][0]-bounds[0][0],bounds[1][1]-bounds[0][1])
 saveSTL(outName, mesh, adjustCoordinates=False)
