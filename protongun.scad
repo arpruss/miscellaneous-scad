@@ -1,4 +1,4 @@
-side = 3; // [1:top,2:bottom,3:whole]
+side = 3; // [1:top,2:bottom,3:whole,4:pegs]
 
 handleThickness = 10;
 rounding = 4;
@@ -9,8 +9,17 @@ sphereDiameter = 3.4;
 handleBottomBumpInflation = 2.6;
 handleInsetInflation = 2;
 twoColorBarrel = 0; // [1:yes, 0:no]
+joints = 1; // [1:yes, 0:no]
+jointWidth = 7;
+jointHorizontalTolerance = 0.3;
+jointVerticalTolerance = 0.9; // 0.6;
+jointChamfer = 0.5;
 
 module dummy() {}
+
+simple = 0;
+
+jointPositionsAndHeights = [[[-5,55],6],[[-5,75],6],[[-88,58],6],[[-88,72],6],[[50,65],6],[[102,65],4.5], [[-98,-29],6], [[-78,-29],6] ];
 
 main_color = [0.8,0.8,0.8];
 inset_color = [0.2,0.2,0.2];
@@ -114,47 +123,68 @@ module starPoly() {
     polygon(points=points_handle_2_1);
 }
 
+
+module jointNegative(jointHeight) {
+    d1 = jointWidth+2*jointHorizontalTolerance;
+    translate([0,0,-jointHeight-2*jointVerticalTolerance]) {
+        cylinder(d=d1, h=2*jointHeight+4*jointVerticalTolerance, $fn=40);
+    }
+        cylinder(d1=d1+2*jointChamfer, d2=d1, h=jointChamfer);
+        rotate([180,0,0])
+        cylinder(d1=d1+2*jointChamfer, d2=d1, h=jointChamfer);
+}
+
+module jointPositive(jointHeight) {
+    render(convexity=1)
+    intersection() {
+    cylinder(d=jointWidth,h=jointHeight*2, $fn=40);
+    cylinder(d1=jointWidth-2*jointChamfer+jointHeight*2,d2=jointWidth-2*jointChamfer, h=jointHeight*2, $fn=40);
+}
+}
+
 module handle() {
     color(main_color)
     extrudeSymmetric(handleThickness)
     translate(center_handle_1)
     polygon(points=points_handle_1_1);
     
-    translate([0,0,handleThickness/2])
-    translate(center_inflated_inset_2)
-    scale([1,1,handleInsetInflation])
-    inflated_insetmod_2();
-    
-    translate([0,0,handleThickness/2])
-    translate(center_inflated_handlebottom_3)     scale([1,1,handleBottomBumpInflation])
-    inflated_handlebottom_3();
+    if (!simple) {
+        translate([0,0,handleThickness/2])
+        translate(center_inflated_inset_2)
+        scale([1,1,handleInsetInflation])
+        inflated_insetmod_2();
+        
+        translate([0,0,handleThickness/2])
+        translate(center_inflated_handlebottom_3)     scale([1,1,handleBottomBumpInflation])
+        inflated_handlebottom_3();
 
-    translate([0,0,-handleThickness/2])
-    translate(center_inflated_inset_2)
-    scale([1,1,handleInsetInflation])
-    mirror([0,0,1])
-    inflated_insetmod_2();
-
-    translate([0,0,-handleThickness/2])
-    translate(center_inflated_handlebottom_3)     scale([1,1,handleBottomBumpInflation])
-    mirror([0,0,1])
-    inflated_handlebottom_3();
-
-    color(main_color)
-    minkowski() {
         translate([0,0,-handleThickness/2])
-        linear_extrude(height=handleThickness)
-        translate(center_handle_1)
-        offset(delta=-rounding)
-        polygon(points=points_handle_1_1);
-        scale([1,1,1])
-        sphere(r=rounding);
-    } 
-    color(main_color)
- translate([1,0,0]) {   
-extrudeSymmetric(starThickness*2+handleThickness+2*3*handleInsetInflation) starPoly();
-    extrudeSymmetric(boomerangThickness*2+starThickness*2+handleThickness+2*3*handleInsetInflation) boomerangPoly();
- }
+        translate(center_inflated_inset_2)
+        scale([1,1,handleInsetInflation])
+        mirror([0,0,1])
+        inflated_insetmod_2();
+
+        translate([0,0,-handleThickness/2])
+        translate(center_inflated_handlebottom_3)     scale([1,1,handleBottomBumpInflation])
+        mirror([0,0,1])
+        inflated_handlebottom_3();
+
+        color(main_color)
+        minkowski() {
+            translate([0,0,-handleThickness/2])
+            linear_extrude(height=handleThickness)
+            translate(center_handle_1)
+            offset(delta=-rounding)
+            polygon(points=points_handle_1_1);
+            scale([1,1,1])
+            sphere(r=rounding);
+        } 
+        color(main_color)
+     translate([1,0,0]) {   
+    extrudeSymmetric(starThickness*2+handleThickness+2*3*handleInsetInflation) starPoly();
+        extrudeSymmetric(boomerangThickness*2+starThickness*2+handleThickness+2*3*handleInsetInflation) boomerangPoly();
+     }
+  }
 }
 
 module triggerGuard() {
@@ -218,10 +248,7 @@ module barrelfront() {
     }
 }
 
-module protonGun() {
-    rotate([side==2?180:0,0,0])
-translate([-18.5,-29,0])
-rotate([0,0,-62.5]) {
+module mainGun() {
     translate([0,65,0]) {
         if(twoColorBarrel) {
             color(main_color)
@@ -237,6 +264,13 @@ rotate([0,0,-62.5]) {
     color(main_color)
     triggerGuard();
 }
+
+module protonGun() {
+    rotate([side==2?180:0,0,0]) translate([-18.5,-29,0]) rotate([0,0,-62.5]) 
+        difference() {
+            mainGun(); 
+            if (joints && side<3) for(pos=jointPositionsAndHeights) translate(pos[0]) jointNegative(pos[1]);
+        }
 }
 
 module protonGunHalf() {
@@ -247,9 +281,17 @@ module protonGunHalf() {
     }
 }
 
+
 //cube([200,200,1],center=true);
 if (side==3)
     protonGun();
-else
+else if (side < 4)
     protonGunHalf();
+else if (side == 4)
+    for (i=[0:len(jointPositionsAndHeights)-1]) 
+        translate([i*(jointWidth+5),0,0]) jointPositive(jointPositionsAndHeights[i][1]);
 
+/*
+jointPositive();
+jointNegative();
+*/
