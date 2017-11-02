@@ -1,7 +1,7 @@
 use <Bezier.scad>;
 
 //<params>
-numberOfDrawerCompartmentsHorizontally = 5;
+numberOfDrawerCompartmentsHorizontally = 10;
 numberOfDrawerCompartmentsInDepth = 2;
 
 // You can subdivide the drawer into two types of compartments by setting the right side width ratio to something bigger than zero.
@@ -29,8 +29,8 @@ cutLengthAtBottom = 8;
 cutSmoothingSize = 5;
 
 handleSize = 20;
-handleLip = 2;
-handleFloorThickness = 0.75;
+handleLip = 3; // 2
+handleFloorThickness = 0; // 0.75;
 outerWall = 1.3; // Thickness 
 
 slideWidth = 6;
