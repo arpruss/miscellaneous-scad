@@ -1,7 +1,7 @@
 use <Bezier.scad>;
 
 //<params>
-numberOfDrawerCompartmentsHorizontally = 10;
+numberOfDrawerCompartmentsHorizontally = 5;
 numberOfDrawerCompartmentsInDepth = 2;
 
 // You can subdivide the drawer into two types of compartments by setting the right side width ratio to something bigger than zero.
@@ -13,8 +13,12 @@ numberOfDrawersInChest = 7;
 
 generate = 1; // [0:chest, 1:drawer]
 
-drawerWall=0.75; // Thickness of main drawer walls and dividers running forward and back
-dividerWall=0.45; // Thickness of divider walls running horizontally
+// Thickness 
+outerWall = 0.75;
+// Thickness of main drawer walls and dividers running forward and back
+drawerWall=0.45; 
+// Thickness of divider walls running horizontally
+dividerWall=0.45; 
 drawerWidth = 136;
 drawerDepth = 70; 
 drawerHeight = 16;
@@ -22,16 +26,16 @@ roundedCornerRadius=3.5;
 
 tolerance=0.75;
 
-// Divider walls between full-depth compartments can have a cut in them to make it easier to put things in and take them out.
-cutHeight = 13.5; // Set to zero to disable.
+// Divider walls between full-depth compartments can have a cut in them to make it easier to put things in and take them out. Set cut height to zero to disable.
+cutHeight = 13.5; 
 cutLengthAtTop = 16;
 cutLengthAtBottom = 8; 
 cutSmoothingSize = 5;
 
 handleSize = 20;
-handleLip = 3; // 2
-handleFloorThickness = 0; // 0.75;
-outerWall = 1.3; // Thickness 
+handleLip = 3;
+// Set to zero to have a handle with no floor.
+handleFloorThickness = 0;
 
 slideWidth = 6;
 slideThickness = 1;
@@ -41,14 +45,14 @@ gridHoleWidth = 9;
 gridStripWidth = 3;
 gridAngle = 60;
 
-numberOfRearCrossbars = 2; // Can be 0, 1 or 2
+numberOfRearCrossbars = 2; // [0:0, 1:1, 2:2]
 
 //</params>
 
 module dummy() {}
 nudge = 0.01;
 
-module compartment(width, drawerDepth, drawerHeight) {
+module compartment(width, drawerDepth, drawerHeight,drawerWall=drawerWall) {
     render(convexity=2)
     difference() {
         cube([width,drawerDepth,drawerHeight]);
@@ -81,14 +85,14 @@ module drawerHull(drawerWidth,inset=0,drawerHeight=drawerHeight,roundOnLeft=true
         }
 }
 
-module baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=true, roundOnRight=true) {
+module baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=true, roundOnRight=true, drawerWall=drawerWall) {
     compartmentWidth = (drawerWidth-drawerWall)/numberOfDrawerCompartmentsHorizontally+drawerWall;
 
     intersection() {
         union() {
             for (i=[0:numberOfDrawerCompartmentsHorizontally-1]) {
                 translate([(compartmentWidth-drawerWall)*i,0,0])
-                compartment(compartmentWidth,drawerDepth,drawerHeight);
+                compartment(compartmentWidth,drawerDepth,drawerHeight, drawerWall=drawerWall);
             }
         }
         drawerHull(drawerWidth,roundOnLeft=roundOnLeft,roundOnRight=roundOnRight);
@@ -121,13 +125,13 @@ module handle() {
     }
 }
 
-module drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, drawerWidth, roundOnLeft=true, roundOnRight=true) {
+module drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, drawerWidth, roundOnLeft=true, roundOnRight=true, drawerWall=drawerWall) {
     
     compartmentWidth = (drawerWidth-drawerWall)/numberOfDrawerCompartmentsHorizontally+drawerWall;
-
+    
     render(convexity=4)
     difference() {
-        baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=roundOnLeft, roundOnRight=roundOnRight);
+        baseDrawer(numberOfDrawerCompartmentsHorizontally, drawerWidth, roundOnLeft=roundOnLeft, roundOnRight=roundOnRight, drawerWall=drawerWall);
         if (numberOfDrawerCompartmentsInDepth == 1) 
         translate([compartmentWidth/2,drawerDepth/2,drawerHeight-cutHeight+nudge]) 
         rotate([0,90,0]) linear_extrude(height=drawerWidth-compartmentWidth) cut();
@@ -234,6 +238,9 @@ module fullDrawer() {
     else {
         drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartmentsInDepth, drawerWidth);
     }
+    
+    if (outerWall > drawerWall) 
+        drawer(1,1,drawerWidth,drawerWall=outerWall);
 }
 
 if (generate == 1) {
@@ -242,4 +249,3 @@ if (generate == 1) {
 else
     rotate([-90,0,0])
     chest(numberOfDrawersInChest);
-
