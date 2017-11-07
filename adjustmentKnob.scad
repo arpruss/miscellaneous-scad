@@ -1,5 +1,8 @@
+// Licensed under MIT license or CC 3.0-by-nc-sa
+
 use <tubemesh.scad>;
 
+//<params>
 d = 20;
 h = 17;
 lineHeight = 1.5;
@@ -8,6 +11,7 @@ holeDiameter = 3.2;
 holeHeight = 10;
 stickoutRatio = 0.5;
 knurl = 1.3;
+//</params>
 
 module knurledCylinder(h=10,r1=5,r2=1.5) {
     n = ceil(2 * PI * r1 / (2 * r2));
