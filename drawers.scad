@@ -1,12 +1,12 @@
 use <Bezier.scad>;
 
 //<params>
-numberOfDrawerCompartmentsHorizontally = 5;
+numberOfDrawerCompartmentsHorizontally = 6;
 numberOfDrawerCompartmentsInDepth = 2;
 
 // You can subdivide the drawer into two types of compartments by setting the right side width ratio to something bigger than zero.
 rightSideWidthRatio = 0;
-rightSideNumberOfDrawerCompartmentsHorizontally = 3;
+rightSideNumberOfDrawerCompartmentsHorizontally = 2;
 rightSideNumberOfDrawerCompartmentsInDepth = 2;
 
 numberOfDrawersInChest = 7;

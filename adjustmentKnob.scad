@@ -13,6 +13,7 @@ stickoutRatio = 0.5;
 knurl = 1.3;
 //</params>
 
+//<params>
 module knurledCylinder(h=10,r1=5,r2=1.5) {
     n = ceil(2 * PI * r1 / (2 * r2));
     cylinder(h=h,r=r1,$fn=n);
@@ -22,6 +23,7 @@ module knurledCylinder(h=10,r1=5,r2=1.5) {
         translate([x,y,0]) cylinder(h=h,r=r2,$fn=12);
     }
 }
+//</params>
 
 render(convexity=3) 
 difference() {
