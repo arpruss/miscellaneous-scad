@@ -1,5 +1,4 @@
 import sys
-import re
 
 XPARK = -12
 
@@ -44,7 +43,7 @@ for line in lines:
     if line[0] == ';':
         print(line)
         continue
-    items = re.split(r'\s+', line.lower())
+    items = line.lower.split()
     if items:
         if items[0] == 'g90':
             ready = True
@@ -64,7 +63,7 @@ for line in lines:
                 if insertIndex < len(commands) and ( ( (commands[insertIndex][0] == 'l' and layer == commands[insertIndex][1]) or
                      (commands[insertIndex][0] == 'z' and z >= commands[insertIndex][1]) ) ):
                     insert = True
-    print(line.strip())
+    print(line)
     if insert:
         sys.stderr.write(str(commands[insertIndex])+"\n")
         for c in commands[insertIndex][2:]:
