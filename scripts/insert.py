@@ -2,6 +2,17 @@ import sys
 
 XPARK = -12
 
+if len(sys.argv) < 2:
+    print("""
+python insert.py filename zN|Nmm|lN|N commands ... > outputname
+  zN / Nmm : insert commands before the layer at (or above) height N (in mm)
+  lN / N   : insert commands before layer number N (lowest layer = 1)
+  commands :
+             tN           : set extruder temperature to NameError
+             "pMessage"   : pause, parking at x=%.4f and show Message
+             "gcode line" : manual gcode line""" % XPARK)
+    sys.exit(0)
+
 with open(sys.argv[1]) as f:
     lines = f.readlines()
     
@@ -23,7 +34,7 @@ while args:
         if args[0][0] == 't':
             command.append('M104 S%d' % int(args[0][1:]))
         elif args[0][0] == 'p':
-            command.append(';'+args[0][1:])
+            command.append('~'+args[0][1:])
         else:
             break
         args = args[1:]
@@ -67,7 +78,7 @@ for line in lines:
     if insert:
         sys.stderr.write(str(commands[insertIndex])+"\n")
         for c in commands[insertIndex][2:]:
-            if c[0] == ';':
+            if c[0] == '~':
                 print('G1 X%.4f' % XPARK)
                 print('M117 '+c[1:])
                 print('M25')
