@@ -9,7 +9,7 @@ python insert.py filename zN|Nmm|lN|N commands ... > outputname
   lN / N   : insert commands before layer number N (lowest layer = 1)
   commands :
              tN           : set extruder temperature to NameError
-             "pMessage"   : pause, parking at x=%.4f and show Message
+             "pMessage"   : park at x=%.4f, pause (M25) and show Message
              "gcode line" : manual gcode line""" % XPARK)
     sys.exit(0)
 
@@ -54,7 +54,7 @@ for line in lines:
     if line[0] == ';':
         print(line)
         continue
-    items = line.lower.split()
+    items = line.lower().split()
     if items:
         if items[0] == 'g90':
             ready = True
