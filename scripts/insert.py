@@ -1,6 +1,12 @@
+import re
 import sys
 
-XPARK = -12
+PARK = "G1 X-12"
+
+def dumpSplit(s):
+    for line in re.split(r'\s*:\s*', s):
+        if line:
+            print(line)
 
 if len(sys.argv) < 2:
     print("""
@@ -9,8 +15,8 @@ python insert.py filename zN|Nmm|lN|N commands ... > outputname
   lN / N   : insert commands before layer number N (lowest layer = 1)
   commands :
              tN           : set extruder temperature to NameError
-             "pMessage"   : park at x=%.4f, pause (M25) and show Message
-             "gcode line" : manual gcode line""" % XPARK)
+             "pMessage"   : park (%s), pause (M25) and show Message
+             "gcode line" : manual gcode line""" % PARK)
     sys.exit(0)
 
 with open(sys.argv[1]) as f:
@@ -35,8 +41,10 @@ while args:
             command.append('M104 S%d' % int(args[0][1:]))
         elif args[0][0] == 'p':
             command.append('~'+args[0][1:])
-        else:
+        elif args[0][0] == 'z' or args[0][0] == 'l' or args[0][0].isdigit():
             break
+        else:
+            command.append(args[0])
         args = args[1:]
     if len(command) > 2:
         commands.append(command)
@@ -79,14 +87,14 @@ for line in lines:
         sys.stderr.write(str(commands[insertIndex])+"\n")
         for c in commands[insertIndex][2:]:
             if c[0] == '~':
-                print('G1 X%.4f' % XPARK)
+                dumpSplit(PARK)
                 print('M117 '+c[1:])
                 print('M25')
                 print('G1 Z%.4f' % z)
                 print('G1 Y%.4f' % y)
                 print('G1 X%.4f' % x)
             else:
-                print(c)
+                dumpSplit(c)
         insertIndex += 1
 
 if len(commands) > insertIndex:
