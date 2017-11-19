@@ -7,7 +7,7 @@ ratioOfUndercutHeightToWingThickness = 0.326;
 // 1 places the undercut at the outer edge, and 0 at the inner edge
 undercutPosition= 0.423;
 undercutAngle = 90;
-crossSectionDisplay = 0; // [0:no, 1:yes]
+crossSectionDisplay = 1; // [0:no, 1:yes]
 
 module dummy() {}
 
@@ -32,12 +32,28 @@ module section() {
     translate([-size_section[0]/2,-bottom]) polygon(points=points_section_1);
 }
 
-//section();
-
-render(convexity=2)
-intersection() {
+module ring() {
+    render(convexity=2)
     rotate_extrude(d=outerDiameter,$fn=120) section();
-    if (crossSectionDisplay) {
-        translate([-outerDiameter/2-0.5, 0,0]) cube([outerDiameter+1,outerDiameter, size_section[1]+1]);
+}
+
+module crossSection() {
+%
+    render(convexity=2)
+    intersection() {
+    translate([-outerDiameter/2-0.5, 0,0]) cube([outerDiameter+1,outerDiameter, size_section[1]+1]);
+    ring();
     }
+    render(convexity=2)
+    intersection() {
+    translate([-outerDiameter/2-0.5, -outerDiameter,0]) cube([outerDiameter+1,outerDiameter, size_section[1]+1]);
+    ring();
+    }
+}
+
+if (crossSectionDisplay) {
+    crossSection();
+}
+else {
+    ring();
 }
