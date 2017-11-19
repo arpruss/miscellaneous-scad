@@ -2,8 +2,7 @@ generate = 2; // [0:pieces, 1:board, 2:demo]
 wall = 1;
 incut = 1;
 rounding = 2;
-// put 0 for circle
-numberOfSides1 = 0;
+numberOfSides1 = 6;
 numberOfSides2 = 3;
 bottomHeight = 15;
 shortHeight = 16;
@@ -49,14 +48,11 @@ module piece(hollow,tall) {
 }
 
 module poly(diameter, inset, sides) {
-    if (sides == 0)
-        circle(d=diameter-2*inset,$fn=36);
-    else {
-        rounding1 = inset>0 ? rounding/2 : rounding;
-        r = diameter/2 - rounding1-inset;        hull() {
-            for (i=[0:sides-1])
-                translate(r*[cos(i/sides*360),sin(i/sides*360)]) circle(r=rounding1,$fn=16);
-        }
+    rounding1 = inset>0 ? rounding/2 : rounding;
+    r = diameter/2 - rounding1-inset;
+    hull() {
+        for (i=[0:sides-1])
+            translate(r*[cos(i/sides*360),sin(i/sides*360)]) circle(r=rounding1,$fn=16);
     }
 }
 
