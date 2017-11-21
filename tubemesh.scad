@@ -136,6 +136,8 @@ function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
             points0=_flatten(sections),
             faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) 
         _removeDuplicates(points0,faces0);
+        
+function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];        
                 
 module tubeMesh(sections,startCap=true,endCap=true,optimize=true) {
     pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
