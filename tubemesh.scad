@@ -167,6 +167,17 @@ function starPoints(n=10,r1=5,r2=10,rotate=0,z=undef) =
           z==undef ? 
             [for(i=[0:2*n-1]) let(angle=i*180/n+rotate) (i%2?r1:r2) * [cos(angle),sin(angle)]] :
             [for(i=[0:2*n-1]) let(angle=i*180/n+rotate, r=i%2?r1:r2) [r*cos(angle),r*sin(angle),z]];
+                
+function roundedSquarePoints(size=[10,10],r=2,z=undef) =
+    let(n=$fn?$fn:16,
+        x=len(size)>=2 ? size[0] : size,
+        y=len(size)>=2 ? size[1] : size,
+        centers=[[x-r/2,y-r/2],[r/2,y-r/2],[r/2,r/2],[x-r/2,r/2]],
+        section=[for(i=[0:n-1]) 
+            let(center=centers[floor(i*4/n)],
+                angle=360*i/n)
+            center+r*[cos(angle),sin(angle)]])
+        z==undef ? section : sectionZ(section,z);
 
 // warning: no guarantee of perfect convexity
 module mySphere(r=10,d=undef) {
