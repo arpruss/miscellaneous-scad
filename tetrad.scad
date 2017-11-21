@@ -1,4 +1,4 @@
-generate = 2; // [0:pieces, 1:board, 3:box, 2:demo]
+generate = 2; // [0:pieces, 1:board, 2:box, 3:demo]
 wall = 1;
 incut = 1;
 rounding = 2;
@@ -20,6 +20,7 @@ boxTolerance = 0.2;
 boxSliderWidth = 3.5;
 boxSliderThickness = 1.5;
 boxWall = 0.75;
+boxBottomWall = 1;
 
 module dummy() {}
 nudge = 0.01;
@@ -113,7 +114,7 @@ module board() {
 }
 
 boxSize = 3*dx+dx+s + 2 * boxTolerance;
-boxHeight = boxWall + d + boxSliderWidth * 2 + boardThickness;
+boxHeight = boxBottomWall + diameter + boardPieceTolerance + boxSliderWidth * 2 + boardThickness;
 
 module box() {
     size = boxSize;
@@ -145,7 +146,7 @@ module box() {
 
         translate([boxWall+d/2,boxWall-nudge,0]) mirror([1,0,0]) rotate([0,0,90]) ridges();
             translate([size+nudge+boxWall,boxWall+d/2,0]) mirror([1,0,0]) ridges();
-            linear_extrude(height=boxWall) rounded(size+2*wall,r+wall);
+            linear_extrude(height=boxBottomWall) rounded(size+2*boxWall,r+boxWall);
 
             linear_extrude(height=height)
             difference() {
@@ -158,6 +159,8 @@ module box() {
         translate([-nudge,size-d/2+boxWall,height-ridgeSpacing]) cube([size+2*boxWall+2*nudge,boxWall+d/2+nudge,ridgeSpacing]);
     }
 }
+
+echo($fn);
 
 module demo() {
     ridgeSpacing = boxSliderWidth+boardThickness;
@@ -172,9 +175,9 @@ module demo() {
 
 if (generate==1) board(); 
 else if (generate==0) pieces();
-else if (generate==2) {
+else if (generate==3) {
     demo();
 }
-else if (generate==3) {
+else if (generate==2) {
     box();
 }
