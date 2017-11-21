@@ -138,6 +138,8 @@ function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
         _removeDuplicates(points0,faces0);
         
 function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];        
+    
+function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) (p[i]==undef?0:p[i])+delta[i]]];
                 
 module tubeMesh(sections,startCap=true,endCap=true,optimize=true) {
     pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
@@ -168,15 +170,15 @@ function starPoints(n=10,r1=5,r2=10,rotate=0,z=undef) =
             [for(i=[0:2*n-1]) let(angle=i*180/n+rotate) (i%2?r1:r2) * [cos(angle),sin(angle)]] :
             [for(i=[0:2*n-1]) let(angle=i*180/n+rotate, r=i%2?r1:r2) [r*cos(angle),r*sin(angle),z]];
                 
-function roundedSquarePoints(size=[10,10],r=2,z=undef) =
-    let(n=$fn?$fn:16,
+function roundedSquarePoints(size=[10,10],radius=2,z=undef) =
+    let(n=$fn?$fn:32,
         x=len(size)>=2 ? size[0] : size,
         y=len(size)>=2 ? size[1] : size,
-        centers=[[x-r/2,y-r/2],[r/2,y-r/2],[r/2,r/2],[x-r/2,r/2]],
+        centers=[[x-radius,y-radius],[radius,y-radius],[radius,radius],[x-radius,radius]],
         section=[for(i=[0:n-1]) 
             let(center=centers[floor(i*4/n)],
                 angle=360*i/n)
-            center+r*[cos(angle),sin(angle)]])
+            center+radius*[cos(angle),sin(angle)]])
         z==undef ? section : sectionZ(section,z);
 
 // warning: no guarantee of perfect convexity

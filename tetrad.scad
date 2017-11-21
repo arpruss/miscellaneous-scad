@@ -1,4 +1,7 @@
-generate = 2; // [0:pieces, 1:board, 2:box, 3:demo]
+use <tubemesh.scad>;
+
+//<params>
+generate = 3; // [0:pieces, 1:board, 2:box, 3:demo]
 wall = 1;
 incut = 1;
 rounding = 2;
@@ -21,6 +24,7 @@ boxSliderWidth = 3.5;
 boxSliderThickness = 1.5;
 boxWall = 0.75;
 boxBottomWall = 1;
+//</params>
 
 module dummy() {}
 nudge = 0.01;
@@ -119,48 +123,27 @@ boxHeight = boxBottomWall + diameter + boardPieceTolerance + boxSliderWidth * 2 
 module box() {
     size = boxSize;
     height = boxHeight;
-    
-    module rounded(s,r) {
-        hull() {
-            translate([r,r]) circle(r=r);
-            translate([s-r,s-r]) circle(r=r);
-            translate([s-r,r]) circle(r=r);
-            translate([r,s-r]) circle(r=r);
-        }
-    }
-    
     ridgeSpacing = boxSliderWidth+boardThickness;
-    module ridges(bottomOnly=0) {
-        spacing = ridgeSpacing;
-        for (i=[bottomOnly:1])
-        translate([0,0,height-i*spacing])
-        rotate([-90,0,0])
-        linear_extrude(height=size-d) polygon([[0,0],[boxSliderWidth,0],[0,boxSliderWidth]]);
-    }
     
+    corner=(dx+s)/2;
+    outer = roundedSquarePoints(size+2*boxWall, radius=corner+boxWall);
+    inner = shiftSection(roundedSquarePoints(size,radius=corner),[boxWall,boxWall]);
+    ridge = shiftSection(roundedSquarePoints(size-2*boxSliderWidth,radius=corner-boxSliderWidth),
+        [boxWall+boxSliderWidth,boxWall+boxSliderWidth]);
     render(convexity=2)
     difference() {
-        union() {
-            translate([boxWall-nudge,boxWall+d/2,0]) ridges();
-            translate([boxWall+d/2,size+nudge+boxWall,0]) mirror([0,1,0]) mirror([1,0,0]) rotate([0,0,90]) ridges(bottomOnly=1);
-
-        translate([boxWall+d/2,boxWall-nudge,0]) mirror([1,0,0]) rotate([0,0,90]) ridges();
-            translate([size+nudge+boxWall,boxWall+d/2,0]) mirror([1,0,0]) ridges();
-            linear_extrude(height=boxBottomWall) rounded(size+2*boxWall,r+boxWall);
-
-            linear_extrude(height=height)
-            difference() {
-                rounded(size+2*boxWall,r+boxWall);
-                translate([boxWall,boxWall])
-                rounded(size,r);
-            }
-            
-        }
-        translate([-nudge,size-d/2+boxWall,height-ridgeSpacing]) cube([size+2*boxWall+2*nudge,boxWall+d/2+nudge,ridgeSpacing]);
+        linear_extrude(height=height) polygon(outer);
+        tubeMesh(
+            [
+                sectionZ(inner,boxBottomWall),
+                sectionZ(inner,height-ridgeSpacing-boxSliderWidth),
+                sectionZ(ridge,height-ridgeSpacing),
+                sectionZ(inner,height-ridgeSpacing),
+                sectionZ(inner,height-boxSliderWidth),
+                sectionZ(ridge,height) ]);
+    translate([-nudge,size-corner+boxWall,height-ridgeSpacing]) cube([size+2*boxWall+2*nudge,boxWall+corner+nudge,ridgeSpacing]);
     }
 }
-
-echo($fn);
 
 module demo() {
     ridgeSpacing = boxSliderWidth+boardThickness;
