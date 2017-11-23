@@ -158,6 +158,12 @@ function _interpolateSection(section,n) =
                     for(j=[0:k-1]) 
                         let(t=j/k)
                             section[i]*(1-t)+section[i2]*t];
+                    
+function arcPoints(r=10,d=undef,start=0,end=180,z=undef) =
+            let(r=d==undef?r:d/2,
+                n=getPointsAround(abs(end-start)))
+                    r*[for(i=[0:n])
+                        let(angle=start+i*(end-start)/n) [cos(angle),sin(angle)]];
 
 function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)
@@ -181,13 +187,15 @@ function roundedSquarePoints(size=[10,10],radius=2,z=undef) =
             center+radius*[cos(angle),sin(angle)]])
         z==undef ? section : sectionZ(section,z);
 
+function getPointsAround(radius, angle=360) =
+    max(3, $fn ? ceil($fn*angle/360) :
+        max(floor(0.5+angle/$fa), floor(0.5+2*radius*PI*angle/360/$fs)));
+
 // warning: no guarantee of perfect convexity
 module mySphere(r=10,d=undef) {
     GA = 2.39996322972865332 * 180 / PI;
     radius = d==undef ? r : d/2;
-    pointsAround = 
-        $fn ? $fn :
-        max(3, floor(0.5+360/$fa), floor(0.5+2*radius*PI/$fs));
+    pointsAround = getPointsAround(radius);
     numSlices0 = (pointsAround + pointsAround % 2)/2;
     numSlices = numSlices0 + (numSlices0%2);
     sections = radius*[for(i=[0:numSlices]) 

@@ -7,7 +7,7 @@ ratioOfUndercutHeightToWingThickness = 0.326;
 // 1 places the undercut at the outer edge, and 0 at the inner edge
 undercutPosition= 0.423;
 undercutAngle = 90;
-crossSectionDisplay = 1; // [0:no, 1:yes]
+crossSectionDisplay = 0; // [0:no, 1:yes]
 
 module dummy() {}
 
