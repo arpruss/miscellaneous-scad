@@ -1,5 +1,6 @@
 use <tubemesh.scad>;
 
+//<params>
 ring1InnerDiameter = 256;
 ring1Angle = 90;
 hook1Width = 3;
@@ -27,6 +28,7 @@ basePieceWidth = 10;
 
 nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
+//</params>
 
 module dummy(){}
 

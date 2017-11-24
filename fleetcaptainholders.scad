@@ -1,5 +1,5 @@
-roundModifiers = false;
-solidMode = false;
+roundModifiers = true;
+solidMode = true;
 testMode = false;
 
 wallThickness = 1.25;
@@ -84,10 +84,10 @@ module circularHolder(pieces,stickOut,equalize=false) {
     minInset = min( [for (i=[0:n-1]) min([for (j=[0:len(pieces[i][3])-1]) radii[i]-pieces[i][3][j][1]])] ) - horizontalTolerance - wallThickness;
     baseVerticalOffset = baseVerticalOffset1 + baseVerticalOffset2;
     angles = [for(i=[0:n-1]) sum_(scaledDiameters,i)/circumference*360+scaledDiameters[i]*0.5];
-        
     module base(addH) {
+        echo(maxRadii,baseVerticalOffset1,baseVerticalOffset,minInset,r,baseVerticalOffset+addH-baseVerticalOffset1);
         cylinder(r = maxRadii, h = baseVerticalOffset1, $fn=72);
-        linear_extrude(height=baseVerticalOffset+addH)
+        #linear_extrude(height=baseVerticalOffset+addH)
         difference() {
             circle(r=r, $fn=72);
             circle(r=minInset, $fn=72);
