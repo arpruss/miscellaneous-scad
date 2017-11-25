@@ -1,7 +1,7 @@
-tolerance = 0.45;
+tolerance = 0.25;
 outer = 39.2767;
-inner =  17.9267;
-height = 22.9;
+inner =  27.4/2;
+height = 22.9+1;
 circleR = 19.4/2;
 circleCenter = outer-circleR;
 wall = 1;

@@ -1,6 +1,6 @@
 tolerance = 0.2;
-d=12.56-2*tolerance;
-h=12.63+5.03;
+d=12.56;
+h=12.63+5.03-1.5;
 rubberStickyHeight = 2.09;
 rubberInset = 0.75;
 adjHeight = h - (rubberStickyHeight-rubberInset);
