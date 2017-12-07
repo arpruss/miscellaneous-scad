@@ -47,7 +47,7 @@ function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o");
 function getControlPoint(cp,node,otherCP,otherNode) = 
     let(v=node-otherCP)
 (cp[0]=="r"?(node+cp[1]*v):( cp[0]=="a"? (
-        norm(v)<1e-9 ? node-cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) : 
+        norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) : 
         cp) );
 
 function onLine2(a,b,c,eps=1e-4) =
@@ -110,7 +110,7 @@ function DecodeSpecialBezierPoints(p0) =
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
         p=DecodeBezierOffsets(p0),
-        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-3]):getControlPoint(p[i],p[i+1],p[i+2],p[i+3]))])
+        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4]))])
         doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
