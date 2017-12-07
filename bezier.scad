@@ -44,7 +44,11 @@ function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
 function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o");
 
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
-function getControlPoint(cp,node,otherCP) = cp[0]=="r"?(node+cp[1]*(node-otherCP)):( cp[0]=="a"?node+cp[1]*(node-otherCP)/norm(node-otherCP):cp );
+function getControlPoint(cp,node,otherCP,otherNode) = 
+    let(v=node-otherCP)
+(cp[0]=="r"?(node+cp[1]*v):( cp[0]=="a"? (
+        norm(v)<1e-9 ? node-cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) : 
+        cp) );
 
 function onLine2(a,b,c,eps=1e-4) =
     norm(c-a) <= eps ? true 
@@ -55,8 +59,8 @@ function isStraight2(p1,c1,c2,p2,eps=1e-4) =
     len(p1) == 2 &&
     onLine2(p1,p2,c1,eps=eps) && onLine2(p2,p1,c2,eps=eps);
 
-function Bezier2(p,index=0,precision=0.05,rightEndPoint=true) = let(nPoints=ceil(1/precision)) 
-    isStraight2(p[index],p[index+1],p[index+2],p[index+3]) ? (rightEndPoint?[p[index+0],p[index+3]]:[p[index+0]] ) :
+function Bezier2(p,index=0,precision=0.05,rightEndPoint=true,optimize=true) = let(nPoints=ceil(1/precision)) 
+    optimize && isStraight2(p[index],p[index+1],p[index+2],p[index+3]) ? (rightEndPoint?[p[index+0],p[index+3]]:[p[index+0]] ) :
     [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
     
 function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item ];
@@ -106,14 +110,14 @@ function DecodeSpecialBezierPoints(p0) =
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
         p=DecodeBezierOffsets(p0),
-        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2]):getControlPoint(p[i],p[i+1],p[i+2]))])
+        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-3]):getControlPoint(p[i],p[i+1],p[i+2],p[i+3]))])
         doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
 
 function RemoveDuplicates(p,eps=0.00001) = let(safeEps = eps/len(p)) [for (i=[0:len(p)-1]) if(i==0 || i==len(p)-1 || Distance2D(p[i-1],p[i]) >= safeEps) p[i]];
 
-function Bezier(p,precision=0.05,eps=0.00001) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(q)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
+function Bezier(p,precision=0.05,eps=0.00001,optimize=true) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(q)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,optimize=optimize,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
     
 module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
     $fn = 16;
