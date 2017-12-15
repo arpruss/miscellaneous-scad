@@ -80,7 +80,7 @@ module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lea
         [ [0,-(3/8)*P], 
         [(5/8)*H,-P/16],[(5/8+internalExtra)*H,0],
         [(5/8)*H,P/16],[0,(3/8)*P] ];
-    Dmin = Dmaj-2*H/4;
+    Dmin = Dmaj-2*5*H/8;
     myFN=$fn;
     for (i=[0:starts-1]) {
         rotate([0,0,360/starts*i]) rawThread(profile,d=Dmin,h=height,lead=_lead,$fn=myFN,adjustRadius=true);        

@@ -3,8 +3,8 @@ use <bezier.scad>;
 
 //<params>
 rounding = .05;
-diameter = 8;
-height = 30;
+diameter = 4;
+height = 15;
 twists = 1;
 lobes = 4;
 lobeHeight = 2;
@@ -24,5 +24,5 @@ edge = [ [r,0],SHARP(),SHARP(),
 profile = Bezier(edge,precision=precision,optimize=false);
 sections = [for(p=profile) sectionZ(p[0]/r*base(p[1]/height*360*twists),p[1])];
 //echo(profile);
-BezierVisualize(edge,nodeSize=0.4);    
+//BezierVisualize(edge,nodeSize=0.4);    
 tubeMesh(sections);
