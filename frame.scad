@@ -1,16 +1,20 @@
 show = 0; // [0:back, 1:front]
-pictureHeight = 101.6;
-pictureWidth = 152.4;
+pictureSizeUnits = 25.4; // [1:mm, 25.4:inches]
+pictureHeightInUnits = 7;
+pictureWidthInUnits = 5;
 frameFrontThickness = 4;
 frameWidth=12;
 framePictureOverlap=5;
-frameBackingThickness=4;
-frameStandWidth=40;
+frameBackingThickness=3;
+frameStandWidth=45;
 tolerance=0.2;
 backPieceFillFraction=0.1;
 frameStandThickness=6;
 
 module dummy() {}
+
+pictureHeight = pictureHeightInUnits * pictureSizeUnits;
+pictureWidth = pictureWidthInUnits * pictureSizeUnits;
 
 module front() {
 wOut = pictureWidth+2*frameWidth-2*framePictureOverlap;
