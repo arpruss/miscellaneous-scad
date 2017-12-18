@@ -2,14 +2,21 @@ show = 0; // [0:back, 1:front]
 pictureSizeUnits = 25.4; // [1:mm, 25.4:inches]
 pictureHeightInUnits = 7;
 pictureWidthInUnits = 5;
+// millimeters
 frameFrontThickness = 4;
+// millimeters
 frameWidth=12;
+// millimeters
 framePictureOverlap=5;
+// millimeters
 frameBackingThickness=3;
+// millimeters
 frameStandWidth=45;
-tolerance=0.2;
-backPieceFillFraction=0.1;
+// millimeters
 frameStandThickness=6;
+// millimeters
+tolerance=0.1;
+backPieceFillFraction=0.1;
 
 module dummy() {}
 
