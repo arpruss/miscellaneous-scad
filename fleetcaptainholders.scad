@@ -1,6 +1,8 @@
-roundModifiers = true;
-solidMode = true;
-testMode = false;
+output = 1; // [0:round pieces, 1:other pieces]
+cover = 0; // [0:no, 1:yes (only for non-solid)]
+
+solidMode = 0; // [1:yes, 0:no]
+testMode = 0; // [1:yes, 0:no]
 
 wallThickness = 1.25;
 horizontalTolerance = 0.7;
@@ -10,7 +12,16 @@ stickOutCircular = 2.2;
 stickOutOther = 3;
 baseVerticalOffset1 = 1.5;
 baseVerticalOffset2 = 1.5;
+coverTolerance = 0.25;
+coverLooseTolerance = 1.2;
+coverWall = 0.9;
+coverTopWall = 1.5;
+coverExtraStickout = 3;
+
 module dummy() {}
+
+roundModifiers = output == 0;
+
 nudge = 0.01;
 
 function ngon(n,extra) = [ for (i=[0:n-1]) [cos(-90+i*360/n+extra),sin(-90+i*360/n+extra)] ];
@@ -56,7 +67,7 @@ starbase = [ "Starbase", "", 17, smallSquarePoints, -3, 2 ];
 cloak = [ "Cloak", "", 23.21, radiusBySide(5,14.83)*shift([0,1],ngon(5,0)), -4.2, 0 ];
 vp_3_4 = [ "VP +3", "VP +4", 10.07, vpPoints, 2, 1 ];
 vp_1_2 = [ "VP +1", "VP +2", 16.68, vpPoints, 1.8, 1 ];
-control_fd = [ "Control Dominion", "Control Federation", 1.664*60/2, controlTokenPoints, -1.5, 0 ];
+control_fd = [ "Control Dominion", "Control Federation", 1.664*60/2, controlTokenPoints, -1.5, 0 ]; // old:24
 control_fk = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -0.6, 0 ];
 control_fk2 = [ "Control Klingon", "Control Federation", 1.664*60/2, controlTokenPoints, -1.2, 0 ];
 
@@ -68,6 +79,12 @@ module holeProfile(points) {
         circle(r=horizontalTolerance,$fn=8);
     }
 }
+
+function sum2d(list,n=0,soFar=[0,0]) = 
+    n == len(list) ? soFar :
+    sum2d(list,n=n+1,soFar=soFar+list[n]);
+function center2d(list) =
+    sum2d(list) / len(list);
 
 module circularHolder(pieces,stickOut,equalize=false) {
     n = len(pieces);
@@ -82,12 +99,13 @@ module circularHolder(pieces,stickOut,equalize=false) {
     radii = [for (i=[0:n-1]) r+stickOut+pieces[i][5]];
     maxRadii = max(radii);
     minInset = min( [for (i=[0:n-1]) min([for (j=[0:len(pieces[i][3])-1]) radii[i]-pieces[i][3][j][1]])] ) - horizontalTolerance - wallThickness;
+  
+    
     baseVerticalOffset = baseVerticalOffset1 + baseVerticalOffset2;
     angles = [for(i=[0:n-1]) sum_(scaledDiameters,i)/circumference*360+scaledDiameters[i]*0.5];
     module base(addH) {
-        echo(maxRadii,baseVerticalOffset1,baseVerticalOffset,minInset,r,baseVerticalOffset+addH-baseVerticalOffset1);
         cylinder(r = maxRadii, h = baseVerticalOffset1, $fn=72);
-        #linear_extrude(height=baseVerticalOffset+addH)
+        linear_extrude(height=baseVerticalOffset+addH)
         difference() {
             circle(r=r, $fn=72);
             circle(r=minInset, $fn=72);
@@ -130,11 +148,65 @@ module circularHolder(pieces,stickOut,equalize=false) {
     }    
 }
 
+module asterisk() {
+    for(i=[0:2])
+        rotate(i*60) square([coverWall,40], center=true);
+}
+
+module cover(pieces,stickOut,equalize=false) {
+    n = len(pieces);
+    
+    diameters = [for (i=[0:n-1]) pieces[i][4]+horizontalDiameter(pieces[i][3])];
+    scaledDiameters = diameterMultiplier*shift(horizontalTolerance*(solidMode?2:1), diameters);
+    circumference = sum(scaledDiameters,n);
+    maxHeight = max([for (i=[0:n-1]) pieces[i][2]]);
+    heights = equalize ? [for (i=[0:n-1]) maxHeight] : [for (i=[0:n-1]) pieces[i][2]];
+    minHeight = min(heights);
+    r = circumference / (2*pi);
+    radii = [for (i=[0:n-1]) r+stickOut+pieces[i][5]];
+    maxRadii = max(radii);
+    minInset = min( [for (i=[0:n-1]) min([for (j=[0:len(pieces[i][3])-1]) radii[i]-pieces[i][3][j][1]])] ) - horizontalTolerance - wallThickness;
+    baseVerticalOffset = baseVerticalOffset1 + baseVerticalOffset2;
+    angles = [for(i=[0:n-1]) sum_(scaledDiameters,i)/circumference*360+scaledDiameters[i]*0.5];
+        
+    $fn=72;
+    translate([0,0,maxHeight])
+    cylinder(r=maxRadii, h=coverTopWall);
+    linear_extrude(height=maxHeight+nudge)
+    difference() {
+        circle(r=minInset-coverTolerance);
+        circle(r=minInset-coverTolerance-coverWall);
+    }
+    module aster(i) {
+        translate(radii[i]*[cos(angles[i]),sin(angles[i])]) rotate(angles[i]+90) translate(center2d(pieces[i][3])) asterisk();
+    }
+    
+    module hole(i) {
+        translate(radii[i]*[cos(angles[i]),sin(angles[i])]) rotate(angles[i]+90) holeProfile(pieces[i][3]);
+    }
+    for(i=[0:n-1]) {
+       translate([0,0,heights[i]-coverExtraStickout+nudge]) linear_extrude(height=maxHeight-heights[i]+coverExtraStickout)
+       intersection() { 
+           offset(delta=-coverLooseTolerance-wallThickness) hole(i);
+           aster(i);
+       }
+    }
+}
+
 module go() {
+    render(convexity=8) 
     if (roundModifiers) 
-        render(convexity=4) circularHolder(circlePieces,stickOutCircular,equalize=true);
+        circularHolder(circlePieces,stickOutCircular,equalize=true);
     else
-        render(convexity=8) circularHolder(otherPieces,stickOutOther,equalize=false);
+        circularHolder(otherPieces,stickOutOther,equalize=false);
+    }
+
+module gocover() {
+    render(convexity=8) 
+    if (roundModifiers) 
+        cover(circlePieces,stickOutCircular,equalize=true);
+    else
+        cover(otherPieces,stickOutOther,equalize=false);
     }
 
 if (testMode) {
@@ -145,6 +217,10 @@ if (testMode) {
     }
 }
 else {
-    go();
+    rotate([180,0,0])
+    if (cover)
+        gocover();
+    else
+        go();
 }
 

@@ -1,23 +1,12 @@
-/*axiom = "FX";
-rules = [["X", "X+YF+"],["Y","-FX-Y"]];   
-//             matrix            stack
-forward = 10;
-angle = 90;*/
-
-/*
-rules = [["X", "F-[[X]+X]+F[+FX]-X"],
-         ["F", "FF"]];
-axiom = "X";
-forward = 5;
-angle = 25; */
-
 //<skip>
+// F=forward, -/+=yaw, ^/&=pitch, </>=roll, [/]=push/pop
 rules = [["A", "^F[^^F>>>>>>A]>>>[^^F>>>>>>A]>>>>>[^^F>>>>>>A]"]];
 axiom = "FA";
 forward = 5;
-angle = 15; 
-//</skip>
+angle = 15;
+iterations = 5;
 
+module dummy();
 baseState  = [ [], identityMatrix() ];
 functions = 
     [ 
@@ -31,6 +20,7 @@ functions =
       ["[", ["push"]],
       ["]", ["pop"]]
       ];
+//</skip>
 
 function isString(v) = v >= ""; // this seems to be the fastest way
 
@@ -98,10 +88,10 @@ module traceStates(states) {
         }
 }
 
-module drawLSystem(rules,axiom,n,functions,baseState) {
+module drawLSystem(rules,axiom,n,functions,baseState=[ [], identityMatrix() ]) {
     traceStates(evolveState(lsystem(rules,axiom,n), functions, baseState)) children();
 }
 
 //<skip>
-rotate([0,-90,0]) drawLSystem(rules,axiom,5,functions,baseState) cube(1);
+rotate([0,-90,0]) drawLSystem(rules,axiom,iterations,functions) sphere(1,$fn=4);
 //</skip>
