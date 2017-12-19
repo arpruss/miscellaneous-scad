@@ -12,10 +12,11 @@ stickOutCircular = 2.2;
 stickOutOther = 3;
 baseVerticalOffset1 = 1.5;
 baseVerticalOffset2 = 1.5;
-coverTolerance = 0.25;
+coverTolerance = 0;
 coverLooseTolerance = 1.2;
-coverWall = 0.9;
-coverTopWall = 1.5;
+coverThinWall = 1;
+coverWall = 1.25;
+coverTopWall = 2;
 coverExtraStickout = 3;
 
 module dummy() {}
@@ -150,7 +151,7 @@ module circularHolder(pieces,stickOut,equalize=false) {
 
 module asterisk() {
     for(i=[0:2])
-        rotate(i*60) square([coverWall,40], center=true);
+        rotate(i*60) square([coverThinWall,40], center=true);
 }
 
 module cover(pieces,stickOut,equalize=false) {
@@ -172,11 +173,26 @@ module cover(pieces,stickOut,equalize=false) {
     $fn=72;
     translate([0,0,maxHeight])
     cylinder(r=maxRadii, h=coverTopWall);
-    linear_extrude(height=maxHeight+nudge)
+ 
     difference() {
-        circle(r=minInset-coverTolerance);
-        circle(r=minInset-coverTolerance-coverWall);
+        union() {
+            difference() {
+                cylinder(r1=minInset-coverTolerance-1.5,r2=minInset-coverTolerance,h=4);
+                translate([0,0,-nudge])
+                cylinder(r1=minInset-coverTolerance-1.5-coverWall,r2=minInset-coverTolerance-coverWall,h=4+2*nudge);
+            }
+            
+            translate([0,0,4-nudge])
+            linear_extrude(height=maxHeight+2*nudge-4)
+            difference() {
+                circle(r=minInset-coverTolerance);
+                circle(r=minInset-coverTolerance-coverWall);
+            }
+        }
+        cube([minInset*.2,minInset*2,maxHeight*2+2*nudge], center=true);
+        rotate([0,0,90]) cube([minInset*.2,minInset*2,maxHeight*2+2*nudge], center=true);
     }
+    
     module aster(i) {
         translate(radii[i]*[cos(angles[i]),sin(angles[i])]) rotate(angles[i]+90) translate(center2d(pieces[i][3])) asterisk();
     }
@@ -217,8 +233,8 @@ if (testMode) {
     }
 }
 else {
-    rotate([180,0,0])
     if (cover)
+    rotate([180,0,0])
         gocover();
     else
         go();
