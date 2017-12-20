@@ -1,5 +1,5 @@
-boardWidth = 624;
-boardHeight = 567;
+boardWidth = 625;
+boardHeight = 568;
 boardThickness = 9.95;
 
 frameWidth = 10;
@@ -31,10 +31,10 @@ module edge(boardSize) {
     cube([boardSize-2*cornerSize,frameThickness,boardThickness+frameThickness]);
 }
 
-//translate([frameWidth1+2,185,0]) rotate([0,0,-45]) edge(boardWidth);
+translate([frameWidth1+2,185,0]) rotate([0,0,-45]) edge(boardWidth+3);
 
 //translate([frameWidth1+40,180,0]) rotate([0,0,-45]) edge(boardHeight);
 
 
-render(convexity=2) corner();
+//render(convexity=2) corner();
 

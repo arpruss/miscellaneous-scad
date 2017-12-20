@@ -1,12 +1,14 @@
 //<skip>
-// F=forward, -/+=yaw, ^/&=pitch, </>=roll, [/]=push/pop
-rules = [["A", "^F[^^F>>>>>>A]>>>[^^F>>>>>>A]>>>>>[^^F>>>>>>A]"]];
+// F=forward, -/+=yaw, ^/&=pitch, </>=roll, s/S=scale down/up, [/]=push/pop
+rules = [["A", "^F[s^^F>>>>>>A]>>>[s^^F>>>>>>A]>>>>>[s^^F>>>>>>A]"]];
 axiom = "FA";
 forward = 5;
 angle = 15;
 iterations = 5;
+scaling = 1.1;
 
-module dummy();
+module dummy() {};
+
 baseState  = [ [], identityMatrix() ];
 functions = 
     [ 
@@ -17,6 +19,8 @@ functions =
       ["&", ["m", pitchMatrix(-angle)]],
       [">", ["m", rollMatrix(angle)]],
       ["<", ["m", rollMatrix(-angle)]],
+      ["s", ["m", scaleMatrix(1/scaling)]],
+      ["S", ["m", scaleMatrix(scaling)]],
       ["[", ["push"]],
       ["]", ["pop"]]
       ];
@@ -63,6 +67,10 @@ function rollMatrix(angle)
 function forwardMatrix(distance)
     = [[1,0,0,distance], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
                 
+function scaleMatrix(s)
+    = [[s,0,0,0], [0,s,0,0], [0,0,s,0], [0,0,0,1]];
+                
+      
 function identityMatrix()
     = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
                 
@@ -74,6 +82,7 @@ function evolveState1(f, state) =
     f[0] == "pop" ? concat([rest(state[0])], state[0][0]) :
     state;          
     
+// make a list of successive states, omitting the stack
 function evolveState(string, functions, state, n=0, soFar=[]) =
     n >= len(string) ? concat(soFar, [rest(state)]) :
         evolveState(string, functions,
