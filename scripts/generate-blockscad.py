@@ -113,6 +113,7 @@ def invokeFunction(name, *args):
     out.append('<block type="procedures_callreturn" x="0" y="%d" collapsed="true">' % yPosition)
     yPosition += SPACING
     out.append('<mutation name="%s">' % name)
+    assert(len(argumentDictionary[name]) == len(args));
     for arg in argumentDictionary[name]:
         out.append('<arg name="%s"/>' % arg)
     out.append('</mutation>')
