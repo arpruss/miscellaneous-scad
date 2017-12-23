@@ -50,63 +50,60 @@ def modulo(a, b):
 
 class EX(list):
     def __init__(self, x):
-        self.out = []
         if isinstance(x, Number):
-            self.out = number(x)
-        elif isinstance(x, EX):
-            self.out = x.out
+            super(EX, self).__init__(number(x))
         elif isinstance(x, string_types):
-            self.out = variable(x)
+            super(EX, self).__init__(variable(x))
         else:
-            self.out = x
+            super(EX, self).__init__(x)
     
     def __eq__(self, x):
-        return EX(compare(self.out, "EQ", EX(x).out))        
+        return EX(compare(self, "EQ", EX(x)))        
         
     def __lt__(self, x):
-        return EX(compare(self.out, "LT", EX(x).out))        
+        return EX(compare(self, "LT", EX(x)))        
         
     def __le__(self, x):
-        return EX(compare(self.out, "LE", EX(x).out))        
+        return EX(compare(self, "LE", EX(x)))        
         
     def __gt__(self, x):
-        return EX(compare(self.out, "GT", EX(x).out))        
+        return EX(compare(self, "GT", EX(x)))        
         
     def __ge__(self, x):
-        return EX(compare(self.out, "GE", EX(x).out))
+        return EX(compare(self, "GE", EX(x)))
         
     def __ne__(self, x):
-        return EX(compare(self.out, "NE", EX(x).out))
+        return EX(compare(self, "NE", EX(x)))
         
     def __add__(self, x):
-        return EX(math(self.out, "ADD", EX(x).out))
+        return EX(math(self, "ADD", EX(x)))
         
     def __sub__(self, x):
-        return EX(math(self.out, "SUBTRACT", EX(x).out))
+        return EX(math(self, "SUBTRACT", EX(x)))
         
     def __mul__(self, x):
-        return EX(math(self.out, "MULTIPLY", EX(x).out))
+        return EX(math(self, "MULTIPLY", EX(x)))
         
     def __div__(self, x):
-        return EX(math(self.out, "DIVIDE", EX(x).out))
+        return EX(math(self, "DIVIDE", EX(x)))
         
     def __pow__(self, x):
-        return EX(math(self.out, "POWER", EX(x).out))
+        return EX(math(self, "POWER", EX(x)))
         
     def __mod__(self, x):
-        return EX(modulo(self.out, EX(x).out))
+        return EX(modulo(self, EX(x)))
         
     def ifthen(self, yes, no):
         out = []
         out.append('<block type="logic_ternary">')
-        addvalue(out, "IF", self.out)
-        addvalue(out, "THEN", EX(yes).out)
-        addvalue(out, "ELSE", EX(no).out)
+        addvalue(out, "IF", self)
+        addvalue(out, "THEN", EX(yes))
+        addvalue(out, "ELSE", EX(no))
         out.append('</block>')
         return EX(out)
         
     def __repr__(self):
-        return "\n".join(self.out)
+        return "\n".join(self)
 
 def invokeFunction(name, *args):
     out = []
@@ -133,7 +130,7 @@ def function(name, args, value):
         out.append('<arg name="%s"/>' % arg)
     out.append('</mutation>')
     addfield(out, "NAME", name)
-    addvalue(out, "RETURN", EX(value).out)
+    addvalue(out, "RETURN", EX(value))
     out.append('</block>')
     return out
     
