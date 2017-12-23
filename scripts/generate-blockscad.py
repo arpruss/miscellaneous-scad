@@ -2,6 +2,7 @@ from six import string_types
 from numbers import Number
 
 out = []
+argumentDictionary = {}
 
 SPACING = 10
 yPosition = 0
@@ -107,12 +108,26 @@ class EX(list):
     def __repr__(self):
         return "\n".join(self.out)
 
+def invokeFunction(name, *args):
+    out = []
+    out.append('<block type="procedures_callreturn" x="0" y="%d" collapsed="true">' % yPosition)
+    yPosition += SPACING
+    out.append('<mutation name="%s">' % name)
+    for arg in argumentDictionary[name]:
+        out.append('<arg name="%s"/>' % arg)
+    out.append('</mutation>')
+    for i,arg in enumerate(args):
+        addvalue(out, "ARG%d"+i, arg)
+    out.append('</block>')
+    return EX(out)
+    
 def function(name, args, value):
     global yPosition
     out = []
     out.append('<block type="procedures_defreturn" x="0" y="%d" collapsed="true">' % yPosition)
     yPosition += SPACING
     out.append('<mutation statements="false">')
+    argumentDictionary[name] = args
     for arg in args:
         out.append('<arg name="%s"/>' % arg)
     out.append('</mutation>')
@@ -133,7 +148,6 @@ def ifthen(condition, yes, no):
 out.append('<?xml version="1.0" ?>')
 out.append('<xml xmlns="https://blockscad3d.com">')
 out.append('<version num="1.10.2"/>')
-    
     
 out += function("divisible by 5", ["x"], (EX("x") % 5 == 0).ifthen(1, 0))
 
