@@ -150,7 +150,7 @@ out.append('<?xml version="1.0" ?>')
 out.append('<xml xmlns="https://blockscad3d.com">')
 out.append('<version num="1.10.2"/>')
     
-out += function("divisible by 5", ["x"], (EX("x") % 5 == 0).ifthen(1, 0))
+out += function("divisible by 5", ["x%d"%i for i in range(1000)], (EX("x") % 5 == 0).ifthen(1, 0))
 
 out.append('</xml>')
 
