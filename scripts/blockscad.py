@@ -1,15 +1,27 @@
 from six import string_types
 from numbers import Number
 
-out = []
 argumentDictionary = {}
 
 SPACING = 10
 yPosition = 0
 ind = ""
 
+def addhead(out):
+    out.append('<?xml version="1.0" ?>')
+    out.append('<xml xmlns="https://blockscad3d.com">')
+    out.append('<version num="1.10.2"/>')
+    
+def addtail(out):
+    out.append('</xml>')
+
 def addvalue(out, name, value):
     out.append('<value name="%s">' % name)
+    out += value
+    out.append('</value>')
+    
+def addstatement(out, name, value):
+    out.append('<statement name="%s">' % name)
     out += value
     out.append('</value>')
     
@@ -31,7 +43,7 @@ def compare(a, op, b):
     out.append('</block>')
     return out
 
-def math(a, op, b):    
+def arithmetic(a, op, b):    
     out = []
     out.append('<block type="math_arithmetic">')
     addfield(out, "OP", op)
@@ -46,6 +58,16 @@ def modulo(a, b):
     addvalue(out, "DIVIDEND", a)
     addvalue(out, "DIVISOR", b)
     out.append('</block>')
+    return out
+    
+def setop(op, extra, base, list):
+    out = []
+    out.append('<block type="%s">'%op)
+    if len(list)>1:
+        out.append('<mutate %s="%d">'%(extra,len(list)-1))
+    addstatement(out, "A", base)
+    for i,item in enumerate(list):
+        addstatement(out, "%s%d" % (extra.upper(), i), item)
     return out
 
 class EX(list):
@@ -76,19 +98,19 @@ class EX(list):
         return EX(compare(self, "NE", EX(x)))
         
     def __add__(self, x):
-        return EX(math(self, "ADD", EX(x)))
+        return EX(arithmetic(self, "ADD", EX(x)))
         
     def __sub__(self, x):
-        return EX(math(self, "SUBTRACT", EX(x)))
+        return EX(arithmetic(self, "SUBTRACT", EX(x)))
         
     def __mul__(self, x):
-        return EX(math(self, "MULTIPLY", EX(x)))
+        return EX(arithmetic(self, "MULTIPLY", EX(x)))
         
     def __div__(self, x):
-        return EX(math(self, "DIVIDE", EX(x)))
+        return EX(arithmetic(self, "DIVIDE", EX(x)))
         
     def __pow__(self, x):
-        return EX(math(self, "POWER", EX(x)))
+        return EX(arithmetic(self, "POWER", EX(x)))
         
     def __mod__(self, x):
         return EX(modulo(self, EX(x)))
@@ -102,37 +124,77 @@ class EX(list):
         out.append('</block>')
         return EX(out)
         
+    def statementif(self, yes):
+        out = []
+        out.append('<block type="control_if">')
+        addvalue(out, "IF0", self)
+        addvalue(out, "DO0", EX(yes))
+        out.append('</block>')
+        return EX(out)
+        
+    def union(self, *args):
+        return EX(setop("union", "plus", self, args))
+        
+    def difference(self, *args):
+        return EX(setop("difference", "minus", self, args))
+        
     def __repr__(self):
         return "\n".join(self)
 
-def invokeFunction(name, *args):
+def function(name, args, value):
+    global yPosition
+    argumentDictionary[name] = args
+    if value is None:
+        return None
     out = []
-    out.append('<block type="procedures_callreturn" x="0" y="%d" collapsed="true">' % yPosition)
+    out.append('<block type="procedures_defreturn" x="0" y="%d" collapsed="true">' % yPosition)
     yPosition += SPACING
+    if args:
+        out.append('<mutation statements="false">')
+        for arg in args:
+            out.append('<arg name="%s"/>' % arg)
+        out.append('</mutation>')
+    addfield(out, "NAME", name)
+    addvalue(out, "RETURN", EX(value))
+    out.append('</block>')
+    return out
+    
+def module(name, args, value):
+    global yPosition
+    argumentDictionary[name] = args
+    if value is None:
+        return None
+    out = []
+    out.append('<block type="procedures_defnoreturn" x="0" y="%d" collapsed="true">' % yPosition)
+    yPosition += SPACING
+    if args:
+        out.append('<mutation>')
+        for arg in args:
+            out.append('<arg name="%s"/>' % arg)
+        out.append('</mutation>')
+    addfield(out, "NAME", name)
+    addstatement(out, "STACK", EX(value))
+    out.append('</block>')
+    return out
+    
+def invoke(name, type, args):
+    out = []
+    out.append('<block type="procedures_%s">' % type)
     out.append('<mutation name="%s">' % name)
     assert(len(argumentDictionary[name]) == len(args));
     for arg in argumentDictionary[name]:
         out.append('<arg name="%s"/>' % arg)
     out.append('</mutation>')
     for i,arg in enumerate(args):
-        addvalue(out, "ARG%d"+i, arg)
+        addvalue(out, "ARG%d"%i, arg)
     out.append('</block>')
     return EX(out)
     
-def function(name, args, value):
-    global yPosition
-    out = []
-    out.append('<block type="procedures_defreturn" x="0" y="%d" collapsed="true">' % yPosition)
-    yPosition += SPACING
-    out.append('<mutation statements="false">')
-    argumentDictionary[name] = args
-    for arg in args:
-        out.append('<arg name="%s"/>' % arg)
-    out.append('</mutation>')
-    addfield(out, "NAME", name)
-    addvalue(out, "RETURN", EX(value))
-    out.append('</block>')
-    return out
+def invokeModule(name, args):
+    return invoke(name, "procedures_callnoreturn", args)
+    
+def invokeFunction(name, args):
+    return invoke(name, "procedures_callreturn", args)
     
 def ifthen(condition, yes, no):
     out = []
@@ -143,12 +205,3 @@ def ifthen(condition, yes, no):
     out.append('</block>')
     return out
     
-out.append('<?xml version="1.0" ?>')
-out.append('<xml xmlns="https://blockscad3d.com">')
-out.append('<version num="1.10.2"/>')
-    
-out += function("divisible by 5", ["x%d"%i for i in range(1000)], (EX("x") % 5 == 0).ifthen(1, 0))
-
-out.append('</xml>')
-
-print('\n'.join(out))
