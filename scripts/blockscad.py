@@ -192,10 +192,10 @@ def invoke(name, type, args):
     return EX(out)
     
 def invokeModule(name, args):
-    return invoke(name, "procedures_callnoreturn", args)
+    return invoke(name, "callnoreturn", args)
     
 def invokeFunction(name, args):
-    return invoke(name, "procedures_callreturn", args)
+    return invoke(name, "callreturn", args)
     
 def ifthen(condition, yes, no):
     out = []

@@ -1,7 +1,7 @@
 from blockscad import *
 from math import *
 
-NUM_LEVELS = 2
+NUM_LEVELS = 1
 
 def rowSize(i):
     return 1 if i == 0 else int(ceil((i+1)/2.));
@@ -50,12 +50,14 @@ out = []
 
 addhead(out)
 
+module("test", [], None)
 module("draw", ["i","j"], None)
 module("evolve", ["n"]+vars, None)
 module("survive", ["self", "neighbors"], None)
 module("generate", ["self", "neighbors"], None)
-out += module("evolve", ["n"]+vars, (EX("n")==0).statementif( emitter() ).union( iterator() ) )
-out += module("go", [], invokeModule("evolve", [EX("iterations")]+[EX(0) for i in range(varCount)]) )
+out += module("test", [], invokeModule("draw", [EX("i"),EX("j")]).union(invokeModule("test", [])))
+#out += module("evolve", ["n"]+vars, (EX("n")==0).statementif( emitter() ).union( iterator() ) )
+#out += module("go", [], invokeModule("evolve", [EX("iterations")]+[EX(0) for i in range(varCount)]) )
 
 
 addtail(out)
