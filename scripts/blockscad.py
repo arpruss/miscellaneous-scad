@@ -23,7 +23,7 @@ def addvalue(out, name, value):
 def addstatement(out, name, value):
     out.append('<statement name="%s">' % name)
     out += value
-    out.append('</value>')
+    out.append('</statement>')
     
 def addfield(out, name, value):
     out.append('<field name="%s">%s</field>' % (name, value))
@@ -68,6 +68,7 @@ def setop(op, extra, base, list):
     addstatement(out, "A", base)
     for i,item in enumerate(list):
         addstatement(out, "%s%d" % (extra.upper(), i), item)
+    out.append('</block>')
     return out
 
 class EX(list):
