@@ -1,7 +1,7 @@
 from blockscad import *
 from math import *
 
-NUM_LEVELS = 1
+NUM_LEVELS = 3
 
 def rowSize(i):
     return 1 if i == 0 else int(ceil((i+1)/2.));
@@ -37,10 +37,10 @@ def emitter():
     return parts[0].union(*parts[1:])
     
 def evolved(i,j):
-    return (get(i,j)>0).ifthen(invokeFunction("survive", [get(i,j), neighborCount(i,j)]), invokeFunction("generate", [get(i,j), neighborCount(i,j)]))
+    return (get(i,j)>0).ifthen(invokeFunction("survive", [neighborCount(i,j)]), invokeFunction("generate", [neighborCount(i,j)]))
     
 def iterator():
-    args = [EX("iterations")-1]+[evolved(i,j) for i in range(NUM_LEVELS) for j in range(rowSize(i))]
+    args = [EX("n")-1]+[evolved(i,j) for i in range(NUM_LEVELS) for j in range(rowSize(i))]
     return invokeModule("evolve", args)
 
 vars = ["data_%d_%d" % (i,j) for i in range(NUM_LEVELS) for j in range(rowSize(i))]
@@ -50,15 +50,12 @@ out = []
 
 addhead(out)
 
-module("test", [], None)
-module("draw", ["i","j"], None)
-module("evolve", ["n"]+vars, None)
-module("survive", ["self", "neighbors"], None)
-module("generate", ["self", "neighbors"], None)
-out += module("test", [], invokeModule("draw", [EX("i"),EX("j")]).union(invokeModule("test", [])))
-#out += module("evolve", ["n"]+vars, (EX("n")==0).statementif( emitter() ).union( iterator() ) )
-#out += module("go", [], invokeModule("evolve", [EX("iterations")]+[EX(0) for i in range(varCount)]) )
-
+out += module("draw", ["i","j"], square(5,5).translate2(EX("i")*6,EX("j")*6) )
+function("evolve", ["n"]+vars, None)
+out += function("survive", ["neighbors"], EX(1))
+out += function("generate", ["neighbors"], (EX(1)==EX("neighbors")).ifthen(EX(1),EX(0)))
+out += module("evolve", ["n"]+vars, (EX("n")==0).statementif( emitter() ).union( iterator() ) )
+out += module("go", [], invokeModule("evolve", [EX("iterations")]+[EX(0) for i in range(varCount)]) )
 
 addtail(out)
 print('\n'.join([str(line) for line in out]))

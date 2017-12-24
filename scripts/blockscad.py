@@ -3,7 +3,7 @@ from numbers import Number
 
 argumentDictionary = {}
 
-SPACING = 10
+SPACING = 25
 yPosition = 0
 ind = ""
 
@@ -40,7 +40,7 @@ def compare(a, op, b):
     addfield(out, "OP", op)
     addvalue(out, "A", a)
     addvalue(out, "B", b)
-    out.append('</block>')
+    out.append('</block><!--logic_compare-->')
     return out
 
 def arithmetic(a, op, b):    
@@ -49,7 +49,7 @@ def arithmetic(a, op, b):
     addfield(out, "OP", op)
     addvalue(out, "A", a)
     addvalue(out, "B", b)
-    out.append('</block>')
+    out.append('</block><!--math_arithmetic-->')
     return out
 
 def modulo(a, b):    
@@ -57,18 +57,18 @@ def modulo(a, b):
     out.append('<block type="math_modulo">')
     addvalue(out, "DIVIDEND", a)
     addvalue(out, "DIVISOR", b)
-    out.append('</block>')
+    out.append('</block><!--math_modulo-->')
     return out
     
 def setop(op, extra, base, list):
     out = []
     out.append('<block type="%s">'%op)
     if len(list)>1:
-        out.append('<mutate %s="%d">'%(extra,len(list)-1))
+        out.append('<mutate %s="%d"/>'%(extra,len(list)-1))
     addstatement(out, "A", base)
     for i,item in enumerate(list):
         addstatement(out, "%s%d" % (extra.upper(), i), item)
-    out.append('</block>')
+    out.append('</block><!--setop-->')
     return out
 
 class EX(list):
@@ -102,7 +102,7 @@ class EX(list):
         return EX(arithmetic(self, "ADD", EX(x)))
         
     def __sub__(self, x):
-        return EX(arithmetic(self, "SUBTRACT", EX(x)))
+        return EX(arithmetic(self, "MINUS", EX(x)))
         
     def __mul__(self, x):
         return EX(arithmetic(self, "MULTIPLY", EX(x)))
@@ -127,7 +127,7 @@ class EX(list):
         
     def statementif(self, yes):
         out = []
-        out.append('<block type="control_if">')
+        out.append('<block type="controls_if">')
         addvalue(out, "IF0", self)
         addvalue(out, "DO0", EX(yes))
         out.append('</block>')
@@ -138,6 +138,25 @@ class EX(list):
         
     def difference(self, *args):
         return EX(setop("difference", "minus", self, args))
+        
+    def translate3(self, x, y, z):
+        out = []
+        out.append('<block type="translate">')
+        addvalue(out, "XVAL", x)
+        addvalue(out, "YVAL", y)
+        addvalue(out, "ZVAL", z)
+        addstatement(out, "A", self)
+        out.append('</block>')
+        return EX(out)
+        
+    def translate2(self, x, y):
+        out = []
+        out.append('<block type="translate">')
+        addvalue(out, "XVAL", x)
+        addvalue(out, "YVAL", y)
+        addstatement(out, "A", self)
+        out.append('</block>')
+        return EX(out)
         
     def __repr__(self):
         return "\n".join(self)
@@ -196,6 +215,15 @@ def invokeModule(name, args):
     
 def invokeFunction(name, args):
     return invoke(name, "callreturn", args)
+
+def square(x, y, center=False):
+    out = []
+    out.append('<block type="square">')
+    addfield(out, "CENTERDROPDOWN", "true" if center else "false")
+    addvalue(out, "XVAL", EX(x))
+    addvalue(out, "YVAL", EX(y))
+    out.append('</block>')
+    return EX(out)
     
 def ifthen(condition, yes, no):
     out = []
@@ -204,5 +232,5 @@ def ifthen(condition, yes, no):
     addvalue(out, "THEN", yes)
     addvalue(out, "ELSE", no)
     out.append('</block>')
-    return out
+    return EX(out)
     
