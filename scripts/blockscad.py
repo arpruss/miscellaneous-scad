@@ -64,11 +64,11 @@ def setop(op, extra, base, list):
     out = []
     out.append('<block type="%s">'%op)
     if len(list)>1:
-        out.append('<mutate %s="%d"/>'%(extra,len(list)-1))
+        out.append('<mutation %s="%d"/>'%(extra,len(list)-1))
     addstatement(out, "A", base)
     for i,item in enumerate(list):
         addstatement(out, "%s%d" % (extra.upper(), i), item)
-    out.append('</block><!--setop-->')
+    out.append('</block>')
     return out
 
 class EX(list):
