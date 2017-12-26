@@ -1,23 +1,19 @@
 hexSize = 10;
-steps = 50;
+// If you use join mode, it is recommended you set filledRatio to 0.5 or less.
+joinMode = 0; // [0:no, 1:yes]
+// How much of the hex to fill.
+filledFraction = 1;
+steps = 30;
 thickness = 2;
-// Generation rule. A sequence of 7 zero/one digits. The 1s digit says if a cell is generated when it has zero neighbors. The 10s digit says if a cell is generated when it has one neighbor. Etc. The rule "10" means: generate a new cell whenever there are no neighbors.
-generationRule = 0000001;
-// Survival rule. A sequence of 7 zero/one digits. The 1s digit says if a live cell survives when it has zero neighbors. The 10s digit says if a live cell survives when it has one neighbor. Etc. The rule "11" means: survive when you have at most one neighbor.
-survivalRule = 1111111;
-// This is a binary encoding of the generation and survival rules (7 bits generation followed by 7 bits generation).  Set to -1 if you want to use the decimal ones above. The range is 0 to 16383.
-binaryRule = -1;
+// Generation rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of generating with zero neighbors. The last entry is the probability of generating with six neighbors.
+generationRule = [0,1,0,0,0,0,1];
+// Survival rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of surviving with zero neighbors. The last entry is the probability of surviving with six neighbors.
+survivalRule = [1,1,1,1,1,1,1];
 
 module dummy(){}
 
-function digit(x,n) = floor(x / pow(10,n)) % 10;
-function bit(x,n) = floor(x / pow(2,n)) % 2;
-
 rules = 
-    binaryRule >= 0 ?
-    [ [for (i=[0:6]) bit(binaryRule,i)], [for (i=[0:6]) digit(binaryRule, i+7)] ]
-    :
-    [ [for (i=[0:6]) digit(generationRule,i)], [for (i=[0:6]) digit(survivalRule, i)] ];
+    [ generationRule, survivalRule ];
 
 animate = 0;
 
@@ -46,20 +42,36 @@ function neighborCount(data,i,j) =
     j == 0 ? get(data,i,-1)+get(data,i,1)+get(data,i+1,-1)+get(data,i+1,0)+get(data,i+1,1)+get(data,i-1,0) :
     get(data,i,j-1)+get(data,i,j+1)+get(data,i+1,j)+get(data,i+1,j+1)+get(data,i-1,j)+get(data,i-1,j-1);
     
-function evolve(data, n) = 
+function evolve(data, n, randOffset=0) = 
     n == 0 ? data :
     evolve(
      [ for(i=[0:len(data)]) 
         [ for(j=[0:rowSize(i)-1]) 
-            rules[get(data,i,j)][neighborCount(data,i,j)] ] ], n-1);
+            rules[get(data,i,j)][neighborCount(data,i,j)] >= rands(0,1,1)[0] * 0.999999 ? 1 : 0 ] ], n-1);
 
 function getCoordinates(i,j) = 
         hexSize*([0,i]+[cos(30),-sin(30)]*j);
 
+module show(i,j) {
+    foldout() 
+    translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
+}
+
 module visualize(data) {
+    for(i=[0:len(data)-1]) for(j=[0:rowSize(i)-1]) 
+        if(data[i][j] ) show(i,j);
+}    
+
+module visualizeJoined(data) {
     for(i=[0:len(data)-1]) for(j=[0:rowSize(i)-1])
-        if(data[i][j] )
-            translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3),$fn=6);
+        if(data[i][j]) {
+           if(get(data,i,j+1))
+                hull() { show(i,j); show(i,j+1); }
+           if(get(data,i+1,j))
+                hull() { show(i,j); show(i+1,j); }
+           if (get(data,i+1,j+1))
+                hull() { show(i,j); show(i+1,j+1); }
+        }
 }    
 
 module foldout() {
@@ -74,5 +86,8 @@ if (animate) {
 }
 else {
     linear_extrude(height=thickness)
-    foldout() visualize(evolve(data,steps));
+        if (joinMode)
+            visualizeJoined(evolve(data,steps));
+        else
+            visualize(evolve(data,steps));
 }
