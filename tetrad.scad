@@ -118,7 +118,8 @@ module board() {
 }
 
 boxSize = 3*dx+dx+s + 2 * boxTolerance;
-boxHeight = boxBottomWall + diameter + boardPieceTolerance + boxSliderWidth * 2 + boardThickness;
+boxHeight = boxBottomWall + diameter*cos(180/max(numberOfSides1,numberOfSides2)) + boxTolerance*2 + boxSliderWidth + boardThickness + 0.5;
+echo(boxHeight);
 
 module box() {
     size = boxSize;
