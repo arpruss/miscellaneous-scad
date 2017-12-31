@@ -1,7 +1,7 @@
 use <tubemesh.scad>;
 
 //<params>
-generate = 3; // [0:pieces, 1:board, 2:box, 3:demo]
+generate = 3; // [2:pieces, 1:board, 2:box, 3:demo]
 wall = 1;
 incut = 1;
 rounding = 2;
@@ -118,8 +118,7 @@ module board() {
 }
 
 boxSize = 3*dx+dx+s + 2 * boxTolerance;
-boxHeight = boxBottomWall + diameter*cos(180/max(numberOfSides1,numberOfSides2)) + boxTolerance*2 + boxSliderWidth + boardThickness + 0.5;
-echo(boxHeight);
+boxHeight = boxBottomWall + diameter*cos(180/max(numberOfSides1,numberOfSides2)) + boardPieceTolerance + boxSliderWidth + boardThickness;
 
 module box() {
     size = boxSize;
