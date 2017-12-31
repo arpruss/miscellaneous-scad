@@ -3,7 +3,7 @@
 // very nice and classical: 0.8,0.8,0.002,n100,r30, also n20, n50 is very nice
 // b0.7 is nice, too
 // elegant 1.6,0.7,.002
-alpha = 1.6;
+alpha = 0.8;
 beta = 0.7;
 gamma = 0.002;
 
@@ -40,10 +40,6 @@ function get(data,i,j) =
     j == rs ? ( i%2 ? data[i][rs-1] : data[i][rs-2] )
     : data[i][j] );    
     
-function neighborCount(data,i,j) =
-    j == 0 ? 2*get(data,i,1)+get(data,i+1,0)+2*get(data,i+1,1)+get(data,i-1,0) :
-    get(data,i,j-1)+get(data,i,j+1)+get(data,i+1,j)+get(data,i+1,j+1)+get(data,i-1,j)+get(data,i-1,j-1);
-
 function receptive(data,i,j) =
     get(data,i,j)>=1 || (
     j == 0 ? get(data,i,1)>=1 || get(data,i+1,0)>=1 || get(data,i+1,1)>=1 || get(data,i-1,0)>=1 :
@@ -52,17 +48,17 @@ function receptive(data,i,j) =
 function u(data,i,j) = 
     receptive(data,i,j) ? 0 : get(data,i,j);
     
-function neighborUCount(data,i,j) =
+function neighborUSum(data,i,j) =
     j == 0 ? 2*u(data,i,1)+u(data,i+1,0)+2*u(data,i+1,1)+u(data,i-1,0) :
     u(data,i,j-1)+u(data,i,j+1)+u(data,i+1,j)+u(data,i+1,j+1)+u(data,i-1,j)+u(data,i-1,j-1);
 
-function evolveCell(data,i,j) =
+/*function evolveCell(data,i,j) =
     let(r=receptive(data,i,j))
-        (r ? gamma : 0) + get(data,i,j) + (alpha/12)*(-6*u(data,i,j)+neighborUCount(data,i,j));
+        (r ? gamma : 0) + get(data,i,j) + (alpha/12)*(-6*u(data,i,j)+neighborUSum(data,i,j));
+*/
 
-// old: (1-alpha/2)u(center)+(alpha/2)*average
 function evolveCell(data,i,j) =
-        (receptive(data,i,j) ? gamma+get(data,i,j) : (1-alpha/2)*get(data,i,j)) + (alpha/12)*neighborUCount(data,i,j);
+        (receptive(data,i,j) ? gamma+get(data,i,j) : (1-alpha/2)*get(data,i,j)) + (alpha/12)*neighborUSum(data,i,j);
     
 function evolve(data, n) = 
     n == 0 ? data :
@@ -80,9 +76,8 @@ module show(i,j) {
 }
 
 module visualize(data) {
-    echo(data);
     for(i=[0:len(data)-1]) for(j=[0:rowSize(i)-1]) 
-        if(data[i][j]>=1) linear_extrude(height=data[i][j]*10) show(i,j);
+        if(data[i][j]>=1) linear_extrude(height=(data[i][j]-1)*40) show(i,j);
 }    
 
 module visualizeJoined(data) {
