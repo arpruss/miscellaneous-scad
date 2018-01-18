@@ -34,4 +34,4 @@ def process(name):
 process(sys.argv[1])
 if params:
     params.append("\nmodule end_of_parameters_dummy() {}\n")
-print "\n".join(params+output)
+print("\n".join(params+output))

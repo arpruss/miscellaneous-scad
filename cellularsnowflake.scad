@@ -6,9 +6,12 @@ filledFraction = 1;
 steps = 40;
 thickness = 2;
 // Generation rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of generating with zero neighbors. The last entry is the probability of generating with six neighbors.
-generationRule = [0,.2,0,0,0,0,0];
+generationRule = [0,.1,0,0,0,0,0];
 // Survival rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of surviving with zero neighbors. The last entry is the probability of surviving with six neighbors.
 survivalRule = [1,1,1,1,1,1,1];
+color1 = [.26,.71,1];
+color2 = [1,1,1];
+
 
 module dummy(){}
 
@@ -17,7 +20,7 @@ rules =
 
 animate = 0;
 
-data = [[1]];
+data = [[steps+1]];
 
 cos30 = cos(30);
 sin30 = sin(30);
@@ -28,7 +31,7 @@ function rowSize(i) =
 
 // This allows data to be got at points at one
 // remove from the data by using symmetries.
-function get(data,i,j) = 
+function getExact(data,i,j) = 
     i >= len(data) ? 0 :
     i <= 1 ? data[i][0] :
     let(rs = rowSize(i)) (
@@ -36,6 +39,12 @@ function get(data,i,j) =
     j == rs ? ( i%2 ? data[i][rs-1] : data[i][rs-2] )
     : data[i][j] );
     
+function get(data,i,j) = 
+    getExact(data,i,j) > 0 ? 1 : 0;
+    
+function getColor(n) =
+    let(t=(steps+1-n)/steps) 
+        (1-t)*color1+t*color2;
 
 function neighborCount(data,i,j) =
     i == 0 ? 6*get(data,1,0) :
@@ -47,19 +56,23 @@ function evolve(data, n, randOffset=0) =
     evolve(
      [ for(i=[0:len(data)]) 
         [ for(j=[0:rowSize(i)-1]) 
-            rules[get(data,i,j)][neighborCount(data,i,j)] >= rands(0,1,1)[0] * 0.999999 ? 1 : 0 ] ], n-1);
+            rules[get(data,i,j)][neighborCount(data,i,j)] >= rands(0,1,1)[0] * 0.999999 ? (getExact(data,i,j)>0 ? getExact(data,i,j) : n) : 0 ] ], n-1);
 
 function getCoordinates(i,j) = 
         hexSize*([0,i]+[cos(30),-sin(30)]*j);
 
-module show(i,j) {
+module show(i,j,n) {
+    echo(i,j,n);
+    color(getColor(n))
+    linear_extrude(height=thickness)
     foldout() 
     translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
 }
 
 module visualize(data) {
+    echo(data);
     for(i=[0:len(data)-1]) for(j=[0:rowSize(i)-1]) 
-        if(data[i][j] ) show(i,j);
+        if(data[i][j] > 0) show(i,j,data[i][j]);
 }    
 
 module visualizeJoined(data) {
@@ -85,8 +98,8 @@ if (animate) {
     foldout() visualize(evolve(data,round($t*steps)));
 }
 else {
-    linear_extrude(height=thickness)
         if (joinMode)
+            linear_extrude(height=thickness)
             visualizeJoined(evolve(data,steps));
         else
             visualize(evolve(data,steps));
