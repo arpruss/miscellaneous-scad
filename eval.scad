@@ -1,5 +1,6 @@
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
+function _isFloat(v) = v+0 != undef;
 
 function _substr(s, start=0, stop=undef, soFar = "") =
     start >= (stop==undef ? len(s) : stop) ? soFar :
@@ -333,6 +334,7 @@ function _optimize(expression) =
         
 function compileFunction(expression,optimize=true) = 
             _isVector(expression) ? expression :
+            _isFloat(expression) ? expression :
             let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
