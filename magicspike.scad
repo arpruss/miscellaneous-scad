@@ -1,4 +1,4 @@
-thickness = 3;
+thickness = 2.5;
 handleDiameter = 10;
 length = 77;
 
