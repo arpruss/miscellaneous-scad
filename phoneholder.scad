@@ -1,5 +1,6 @@
 use <paths.scad>;
 
+//<params>
 b1 = 79.5;
 b1a = 85.0;
 b2 = 87;
@@ -19,6 +20,10 @@ snapInset = 1.5;
 snapThickness = 1.5;
 holderWidth = 26;
 rounding = 0.8;
+//</params>
+
+module dummy() {}
+
 nudge = 0.001;
 
 rightPath = 
