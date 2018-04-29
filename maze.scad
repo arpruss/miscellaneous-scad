@@ -6,6 +6,13 @@ innerWallHeight = 10;
 outerWallThickness = 2;
 outerWallHeight = 16;
 baseThickness = 1;
+flareSize = 1;
+
+module dummy() {}
+
+$fn = 24;
+
+nudge = 0.001;
 
 // Algorithm:   https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
 
@@ -81,22 +88,38 @@ module renderInside(maze,spacing=10) {
         }
 }
 
-module renderOutside(nudge, spacing=10) {
+module renderOutside(offset, spacing=10) {
     for(wall=wallCoordinates) {
         hull() {
             for(i=[0:1])
-            translate([(0.5+wall[i][0])*spacing*horizontalCells+nudge*sign(wall[i][0]),(0.5+wall[i][1])*spacing*verticalCells+nudge*sign(wall[i][0])]) children();
+            translate([(0.5+wall[i][0])*spacing*horizontalCells+offset*sign(wall[i][0]),(0.5+wall[i][1])*spacing*verticalCells+offset*sign(wall[i][0])]) children();
         }
     }
 }
-        
-maze = iterateMaze(baseMaze([0,0]), [0,0]);
-$fn = 16;
 
-translate([0,0,baseThickness]) {
-    renderInside(maze, spacing=cellSize) cylinder(d=innerWallThickness,h=innerWallHeight);        
-    renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
+module mazeBox(h) {
+    hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=h);
 }
 
-if(baseThickness>0)
-hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=baseThickness);
+module flare(height,diameter,flareSize) {
+    if (flareSize>0) {
+        translate([0,0,height-flareSize])
+        cylinder(h=flareSize,d1=diameter,d2=diameter+2*flareSize);
+    }
+}
+        
+module maze() {
+    maze = iterateMaze(baseMaze([0,0]), [0,0]);
+
+    translate([0,0,baseThickness]) {
+        renderInside(maze, spacing=cellSize)            cylinder(h=innerWallHeight,d=innerWallThickness);
+        if(flareSize>0)
+        renderInside(maze, spacing=cellSize)            flare(innerWallHeight,innerWallThickness,flareSize);
+    renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
+    }
+
+    if(baseThickness>0)
+        mazeBox(h=baseThickness+nudge);
+}
+
+maze();
