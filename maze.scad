@@ -1,4 +1,4 @@
-// Algorithm: https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
+// Algorithm:   https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
 
 mazeWidth = 16;
 mazeHeight = 12;
