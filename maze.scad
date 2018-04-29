@@ -1,12 +1,12 @@
-horizontalCells = 16;
-verticalCells = 12;
+horizontalCells = 20;
+verticalCells = 16;
 cellSize = 10;
 innerWallThickness = 1;
 innerWallHeight = 10;
 outerWallThickness = 2;
 outerWallHeight = 16;
 baseThickness = 1;
-flareSize = 0;
+flareSize = 2;
 
 module dummy() {}
 
@@ -121,16 +121,17 @@ module maze0() {
     }
 
     if(baseThickness>0)
-        #mazeBox(baseThickness+nudge);
+        mazeBox(baseThickness+nudge);
 }
 
 module maze() {
+    if (flareSize>0) 
     render(convexity=1)
     intersection() {
       maze0();
-        if (flareSize>0)
       mazeBox(h=baseThickness+outerWallHeight+innerWallHeight);
     }
+    else maze0();
 }
 
 maze();
