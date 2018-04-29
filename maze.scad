@@ -1,12 +1,15 @@
-horizontalCells = 20;
-verticalCells = 16;
+horizontalCells = 6;
+verticalCells = 6;
 cellSize = 10;
 innerWallThickness = 1;
 innerWallHeight = 10;
 outerWallThickness = 2;
-outerWallHeight = 16;
+outerWallHeight = 10;
 baseThickness = 1;
 flareSize = 2;
+startHolePosition = 1; // [0:None, -1:Bottom, 1:Top]
+endHolePosition = -1; // [0:None, -1:Bottom, 1:Top]
+seed = 0;
 
 module dummy() {}
 
@@ -26,6 +29,8 @@ wallCoordinates = [ [ [-0.5,-0.5],[-0.5,0.5] ],
     [ [-0.5,-0.5],[0.5,-0.5] ],
     [ [-0.5,0.5],[0.5,0.5] ] ];
 revDirections = [1,0,3,2];
+
+rs = rands(0,.9999999,ceil(horizontalCells * verticalCells * len(directions) / 2),seed);
 
 function inside(pos) = pos[0] >= 0 && pos[1] >= 0 && pos[0] < horizontalCells && pos[1] < verticalCells;
 function move(pos,dir) = pos+directions[dir];
@@ -97,36 +102,57 @@ module renderOutside(offset, spacing=10) {
     }
 }
 
+module innerWall() {
+    linear_extrude(height=innerWallHeight) square(innerWallThickness, center=true);
+}
+
+module innerWallFlare() {
+    translate([0,0,innerWallHeight-flareSize]) linear_extrude(height=flareSize,scale=(flareSize*2+innerWallThickness)/innerWallThickness) square(innerWallThickness,center=true);
+}
+
 module mazeBox(h) {
     linear_extrude(height=h) hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) circle(d=outerWallThickness);
 }
 
-module flare(height,diameter,flareSize) {
-    if (flareSize>0) {
-        translate([0,0,height-flareSize])
-        cylinder(h=flareSize,d1=diameter,d2=diameter+2*flareSize);
+module hole(x,y,position,spacing=10) {
+    if (position != 0) {
+        holeSize=spacing-innerWallThickness;
+        translate([(x+0.5)*spacing,(y+0.5)*spacing,0])
+        if (position>0) {
+            translate([0,0,baseThickness+nudge]) cylinder(h=outerWallHeight+innerWallHeight,d=holeSize,$fn=32);
+        }
+        else {
+            translate([0,0,-nudge]) cylinder(h=baseThickness+3*nudge,d=holeSize,$fn=32);
+        }
     }
 }
         
 module maze0() {
-    maze = iterateMaze(baseMaze([0,0]), [0,0]);
+    difference() {
+        union() {
+            maze = iterateMaze(baseMaze([0,0]), [0,0]);
 
-    translate([0,0,baseThickness]) {
-        renderInside(maze, spacing=cellSize)            cylinder(h=innerWallHeight,d=innerWallThickness);
-        if(flareSize>0)
-        renderInside(maze, spacing=cellSize)            flare(innerWallHeight,innerWallThickness,flareSize);
-    renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
-        if(flareSize>0)
-        renderOutside(0, spacing=cellSize)            flare(innerWallHeight,innerWallThickness,flareSize);
+            translate([0,0,baseThickness]) {
+                renderInside(maze, spacing=cellSize)            innerWall();
+                if (flareSize>0)
+                    renderInside(maze, spacing=cellSize)            innerWallFlare();
+            renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
+            if(flareSize>0)
+            renderOutside(0, spacing=cellSize)            innerWallFlare();
+            }
+
+            if(baseThickness>0)
+                mazeBox(baseThickness+nudge);
+        }
+        
+        hole(horizontalCells-1,verticalCells-1,endHolePosition,spacing=cellSize);
+        hole(0,0,startHolePosition,spacing=cellSize);
     }
-
-    if(baseThickness>0)
-        mazeBox(baseThickness+nudge);
 }
 
 module maze() {
     if (flareSize>0) 
-    render(convexity=1)
+    //render(convexity=0)
     intersection() {
       maze0();
       mazeBox(h=baseThickness+outerWallHeight+innerWallHeight);
