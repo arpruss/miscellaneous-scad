@@ -108,7 +108,7 @@ module flare(height,diameter,flareSize) {
     }
 }
         
-module maze() {
+module maze0() {
     maze = iterateMaze(baseMaze([0,0]), [0,0]);
 
     translate([0,0,baseThickness]) {
@@ -116,10 +116,20 @@ module maze() {
         if(flareSize>0)
         renderInside(maze, spacing=cellSize)            flare(innerWallHeight,innerWallThickness,flareSize);
     renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
+        if(flareSize>0)
+        renderOutside(0, spacing=cellSize)            flare(innerWallHeight,innerWallThickness,flareSize);
     }
 
     if(baseThickness>0)
-        mazeBox(h=baseThickness+nudge);
+        mazeBox(baseThickness+nudge);
+}
+
+module maze() {
+    render(convexity=2)
+    intersection() {
+      maze0();
+      mazeBox(h=baseThickness+outerWallHeight+innerWallHeight);
+    }
 }
 
 maze();
