@@ -1,7 +1,13 @@
-// Algorithm:   https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
+horizontalCells = 16;
+verticalCells = 12;
+cellSize = 10;
+innerWallThickness = 1;
+innerWallHeight = 10;
+outerWallThickness = 2;
+outerWallHeight = 16;
+baseThickness = 1;
 
-mazeWidth = 16;
-mazeHeight = 12;
+// Algorithm:   https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
 
 // cell structure: [visited, [wall1, wall2, ...]]
 // position: [x,y]
@@ -14,7 +20,7 @@ wallCoordinates = [ [ [-0.5,-0.5],[-0.5,0.5] ],
     [ [-0.5,0.5],[0.5,0.5] ] ];
 revDirections = [1,0,3,2];
 
-function inside(pos) = pos[0] >= 0 && pos[1] >= 0 && pos[0] < mazeWidth && pos[1] < mazeHeight;
+function inside(pos) = pos[0] >= 0 && pos[1] >= 0 && pos[0] < horizontalCells && pos[1] < verticalCells;
 function move(pos,dir) = pos+directions[dir];
 function tail(list) = len(list)>1 ? [for(i=[1:len(list)-1]) list[i]] : [];
 function visited(cells,pos) = !inside(pos) || cells[pos[0]][pos[1]][0];
@@ -33,7 +39,7 @@ function getRandomUnvisitedNeighbor(cells,pos) =
 function visit(cells, pos, dir) = 
     let(newPos=move(pos,dir),
         revDir=revDirections[dir])
-    [ for(x=[0:mazeWidth-1]) [ for(y=[0:mazeHeight-1]) 
+    [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
         let(isNew=[x,y]==newPos,
             isOld=[x,y]==pos)
         [ cells[x][y][0] || isNew,
@@ -51,7 +57,7 @@ function iterateMaze(cells,pos,stack=[]) =
         iterateMaze(cells,stack[0],tail(stack)) :
     cells;
 function baseMaze(pos) = 
-    [ for(x=[0:mazeWidth-1]) [ for(y=[0:mazeHeight-1]) 
+    [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
         [ [x,y] == pos,
         [for (i=[0:len(directions)-1])
             inside(move([x,y],i))] ] ] ];
@@ -75,17 +81,22 @@ module renderInside(maze,spacing=10) {
         }
 }
 
-module renderOutside(spacing=10) {
+module renderOutside(nudge, spacing=10) {
     for(wall=wallCoordinates) {
         hull() {
             for(i=[0:1])
-            translate([(0.5+wall[i][0])*spacing*mazeWidth,(0.5+wall[i][1])*spacing*mazeHeight]) children();
+            translate([(0.5+wall[i][0])*spacing*horizontalCells+nudge*sign(wall[i][0]),(0.5+wall[i][1])*spacing*verticalCells+nudge*sign(wall[i][0])]) children();
         }
     }
 }
         
 maze = iterateMaze(baseMaze([0,0]), [0,0]);
-renderInside(maze) cylinder(d=1,h=10);        
-renderOutside() cylinder(d=1.5,h=15);        
+$fn = 16;
 
-        
+translate([0,0,baseThickness]) {
+    renderInside(maze, spacing=cellSize) cylinder(d=innerWallThickness,h=innerWallHeight);        
+    renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=outerWallHeight);        
+}
+
+if(baseThickness>0)
+hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=baseThickness);
