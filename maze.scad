@@ -9,6 +9,7 @@ baseThickness = 1;
 flareSize = 2;
 startHolePosition = 1; // [0:None, -1:Bottom, 1:Top]
 endHolePosition = -1; // [0:None, -1:Bottom, 1:Top]
+// set seed to something other than 0 for a repeatable design
 seed = 0;
 
 module dummy() {}
@@ -30,7 +31,7 @@ wallCoordinates = [ [ [-0.5,-0.5],[-0.5,0.5] ],
     [ [-0.5,0.5],[0.5,0.5] ] ];
 revDirections = [1,0,3,2];
 
-rs = rands(0,.9999999,ceil(horizontalCells * verticalCells * len(directions) / 2),seed);
+rs = seed ? rands(0,.9999999,ceil(horizontalCells * verticalCells * len(directions) / 2),seed) : rands(0,.9999999,ceil(horizontalCells * verticalCells * len(directions) / 2));
 
 function inside(pos) = pos[0] >= 0 && pos[1] >= 0 && pos[0] < horizontalCells && pos[1] < verticalCells;
 function move(pos,dir) = pos+directions[dir];
@@ -44,10 +45,10 @@ function getNthUnvisitedNeighbor(cells,pos,count,dir=0) =
         ( count == 0 ? dir :
             getNthUnvisitedNeighbor(cells,pos,count-1,dir=dir+1) ) :
         getNthUnvisitedNeighbor(cells,pos,count,dir=dir+1);
-function getRandomUnvisitedNeighbor(cells,pos) =
+function getRandomUnvisitedNeighbor(cells,pos,r) =
     let(n=countUnvisitedNeighbors(cells,pos))
     n == 0 ? undef :
-        getNthUnvisitedNeighbor(cells,pos,floor(rands(0,n-0.0000001,1)[0]));
+        getNthUnvisitedNeighbor(cells,pos,floor(r*n));
 function visit(cells, pos, dir) = 
     let(newPos=move(pos,dir),
         revDir=revDirections[dir])
@@ -61,13 +62,14 @@ function visit(cells, pos, dir) =
             && ( !isOld || i != dir)
         ]]]];
 
-function iterateMaze(cells,pos,stack=[]) = 
-    let(unvisited = getRandomUnvisitedNeighbor(cells,pos))
+function iterateMaze(cells,pos,stack=[],rs=rs) = 
+    let(unvisited = getRandomUnvisitedNeighbor(cells,pos,rs[0]))
     unvisited != undef ? 
-        iterateMaze(visit(cells, pos, unvisited), move(pos,unvisited), concat([pos], stack)) : 
+        iterateMaze(visit(cells, pos, unvisited), move(pos,unvisited), concat([pos], stack), rs=tail(rs)) : 
     len(stack) > 0 ?
-        iterateMaze(cells,stack[0],tail(stack)) :
+        iterateMaze(cells,stack[0],tail(stack), rs=tail(rs)) :
     cells;
+        
 function baseMaze(pos) = 
     [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
         [ [x,y] == pos,
@@ -103,11 +105,11 @@ module renderOutside(offset, spacing=10) {
 }
 
 module innerWall() {
-    linear_extrude(height=innerWallHeight) square(innerWallThickness, center=true);
+    linear_extrude(height=innerWallHeight) circle(d=innerWallThickness, center=true);
 }
 
 module innerWallFlare() {
-    translate([0,0,innerWallHeight-flareSize]) linear_extrude(height=flareSize,scale=(flareSize*2+innerWallThickness)/innerWallThickness) square(innerWallThickness,center=true);
+    translate([0,0,innerWallHeight-flareSize]) linear_extrude(height=flareSize,scale=(flareSize*2+innerWallThickness)/innerWallThickness) circle(d=innerWallThickness,center=true);
 }
 
 module mazeBox(h) {
