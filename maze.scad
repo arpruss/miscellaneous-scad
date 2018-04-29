@@ -1,12 +1,12 @@
-horizontalCells = 6;
-verticalCells = 6;
-cellSize = 10;
+horizontalCells = 16;
+verticalCells = 16;
+cellSize = 13.5;
 innerWallThickness = 1;
-innerWallHeight = 10;
+innerWallHeight = 13;
 outerWallThickness = 2;
-outerWallHeight = 10;
+outerWallHeight = 13;
 baseThickness = 1;
-flareSize = 2;
+flareSize = 1.5;
 startHolePosition = 1; // [0:None, -1:Bottom, 1:Top]
 endHolePosition = -1; // [0:None, -1:Bottom, 1:Top]
 // set seed to something other than 0 for a repeatable design
