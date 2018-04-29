@@ -6,11 +6,11 @@ innerWallHeight = 10;
 outerWallThickness = 2;
 outerWallHeight = 16;
 baseThickness = 1;
-flareSize = 1;
+flareSize = 0;
 
 module dummy() {}
 
-$fn = 24;
+$fn = 16;
 
 nudge = 0.001;
 
@@ -98,7 +98,7 @@ module renderOutside(offset, spacing=10) {
 }
 
 module mazeBox(h) {
-    hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) cylinder(d=outerWallThickness,h=h);
+    linear_extrude(height=h) hull() renderOutside(max(0,(outerWallThickness-innerWallThickness)/2),spacing=cellSize) circle(d=outerWallThickness);
 }
 
 module flare(height,diameter,flareSize) {
@@ -121,13 +121,14 @@ module maze0() {
     }
 
     if(baseThickness>0)
-        mazeBox(baseThickness+nudge);
+        #mazeBox(baseThickness+nudge);
 }
 
 module maze() {
-    render(convexity=2)
+    render(convexity=1)
     intersection() {
       maze0();
+        if (flareSize>0)
       mazeBox(h=baseThickness+outerWallHeight+innerWallHeight);
     }
 }
