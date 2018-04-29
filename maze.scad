@@ -1,10 +1,10 @@
 horizontalCells = 12;
 verticalCells = 12;
-cellSize = 13.5;
-innerWallThickness = 1;
-innerWallHeight = 13;
+cellSize = 13.25;
+innerWallThickness = 0.75;
+innerWallHeight = 11.5;
 outerWallThickness = 2;
-outerWallHeight = 13;
+outerWallHeight = 11.5;
 baseThickness = 1;
 flareSize = 1.5;
 startHolePosition = 1; // [0:None, -1:Bottom, 1:Top]
