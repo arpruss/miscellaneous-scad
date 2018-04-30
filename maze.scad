@@ -1,16 +1,17 @@
 horizontalCells = 12;
 verticalCells = 12;
-cellSize = 13.25;
+cellSize = 12.5;
 innerWallThickness = 0.75;
 innerWallHeight = 11.5;
 outerWallThickness = 2;
 outerWallHeight = 11.5;
 baseThickness = 1;
-flareSize = 1.5;
-startHolePosition = 1; // [0:None, -1:Bottom, 1:Top]
-endHolePosition = -1; // [0:None, -1:Bottom, 1:Top]
+// To keep a ball of diameter d from falling out, make flare size be bigger than 2*(cellSize-innerWallThickness)/(2+sqrt(2))-d/2
+flareSize = 1.6;
+startAndEndMarkers = 1; // [0:No, 1:Yes]
+startInset = 0.5;
 // set seed to something other than 0 for a repeatable design
-seed = 0;
+seed = 5;
 
 module dummy() {}
 
@@ -41,10 +42,10 @@ function countUnvisitedNeighbors(cells,pos,count=0, dir=0) = dir >= len(directio
         count :        
         countUnvisitedNeighbors(cells, pos, count = count + (visited(cells,move(pos,dir))?0:1), dir = dir+1);
 function getNthUnvisitedNeighbor(cells,pos,count,dir=0) =
-    !visited(cells,move(pos,dir)) ?
-        ( count == 0 ? dir :
-            getNthUnvisitedNeighbor(cells,pos,count-1,dir=dir+1) ) :
-        getNthUnvisitedNeighbor(cells,pos,count,dir=dir+1);
+    visited(cells,move(pos,dir)) ?
+        getNthUnvisitedNeighbor(cells,pos,count,dir=dir+1) :
+    count == 0 ? dir :
+    getNthUnvisitedNeighbor(cells,pos,count-1,dir=dir+1);
 function getRandomUnvisitedNeighbor(cells,pos,r) =
     let(n=countUnvisitedNeighbors(cells,pos))
     n == 0 ? undef :
@@ -75,6 +76,35 @@ function baseMaze(pos) =
         [ [x,y] == pos,
         [for (i=[0:len(directions)-1])
             inside(move([x,y],i))] ] ] ];
+
+function walled(cells,pos,dir) =
+    cells[pos[0]][pos[1]][1][dir];
+
+function countUnvisitedNeighborsWalled(cells,pos,count=0, dir=0) = dir >= len(directions) ? 
+        count :        
+        countUnvisitedNeighborsWalled(cells, pos, count = count + ((walled(cells,pos,dir) || visited(cells,move(pos,dir)))?0:1), dir = dir+1);
+function getNthUnvisitedNeighborWalled(cells,pos,count,dir=0) =
+    (walled(cells,pos,dir) || visited(cells,move(pos,dir))) ?
+        getNthUnvisitedNeighborWalled(cells,pos,count,dir=dir+1) :
+    count == 0 ? dir :
+        getNthUnvisitedNeighborWalled(cells,pos,count-1,dir=dir+1);
+
+function revisit(maze,pos) = 
+    [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
+        [ [x,y] == pos,
+          maze[x][y][1] ] ] ];
+
+function getLongest(options,pos=0,best=[]) =
+        len(options)<=pos ? best :
+    getLongest(options,pos=pos+1,best=    best[0]>=options[pos][0] ? best : options[pos]);
+
+function furthest(maze,pos,length=1)
+    = let(n=countUnvisitedNeighborsWalled(maze,pos))
+      n == 0 ? [length,pos] :
+      getLongest([for (i=[0:n-1]) 
+         let(dir=getNthUnvisitedNeighborWalled(maze,pos,i))
+         furthest(visit(maze,pos,dir),move(pos,dir),length=length+1)]);
+
 
 module renderWall(dir,spacing) {
     hull() {
@@ -121,7 +151,7 @@ module hole(x,y,position,spacing=10) {
         holeSize=spacing-innerWallThickness;
         translate([(x+0.5)*spacing,(y+0.5)*spacing,0])
         if (position>0) {
-            translate([0,0,baseThickness+nudge]) cylinder(h=outerWallHeight+innerWallHeight,d=holeSize,$fn=32);
+            translate([0,0,baseThickness+nudge-startInset]) cylinder(h=outerWallHeight+innerWallHeight,d=holeSize,$fn=32);
         }
         else {
             translate([0,0,-nudge]) cylinder(h=baseThickness+3*nudge,d=holeSize,$fn=32);
@@ -130,9 +160,9 @@ module hole(x,y,position,spacing=10) {
 }
         
 module maze0() {
+    maze = iterateMaze(baseMaze([0,0]), [0,0]);
     difference() {
         union() {
-            maze = iterateMaze(baseMaze([0,0]), [0,0]);
 
             translate([0,0,baseThickness]) {
                 renderInside(maze, spacing=cellSize)            innerWall();
@@ -146,15 +176,22 @@ module maze0() {
             if(baseThickness>0)
                 mazeBox(baseThickness+nudge);
         }
-        
-        hole(horizontalCells-1,verticalCells-1,endHolePosition,spacing=cellSize);
-        hole(0,0,startHolePosition,spacing=cellSize);
+        if(startAndEndMarkers) {
+            options = 
+                [for (pos=[[0,0],[horizontalCells-1,0],[horizontalCells-1,verticalCells-1],[0,verticalCells-1]])
+                    concat(furthest(revisit(maze,pos),pos), [pos]) ];
+            f = getLongest(options);
+            start = f[2];
+            end = f[1];
+            
+            hole(end[0],end[1],-1,spacing=cellSize);
+            hole(start[0],start[1],1,spacing=cellSize);
+        }
     }
 }
 
 module maze() {
     if (flareSize>0) 
-    //render(convexity=0)
     intersection() {
       maze0();
       mazeBox(h=baseThickness+outerWallHeight+innerWallHeight);
