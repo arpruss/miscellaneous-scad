@@ -1,13 +1,12 @@
-horizontalCells = 12;
-verticalCells = 12;
+horizontalCells = 2;
+verticalCells = 2;
 cellSize = 12.5;
 innerWallThickness = 0.75;
 innerWallHeight = 11.5;
 outerWallThickness = 2;
 outerWallHeight = 11.5;
 baseThickness = 1;
-// To keep a ball of diameter d from falling out, make flare size be bigger than 2*(cellSize-innerWallThickness)/(2+sqrt(2))-d/2
-flareSize = 1.6;
+flareSize = 2.4;
 startAndEndMarkers = 1; // [0:No, 1:Yes]
 startInset = 0.5;
 // set seed to something other than 0 for a repeatable design
@@ -129,7 +128,7 @@ module renderOutside(offset, spacing=10) {
     for(wall=wallCoordinates) {
         hull() {
             for(i=[0:1])
-            translate([(0.5+wall[i][0])*spacing*horizontalCells+offset*sign(wall[i][0]),(0.5+wall[i][1])*spacing*verticalCells+offset*sign(wall[i][0])]) children();
+            translate([(0.5+wall[i][0])*spacing*horizontalCells+offset*sign(wall[i][0]),(0.5+wall[i][1])*spacing*verticalCells+offset*sign(wall[i][1])]) children();
         }
     }
 }
