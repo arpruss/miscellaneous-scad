@@ -1,5 +1,5 @@
-horizontalCells = 2;
-verticalCells = 2;
+horizontalCells = 12;
+verticalCells = 12;
 cellSize = 12.5;
 innerWallThickness = 0.75;
 innerWallHeight = 11.5;
