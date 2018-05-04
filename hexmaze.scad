@@ -7,6 +7,8 @@ outerWallThickness = 1.5;
 outerWallHeight = 13;
 baseThickness = 1;
 startEndInset = 0.5;
+flangeWidth = 2;
+flangeAngle = 45;
 // set seed to something other than 0 for a repeatable design
 seed = 5;
 
@@ -132,6 +134,16 @@ module renderWall(dir,outer) {
         translate(wallLength*wallCoordinates[dir][1])
             cylinder(d=thickness,h=height);
     }
+    if (flangeWidth>0 && flangeAngle > 0) {
+        flangeHeight = flangeWidth/tan(flangeAngle);
+        translate([0,0,height-flangeHeight])
+            hull() {
+                translate(wallLength*wallCoordinates[dir][0])
+                    cylinder(d1=thickness,d2=thickness+flangeWidth, h=flangeHeight);
+                translate(wallLength*wallCoordinates[dir][1])
+                    cylinder(d1=thickness,d2=thickness+flangeWidth, h=flangeHeight);
+            }
+    }
 }
 
 module renderMaze(maze) {
@@ -172,20 +184,27 @@ module maze0() {
     b=baseMaze([cx,cy]);
      maze = iterateMaze(baseMaze([cx,cy]), [cx,cy]);
     translate([0,0,baseThickness-nudge])
-    renderMaze(maze, spacing=wallLength); cylinder(d=innerWallThickness,h=innerWallHeight);
-    if (baseThickness>0)
+    renderMaze(maze, spacing=wallLength);  if (baseThickness>0)
     linear_extrude(height=baseThickness)
     base();
 }
 
 module mark(xy) {
-    translate([0,0,baseThickness-startEndInset+nudge])
     translate(toDisplay(xy))
-    cylinder(d=wallLength,h=startEndInset);
+    translate([0,0,baseThickness-startEndInset+nudge])
+    cylinder(d1=wallLength*0.75,d2=wallLength,h=startEndInset);
 }
 
 difference() {
-    maze0();
+    if (flangeWidth>0 && flangeAngle>0) {
+        intersection() {
+            maze0();
+            linear_extrude(height=baseThickness+innerWallHeight+outerWallHeight) base();
+        }
+    }
+    else {
+        maze0();
+    }
     if (startEndInset>0) {
         mark([cx,cy]);
         mark([cx,cy+mazeRadius-1]);
