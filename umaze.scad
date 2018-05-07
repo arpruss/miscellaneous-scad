@@ -1,5 +1,5 @@
-horizontalCells = 4;
-verticalCells = 4;
+horizontalCells = 8;
+verticalCells = 8;
 cellSize = 12.5;
 innerWallThickness = 0.75;
 innerWallHeight = 11.5;
@@ -44,22 +44,14 @@ function move(pos,dir) = pos+directions[dir];
 function tail(list) = len(list)>1 ? [for(i=[1:len(list)-1]) list[i]] : [];
 function visited(cells,pos) = !inside(pos) || cells[pos[0]][pos[1]][0] > 0;
 function visit(cells, pos, dir) = 
-    let(newPos=move(pos,dir),
-        revDir=revDirections[dir])
+    let(newPos=move(pos,dir))
     [ [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
-        let(isNew=[x,y]==newPos,
-            isOld=[x,y]==pos)
-        [ cells[x][y][0] ? cells[x][y][0] :      isNew ? -1 : 0,
-        [for (i=[0:len(directions)-1])
-            cells[x][y][1][i] && 
-            ( !isNew || i != revDir )
-            && ( !isOld || i != dir)
-        ] ] ] ], pos];
+        [ [x,y]==pos ? -(1+dir) : cells[x][y][0], cells[x][y][1] ] ] ], newPos ];
         
 function unvisited(cells) =
     [for(x=[0:horizontalCells-1]) 
          for(y=[0:verticalCells-1])
-             if (cells[x][y][0]!=0) 
+             if (cells[x][y][0]==0) 
                  [x,y]];
 
 function randomUnvisited0(cells,pos) =
@@ -72,15 +64,26 @@ function randomUnvisited(cells) = randomUnvisited0(cells,[r(horizontalCells),r(v
              
 // this is ugly, but it's like that
 // to ensure tail recursion, which doesn't allow let()             
-function randomPath(cells_pos) =
-    cells_pos[0][cells_pos[1][0]][cells_pos[1][1]] > 0 ? cells_pos[0] :
+function randomPath(cells_pos) = 
+    cells_pos[0][cells_pos[1][0]][cells_pos[1][1]][0] > 0 ? cells_pos[0] :
         randomPath(visit(cells_pos[0],cells_pos[1],rdir(cells_pos[1])));
     
 function addPath(cells) = 
     let(pos=choose(unvisited(cells)),
         build=randomPath([cells,pos]))
     [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
-        [ abs(cells[x][y][0]), cells[x][y][1] ] ] ];        
+        build[x][y][0] < 0 ? [ 1, 
+            [ for(dir=[0:nDirs-1]) 
+                build[x][y][1][dir] && -1-dir != build[x][y][0] ] ] :
+           build[x][y] ] ];
+
+function cleanWalls(cells) =
+    [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
+        [ cells[x][y][0],
+            [for(dir=[0:nDirs-1])
+                let(revDir=revDirections[dir],
+                    prev=move([x,y],revDir))
+                cells[x][y][1][dir] && (! inside(prev) || cells[prev[0]][prev[1]][1][revDir] ) ] ] ] ];
                      
 function iterateMaze(cells) = 
     len(unvisited(cells)) == 0 ? 
@@ -92,7 +95,6 @@ function baseMaze(pos) =
         [ [x,y] == pos ? 1 : 0,
         [for (i=[0:nDirs-1])
             inside(move([x,y],i))] ] ] ];
-
 
 function revisit(maze,pos) = 
     [ for(x=[0:horizontalCells-1]) [ for(y=[0:verticalCells-1]) 
@@ -178,16 +180,8 @@ module hole(x,y,position,spacing=10) {
         
 module maze0() {
     start = [r(horizontalCells),r(verticalCells)];
-    echo(start);
-    b = baseMaze(start);
-    echo(b);
-    echo(unvisited(b));
-    a = addPath(b);
-    echo(a);
-//    echo(unvisited(a));
-//    maze = iterateMaze(baseMaze(start), start);
+    maze = cleanWalls(iterateMaze(baseMaze(start), start));
     echo(maze);
-    /*
     difference() {
         union() {
 
@@ -214,7 +208,7 @@ module maze0() {
             hole(end[0],end[1],-1,spacing=cellSize);
             hole(start[0],start[1],1,spacing=cellSize);
         }
-    }*/
+    }
 }
 
 module maze() {
