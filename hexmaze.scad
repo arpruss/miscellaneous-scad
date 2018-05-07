@@ -1,4 +1,4 @@
-mazeRadius = 6;
+mazeRadius = 5;
 wallLength = 13;
 innerWallThickness = 0.75;
 innerWallHeight = 11.5;
@@ -7,8 +7,8 @@ outerWallThickness = 1.5;
 outerWallHeight = 13;
 baseThickness = 1;
 startEndInset = 0.5;
-flangeWidth = 2;
-flangeAngle = 45;
+flangeWidth = 1.5;
+flangeAngle = 30;
 // set seed to something other than 0 for a repeatable design
 seed = 5;
 
