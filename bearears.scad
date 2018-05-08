@@ -2,9 +2,7 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-includeHeadband = 1; // [0:no, 1:yes]
-
-headbandWidth = 140; //123;
+headbandWidth = 140; 
 headbandHeightRatio = 1.1;
 headbandStripWidth = 10;
 headbandStripThickness = 2.5;
@@ -16,11 +14,14 @@ toothWidthRatio = 0.5;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
 earPosition = 0.3;
+earAngle1FromVertical = -10;
+earAngle2FromVertical = 10;
+earStickoutForce1 = 2.2;
+earStickoutForce2 = 2.2;
 earThickness = 5;
 earBackingThickness = 1;
 earSize = 70;
-stalkSocketDiameter = 6;
-stalkTolerance = 0.5;
+earInnerRatio = 0.5;
 
 module dummy() {}
 //</params>
@@ -75,7 +76,7 @@ module rightSide() {
         r = norm(c-a);
         rot = [ [ cos(earAngle), -sin(earAngle) ],
                 [ sin(earAngle), cos(earAngle) ] ];
-        earPoints1a = Bezier( [[-1,0], POLAR(2.2,100), POLAR(2.2,100), [1,0]]); // ,  
+        earPoints1a = Bezier( [[-1,0], POLAR(earStickoutForce1,90-earAngle1FromVertical), POLAR(earStickoutForce2,90+earAngle2FromVertical), [1,0]]); // ,  
         earPoints1 = [for (v=r*earPoints1a) c+rot*v];
         earPoints = concat(earPoints0,earPoints1);
         earCenterPoint = interpolateByDistance(interp,(earStart+earEnd)/2);
@@ -90,7 +91,7 @@ module rightSide() {
     difference() {
         ear(earSize);
         translate([0,0,(earThickness+earBackingThickness)/2])
-        ear(earSize/2);
+        ear(earSize*earInnerRatio);
     }
 }
 
@@ -99,6 +100,6 @@ module headband() {
     mirror([1,0,0]) rightSide();
 }
 
-//render(convexity=2)
+render(convexity=2)
     headband();
 
