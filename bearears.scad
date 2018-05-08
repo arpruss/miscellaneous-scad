@@ -3,7 +3,6 @@ use <paths.scad>;
 
 //<params>
 includeHeadband = 1; // [0:no, 1:yes]
-stalkCount = 0;
 
 headbandWidth = 140; //123;
 headbandHeightRatio = 1.1;
@@ -17,19 +16,11 @@ toothWidthRatio = 0.5;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
 earPosition = 0.3;
-stalkThickness = 5;
+earThickness = 5;
 earBackingThickness = 1;
 earSize = 70;
-stalkWidth = 4;
 stalkSocketDiameter = 6;
 stalkTolerance = 0.5;
-stalkAngle = 75;
-
-stalkBallDiameter = 20;
-stalkLength = 126;
-stalkBallFlat = 1; // [0:no, 1:yes]
-
-spacing = 5; /* spacing between parts */
 
 module dummy() {}
 //</params>
@@ -90,8 +81,7 @@ module rightSide() {
         earCenterPoint = interpolateByDistance(interp,(earStart+earEnd)/2);
         earTangent = getTangentByDistance(interp,(earStart+earEnd)/2);
         earNormal = [-earTangent[1],earTangent[0]];
-        socketCenter = earCenterPoint+(stalkTolerance+stalkSocketDiameter/2+headbandStripThickness/2)*earNormal;
-        linear_extrude(height=stalkThickness+earBackingThickness)
+        linear_extrude(height=earThickness+earBackingThickness)
             polygon(earPoints);
         linear_extrude(height=earBackingThickness)
             polygon(earPoints);
@@ -99,7 +89,7 @@ module rightSide() {
     
     difference() {
         ear(earSize);
-        translate([0,0,(stalkThickness+earBackingThickness)/2])
+        translate([0,0,(earThickness+earBackingThickness)/2])
         ear(earSize/2);
     }
 }
@@ -109,8 +99,6 @@ module headband() {
     mirror([1,0,0]) rightSide();
 }
 
-render(convexity=2)
+//render(convexity=2)
     headband();
-
-x0 = includeHeadband ? headbandWidth/2 + earSize/2 + spacing : 0;
 
