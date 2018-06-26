@@ -1,14 +1,15 @@
 numberOfHooks = 6;
 height = 15;
 hookWidth = 9;
-thickness = 2;
-hookLength = 22;
-hookAngle = 75;
-supportRatio = 0.6;
+thickness = 6;
+baseThickness = 2;
+hookLength = 38;
+hookAngle = 65;
+supportRatio = 0.8;
 nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
-spacing = 44;
-endSpacing = 10;
+spacing = 46;
+endSpacing = 8;
 centralHoles = 1; //[1:yes, 0:no]
 
 module dummy() {}
@@ -21,7 +22,7 @@ width = spacing*(numberOfHooks-1) + 2*endSpacing;
 
 points = [for (i=[0:numberOfHooks-1]) [endSpacing+spacing*i,height/2]];
  
-module base(h=thickness) 
+module base(h=baseThickness) 
 {
     linear_extrude(height=h)
     offset(r=hookWidth/2)
@@ -58,13 +59,13 @@ module hooks() {
         union() {
             for (i=[0:numberOfHooks-1]) translate(points[i]) hook();
         }
-        base(h=hookLength+hookWidth);
+        cube([width,height+hookLength,hookLength+hookWidth]);
     }
 }
 
 module nailHole() {
     rotate([nailHoleAngle-90,0,0])
-    translate([0,0,-thickness*5]) cylinder(h=thickness*10,d=nailHoleDiameter);
+    translate([0,0,-baseThickness*5]) cylinder(h=baseThickness*10,d=nailHoleDiameter);
 }
 
 module all() {
