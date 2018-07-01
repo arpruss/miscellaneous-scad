@@ -1,6 +1,6 @@
 buttonWidth = 11.94;
 spacing = 12;
-screwSize = 1;
+screwSize = 1.4;
 buttonThickness = 3.96;
 buttonTensioning = 0.1;
 tolerance = 0.3;
@@ -28,5 +28,8 @@ difference() {
     for (i=[0:buttonCount]) {
         x = (spacing+buttonWidth+2*tolerance)*i+tolerance+buttonWidth/2;
         translate([x,stripWidth/2,-nudge]) cylinder(d=screwSize,h=2*nudge+buttonThickness+thickness,$fn=16);
+        if (i<buttonCount) {
+        translate([x+spacing/2+buttonWidth/2+tolerance,stripWidth/2,-nudge]) cylinder(d=screwSize,h=2*nudge+buttonThickness+thickness,$fn=16);
+        }
     }
 }
