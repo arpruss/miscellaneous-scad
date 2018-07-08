@@ -1,5 +1,5 @@
 squareSize = 15;
-pieceTolerance = 1;
+pieceTolerance = 0.4;
 slitWidth = 1;
 thickSlitWidth = 1.5;
 slitDepth = 2;
@@ -17,7 +17,7 @@ item = 3; // [0:Board,1:Pyramid,2:Pusher,3:Anchor]
 
 module dummy(){}
 
-pieceSize = squareSize-pieceTolerance*2;
+pieceSize = squareSize-pieceTolerance;
 nudge = 0.01;
 
 module rsquare(l) {
