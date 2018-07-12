@@ -1,19 +1,24 @@
+scaleFactor = 1;
 squareSize = 15;
-pieceTolerance = 0.4;
+pieceTolerance = 0.3;
 slitWidth = 1;
 thickSlitWidth = 1.5;
-slitDepth = 2;
-boardThickness = 4;
+slitDepth = 1;
+boardThickness = 3;
 pieceBaseHeight = 5;
 insetRatio = .8;
 pyramidHeight = 16;
 pusherHeight = 8;
 pusherWall = 0.75;
-anchorTolerance = 0.75;
+anchorTolerance = 0;
 anchorPyramidHeight = 12;
+anchorTaper = 0.8;
 sideWall = 4;
 rounding = .07;
-item = 3; // [0:Board,1:Pyramid,2:Pusher,3:Anchor]
+boardEdgeWidth = 3;
+boardEdgeThickness = 1;
+pyramidTipRatio = 0.2;
+item = 0; // [0:Board,1:Pyramid,2:Pusher,3:Anchor]
 
 module dummy(){}
 
@@ -29,14 +34,14 @@ module rsquare(l) {
     }
 }
 
-module pieceBase(h=pieceBaseHeight,w=pieceSize) {
-    linear_extrude(height=h+nudge) rsquare(w);
+module pieceBase(h=pieceBaseHeight,w=pieceSize,taper=1.) {
+    linear_extrude(height=h+nudge,scale=1/taper) scale(taper) rsquare(w);
 }
 
-module pyramid(h1=pieceBaseHeight,h2=pyramidHeight,pieceSize=pieceSize) {
-    pieceBase(h1,pieceSize);
+module pyramid(h1=pieceBaseHeight,h2=pyramidHeight,pieceSize=pieceSize,taper=1) {
+    pieceBase(h1,pieceSize,taper);
     translate([0,0,h1])
-    linear_extrude(height=h2,scale=0.01)
+    linear_extrude(height=h2,scale=pyramidTipRatio)
         rsquare(pieceSize*insetRatio);
 }
 
@@ -52,7 +57,7 @@ module pusher() {
 
 module anchor() {
     outer = insetRatio*pieceSize-pusherWall*2-anchorTolerance*2;
-    pyramid(pusherHeight,anchorPyramidHeight,outer);
+    pyramid(pusherHeight,anchorPyramidHeight,outer,anchorTaper);
 }
 
 module boardBottom() {
@@ -84,6 +89,8 @@ module vslit(x,y,h,slitWidth=slitWidth) {
 }
 
 module board() {
+   
+    render(convexity=2)
     difference() {
         solidBoard();
         hslit(1,1,5);
@@ -95,9 +102,12 @@ module board() {
         vslit(4,0,4,slitWidth=thickSlitWidth);
         vslit(5,0,4);
         vslit(6,1,3);
-        vslit(7,1,2);
-        
+        vslit(7,1,2);        
     }
+    translate([squareSize,nudge-boardEdgeWidth,0])
+    cube([5*squareSize,boardEdgeWidth+nudge,boardEdgeThickness]);
+    translate([2*squareSize,sideWall+4*squareSize+sideWall-nudge,0])
+    cube([5*squareSize,boardEdgeWidth+nudge,boardEdgeThickness]);
 }
 
 if (item==0) board();
