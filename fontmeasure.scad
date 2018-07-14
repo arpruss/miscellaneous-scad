@@ -39,19 +39,35 @@ function familyAndStyle(s) =
     
 function findEntry(data, index, offset=0) =
     offset >= len(data) ? undef :
-    data[offset] == index ? data[offset][0] :
+    data[offset][0] == index ? data[offset] :
     findEntry(data, index, offset=offset+1);
     
 function findFont(fonts, s) = findEntry(fonts, familyAndStyle(s));
 
-function measureAt(string,font,offset) =
+function measureWithFontAt(string,font,offset) =
     let(g=findEntry(font[4],string[offset]))
     g == undef ? 0 :
-    offset + 1 < len(string) ? g[1] : // at end of string
+    offset + 1 >= len(string) ? g[1] : // at end of string
     let(kern=findEntry(g[2], string[offset+1]))
     kern == undef ? g[1] :
-    g[1] + kern;
+    g[1] + kern[1];
     
-function measure(string, font, offset=0, soFar=0) =
+function measureWithFont(string, font, offset=0, soFar=0) =
     offset >= len(string) ? soFar :
-    measure(string,font,offset=offset+1,soFar=soFar+measureAt(string,font,offset));
+    measureWithFont(string,font,offset=offset+1,soFar=soFar+measureWithFontAt(string,font,offset));
+
+function measureText(string, font="Arial", size=10., fonts=FONTS) = 
+    let(f=findFont(fonts, font))
+    size / (f[1]) * measureWithFont(string, f);
+
+f = findFont(FONTS, "Arial:style=Medium");
+g=findEntry(f[4],"T");
+echo(g);
+echo(measureWithFontAt("To",f,0));
+echo(findEntry(g[2], "o"));
+
+echo(measureText("To", font="Arial", size=10.));
+
+echo(measureText("T", font="Arial", size=10.));
+echo(measureText("o", font="Arial", size=10.));
+text("To", font="Arial", size=10.);
