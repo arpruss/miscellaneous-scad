@@ -1,7 +1,6 @@
-include <arial.scad>;
-include <arialblack.scad>;
+include <mstfonts.scad>;
 
-FONTS = [ FONT_ArialMT, FONT_Arial_Black ];
+//FONTS = [ FONT_ArialMT, FONT_Arial_Black ];
 
 
 BOLD = 1;
@@ -60,8 +59,10 @@ function measureText(string, font="Arial", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
     size / f[1] * measureWithFont(string, f);
 
+/*
 f = findFont(FONTS, "Arial Black:style=Medium");
 g=findEntry(f[4],"V");
 echo(g);
 echo(measureText("HelloTo", font="Arial Black:style=Medium", size=10.));
 text("HelloTo", font="Arial Black:style=Medium", size=10., spacing=1);
+*/
