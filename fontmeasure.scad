@@ -1,8 +1,8 @@
 include <arial.scad>;
+include <arialblack.scad>;
 
-FONTS = [ FONT_ArialMT ];
+FONTS = [ FONT_ArialMT, FONT_Arial_Black ];
 
-echo(FONTS[0][0]);
 
 BOLD = 1;
 ITALIC = 2;
@@ -58,16 +58,10 @@ function measureWithFont(string, font, offset=0, soFar=0) =
 
 function measureText(string, font="Arial", size=10., fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    size / (f[1]) * measureWithFont(string, f);
+    size / f[1] * measureWithFont(string, f);
 
-f = findFont(FONTS, "Arial:style=Medium");
-g=findEntry(f[4],"T");
+f = findFont(FONTS, "Arial Black:style=Medium");
+g=findEntry(f[4],"V");
 echo(g);
-echo(measureWithFontAt("To",f,0));
-echo(findEntry(g[2], "o"));
-
-echo(measureText("To", font="Arial", size=10.));
-
-echo(measureText("T", font="Arial", size=10.));
-echo(measureText("o", font="Arial", size=10.));
-text("To", font="Arial", size=10.);
+echo(measureText("HelloTo", font="Arial Black:style=Medium", size=10.));
+text("HelloTo", font="Arial Black:style=Medium", size=10., spacing=1);
