@@ -55,9 +55,17 @@ function measureWithFont(string, font, offset=0, soFar=0) =
     offset >= len(string) ? soFar :
     measureWithFont(string,font,offset=offset+1,soFar=soFar+measureWithFontAt(string,font,offset));
 
-function measureText(string, font="Arial", size=10., fonts=FONTS) = 
-    let(f=findFont(fonts, font))
-    size / f[1] * measureWithFont(string, f);
+function measureText(string, font="Arial", size=10., spacing=1., fonts=FONTS) = 
+    let(f=findFont(FONTS, font))
+    spacing * size / f[1] * measureWithFont(string, f);
+
+function ascender(font="Arial", size=10.) =
+    size;
+
+function descender(font="Arial", size=10.) =
+    let(f=findFont(FONTS, font))
+    size / f[1] * f[2];
+    
 
 /*
 f = findFont(FONTS, "Arial Black:style=Medium");
