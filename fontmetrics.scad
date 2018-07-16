@@ -89,15 +89,15 @@ function getOffsets(string, font, soFar=[0]) =
     len(soFar) >= len(string)+1 ? soFar :
     getOffsets(string, font, soFar=concat(soFar, [soFar[len(soFar)-1]+measureWithFontAt(string, font, offset=len(soFar)-1) ]));
     
-function measureText(text="", font="Arial", size=10., spacing=1., fonts=FONTS) = 
+function measureText(text="", font="Liberation Sans", size=10., spacing=1., fonts=FONTS) = 
     let(f=findFont(FONTS, font))
     spacing * size * fontScale(f) * measureWithFont(text, f);
 
-function ascender(font="Arial", size=10., fonts=FONTS) =
+function ascender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
     fontScale(f)*size*f[1];
 
-function descender(font="Arial", size=10., fonts=FONTS) =
+function descender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
     -fontScale(f)*size*f[2];
     
@@ -107,30 +107,30 @@ function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
     maximizeGlyphMetric(text,f,mult,index,offset=offset+1,
         soFar=max(soFar,mult*getGlyphInfo(f, text[offset])[index]));
     
-function measureTextDescender(text="", size=10, font="Arial", fonts=FONTS) = 
+function measureTextDescender(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    -fontScale1(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
+    -fontScale(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
     
 //echo(getGlyphInfo(f, "a")[_
 
-function measureTextAscender(text="", size=10, font="Arial", fonts=FONTS) = 
+function measureTextAscender(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    fontScale1(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
+    fontScale(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
 
-function measureTextLeftBearing(text="", size=10, font="Arial", fonts=FONTS) = 
+function measureTextLeftBearing(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     len(text)==0 ? 0 : (
     let(f=findFont(fonts,font), 
         g=getGlyphInfo(f, text[0]))
     g == undef ? 0 : fontScale(f)*size*g[_LSB] );
     
-function measureTextRightBearing(text="", size=10, font="Arial", fonts=FONTS) = 
+function measureTextRightBearing(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     len(text)==0 ? 0 : (
     let(f=findFont(fonts, font),
         g=getGlyphInfo(findFont(fonts, font), text[len(text)-1]))
     g == undef ? 0 : fontScale(f)*size*(g[_XMAX]-g[_XADVANCE]) );
     
 //returns [leftX,bottomY,width,height]
-function measureTextBounds(text="", size=10, font="Arial",spacing=1,valign="left",halign="baseline",fonts=FONTS) = 
+function measureTextBounds(text="", size=10, font="Liberation Sans",spacing=1,valign="left",halign="baseline",fonts=FONTS) = 
     len(text)==0 ? [0,0,0,0] : (
         let(f=findFont(fonts,font),
             w=measureText(text,size=size,font=f,spacing=spacing),
@@ -147,7 +147,7 @@ function measureTextBounds(text="", size=10, font="Arial",spacing=1,valign="left
                0)
         [lsb+dx,des+dy,w-lsb+rsb,asc-des]);
     
-module drawText(text="", size=10, font="Arial", halign="left", valign="baseline", spacing=1, fonts=FONTS) {
+module drawText(text="", size=10, font="Liberation Sans", halign="left", valign="baseline", spacing=1, fonts=FONTS) {
     
     l = len(text);
     if (l>0) {
