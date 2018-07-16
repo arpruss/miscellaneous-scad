@@ -6,6 +6,21 @@ ITALIC = 2;
 CONDENSED = 32;
 ASCENDER_TO_EM = 1510/2048; 
 
+_XADVANCE = 1;
+_LSB = 2;
+_XMIN = 3;
+_YMIN = 4;
+_XMAX = 5;
+_YMAX = 6;
+_KERN = 7;
+
+
+function fontScale(f) = 1 / (ASCENDER_TO_EM * f[3]);
+
+function _isString(v) = v >= "";
+function _isVector(v) = !(v>="") && len(v) != undef;
+function _isFloat(v) = v+0 != undef;
+
 function startswith(a,b,offset=0,position=0) =
     len(a)-offset < len(b) ? false : 
     position >= len(b) ? true :
@@ -51,13 +66,17 @@ function findEntry_recursive(data, index, offset=0) =
     data[offset][0] == index ? data[offset] :
     findEntry(data, index, offset=offset+1);
     
-function findFont(fonts, s) = findEntry(fonts, familyAndStyle(s));
+function findFont(fonts, s) = 
+    _isString(s) ? findEntry(fonts, familyAndStyle(s)) : s;
+
+function getGlyphInfo(font,char) =
+    findEntry(font[4],char);
 
 function measureWithFontAt(string,font,offset) =
-    let(g=findEntry(font[4],string[offset]))
+    let(g=getGlyphInfo(font,string[offset]))
     g == undef ? 0 :
     offset + 1 >= len(string) ? g[1] : // at end of string
-    let(kern=findEntry(g[7], string[offset+1]))
+    let(kern=findEntry(g[_KERN], string[offset+1]))
     kern == undef ? g[1] :
     g[1] + kern[1];
     
@@ -68,17 +87,46 @@ function measureWithFont(string, font, offset=0, soFar=0) =
 function getOffsets(string, font, soFar=[0]) =
     len(soFar) >= len(string)+1 ? soFar :
     getOffsets(string, font, soFar=concat(soFar, [soFar[len(soFar)-1]+measureWithFontAt(string, font, offset=len(soFar)-1) ]));
-
+    
 function measureText(text="", font="Arial", size=10., spacing=1., fonts=FONTS) = 
     let(f=findFont(FONTS, font))
-    spacing * size / (ASCENDER_TO_EM * f[3]) * measureWithFont(text, f);
+    spacing * size * fontScale(f) * measureWithFont(text, f);
 
-function ascender(font="Arial", size=10.) =
-    size;
+function ascender(font="Arial", size=10., fonts=FONTS) =
+    let(f=findFont(fonts, font))
+    fontScale(f)*size*f[1];
 
-function descender(font="Arial", size=10.) =
-    let(f=findFont(FONTS, font))
-    -size / f[1] * f[2];
+function descender(font="Arial", size=10., fonts=FONTS) =
+    let(f=findFont(fonts, font))
+    -fontScale(f)*size*f[2];
+    
+function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
+    len(text) == 0 ? 0 :
+    offset >= len(text) ? soFar :
+    maximizeGlyphMetric(text,f,mult,index,offset=offset+1,
+        soFar=max(soFar,mult*getGlyphInfo(f, text[offset])[index]));
+    
+function measureTextDescender(text="", size=10, font="Arial", fonts=FONTS) = 
+    let(f=findFont(fonts, font))
+    -fontScale(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
+    
+//echo(getGlyphInfo(f, "a")[_
+
+function measureTextAscender(text="", size=10, font="Arial", fonts=FONTS) = 
+    let(f=findFont(fonts, font))
+    fontScale(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
+
+function measureTextLeftBearing(text="", size=10, font="Arial", fonts=FONTS) = 
+    len(text)==0 ? 0 : (
+    let(f=findFont(fonts,font), 
+        g=getGlyphInfo(f, text[0]))
+    g == undef ? 0 : fontScale(f)*size*g[_LSB] );
+    
+function measureTextRightBearing(text="", size=10, font="Arial", fonts=FONTS) = 
+    len(text)==0 ? 0 : (
+    let(f=findFont(fonts, font),
+        g=getGlyphInfo(findFont(fonts, font), text[len(text)-1]))
+    g == undef ? 0 : fontScale(f)*size*(g[_XMAX]-g[_XADVANCE]) );
     
 module drawText(text="", size=10, font="Arial", halign="left", spacing=1, fonts=FONTS) {
     
@@ -87,7 +135,7 @@ module drawText(text="", size=10, font="Arial", halign="left", spacing=1, fonts=
         sc = size < 20 ? size/20 : 1;
         adjSize = size < 20 ? 20 : size;
         f = findFont(fonts, font);
-        offsetScale = spacing * adjSize / (ASCENDER_TO_EM * f[3]);
+        offsetScale = spacing * adjSize * fontScale(f);
         offsets = getOffsets(text, f, size=adjSize);
         w = offsets[l+1];
         dx = halign=="right" ? -w :
