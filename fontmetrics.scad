@@ -4,6 +4,7 @@ include <fontmetricsdata.scad>;
 BOLD = 1;
 ITALIC = 2;
 CONDENSED = 32;
+ASCENDER_TO_EM = 1510/2048; 
 
 function startswith(a,b,offset=0,position=0) =
     len(a)-offset < len(b) ? false : 
@@ -56,7 +57,7 @@ function measureWithFontAt(string,font,offset) =
     let(g=findEntry(font[4],string[offset]))
     g == undef ? 0 :
     offset + 1 >= len(string) ? g[1] : // at end of string
-    let(kern=findEntry(g[2], string[offset+1]))
+    let(kern=findEntry(g[7], string[offset+1]))
     kern == undef ? g[1] :
     g[1] + kern[1];
     
@@ -70,7 +71,7 @@ function getOffsets(string, font, soFar=[0]) =
 
 function measureText(text="", font="Arial", size=10., spacing=1., fonts=FONTS) = 
     let(f=findFont(FONTS, font))
-    spacing * size / f[1] * measureWithFont(text, f);
+    spacing * size / (ASCENDER_TO_EM * f[3]) * measureWithFont(text, f);
 
 function ascender(font="Arial", size=10.) =
     size;
@@ -86,15 +87,14 @@ module drawText(text="", size=10, font="Arial", halign="left", spacing=1, fonts=
         sc = size < 20 ? size/20 : 1;
         adjSize = size < 20 ? 20 : size;
         f = findFont(fonts, font);
-        offsetScale = spacing * adjSize / f[1];
+        offsetScale = spacing * adjSize / (ASCENDER_TO_EM * f[3]);
         offsets = getOffsets(text, f, size=adjSize);
-        echo(offsets);
         w = offsets[l+1];
         dx = halign=="right" ? -w :
              halign=="center" ? -w / 2 : 0;
         scale(sc) {
             for (i=[0:l-1]) {
-                translate([spacing*offsetScale*(dx+offsets[i]),0]) text(text[i], size=adjSize, font=font);
+                translate([offsetScale*(dx+offsets[i]),0]) text(text[i], size=adjSize, font=font);
             }
         }
     }
