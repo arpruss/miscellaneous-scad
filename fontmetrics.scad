@@ -16,6 +16,7 @@ _KERN = 7;
 
 
 function fontScale(f) = 1 / (ASCENDER_TO_EM * f[3]);
+function fontScale1(f) = 1 / f[1];
 
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
@@ -108,13 +109,13 @@ function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
     
 function measureTextDescender(text="", size=10, font="Arial", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    -fontScale(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
+    -fontScale1(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
     
 //echo(getGlyphInfo(f, "a")[_
 
 function measureTextAscender(text="", size=10, font="Arial", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    fontScale(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
+    fontScale1(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
 
 function measureTextLeftBearing(text="", size=10, font="Arial", fonts=FONTS) = 
     len(text)==0 ? 0 : (
@@ -128,7 +129,25 @@ function measureTextRightBearing(text="", size=10, font="Arial", fonts=FONTS) =
         g=getGlyphInfo(findFont(fonts, font), text[len(text)-1]))
     g == undef ? 0 : fontScale(f)*size*(g[_XMAX]-g[_XADVANCE]) );
     
-module drawText(text="", size=10, font="Arial", halign="left", spacing=1, fonts=FONTS) {
+//returns [leftX,bottomY,width,height]
+function measureTextBounds(text="", size=10, font="Arial",spacing=1,valign="left",halign="baseline",fonts=FONTS) = 
+    len(text)==0 ? [0,0,0,0] : (
+        let(f=findFont(fonts,font),
+            w=measureText(text,size=size,font=f,spacing=spacing),
+            asc=measureTextAscender(text,size=size,font=f),
+            des=measureTextDescender(text,size=size,font=f),
+            lsb=measureTextLeftBearing(text,size=size,font=f),
+            rsb=measureTextRightBearing(text,size=size,font=f),
+            dx=halign=="right"?-w:
+               halign=="center"?-w/2:
+               0,
+            dy=valign=="top"?-asc:
+               valign=="bottom"?-des:
+               valign=="center"?-0.5*(asc+des):
+               0)
+        [lsb+dx,des+dy,w-lsb+rsb,asc-des]);
+    
+module drawText(text="", size=10, font="Arial", halign="left", valign="baseline", spacing=1, fonts=FONTS) {
     
     l = len(text);
     if (l>0) {
@@ -137,12 +156,16 @@ module drawText(text="", size=10, font="Arial", halign="left", spacing=1, fonts=
         f = findFont(fonts, font);
         offsetScale = spacing * adjSize * fontScale(f);
         offsets = getOffsets(text, f, size=adjSize);
-        w = offsets[l+1];
+        w = offsets[l];
         dx = halign=="right" ? -w :
              halign=="center" ? -w / 2 : 0;
+        dy = valign=="top" ? -measureTextAscender(text, size=size, font=font) :
+             valign=="bottom" ? -measureTextDescender(text, size=size, font=font) : 
+             valign=="center" ? -0.5*(measureTextAscender(text, size=size, font=font)+measureTextDescender(text,size=size,font=font)) : 0;
+        
         scale(sc) {
             for (i=[0:l-1]) {
-                translate([offsetScale*(dx+offsets[i]),0]) text(text[i], size=adjSize, font=font);
+                translate([offsetScale*(dx+offsets[i]),dy]) text(text[i], size=adjSize, font=font);
             }
         }
     }
