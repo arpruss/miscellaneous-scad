@@ -46,6 +46,10 @@ function substring(a,start,end=undef,soFar="") =
     start >= len(a) || (end != undef && start >= end) ? soFar :
     substring(a,start+1,end=end,soFar=str(soFar,a[start]));
     
+function sublist(a,start,end=undef,soFar=[]) =
+    start >= len(a) || (end != undef && start >= end) ? soFar :
+    sublist(a,start+1,end=end,soFar=concat(soFar,[a[start]]));
+    
 function lowercaseChar(c) = 
     c < "A" || c > "Z" ? c :
     chr(search(c,"ABCDEFGHIJKLMNOPQRSTUVWXYZ")[0]+97);
@@ -54,6 +58,13 @@ function lowercase(s,start=0,soFar="") =
     start >= len(s) ? soFar :
     lowercase(s,start=start+1,soFar=str(soFar,lowercaseChar(s[start])));
     
+function splitstring(s,delimiter=" ",offset=0,lastStart=0,soFar=[]) =
+    len(s)==0 ? [] :
+    offset >= len(s) ? concat(soFar,[substring(s,lastStart,end=offset)]) :
+    s[offset] == delimiter ? splitstring(s,delimiter=delimiter,offset=offset+1,lastStart=offset+1,soFar=concat(soFar,[substring(s,lastStart,end=offset)])) :
+    splitstring(s,delimiter=delimiter,offset=offset+1,lastStart=lastStart,soFar=soFar);
+    
+
 function styleNumber(s) = 
     style(s, "bold", BOLD) + 
     style(s, "italic", ITALIC) + 
@@ -94,6 +105,8 @@ function measureWithFont(string, font, offset=0, soFar=0) =
 function getOffsets(string, font, soFar=[0]) =
     len(soFar) >= len(string)+1 ? soFar :
     getOffsets(string, font, soFar=concat(soFar, [soFar[len(soFar)-1]+measureWithFontAt(string, font, offset=len(soFar)-1) ]));
+    
+function getScaledOffsets(string, font, size=10., spacing=1.) = spacing * size * fontScale(font) * getOffsets(string, font);
     
 function measureText(text="", font="Liberation Sans", size=10., spacing=1., fonts=FONTS) = 
     let(f=findFont(FONTS, font))
@@ -184,5 +197,92 @@ module drawText(text="", size=10, font="Liberation Sans", halign="left", valign=
         }
     }
 }
+
+function whereToSplit(offsets,width,pos=0) =
+    pos >= len(offsets)-1 ? pos : // shouldn't happen
+    offsets[pos+1] > width && pos > 0 ? pos :
+    whereToSplit(offsets,width,pos=pos+1);
+    
+// TODO: worry about splitting a kerning pair
+function splitWord(word,f,width,size,spacing) =
+    let(o=getScaledOffsets(word,f,size=size,spacing=spacing),
+        i=whereToSplit(o,width),
+        w1=substring(word,0,i),
+        w2=substring(word,i))
+    [[w1,o[i]],[w2,o[len(word)]-o[i]]];
+    
+function splitWordsAsNeeded(words,f,firstWidth,width,size,spacing,offset=0) =
+    offset >= len(words) ? words :
+    words[offset][1] <= (offset==0 ? firstWidth : width) ? splitWordsAsNeeded(words,f,firstWidth,width,size,spacing,offset=offset+1) :
+    splitWordsAsNeeded(concat(sublist(words,0,offset),
+        splitWord(words[offset][0],f,(offset==0?firstWidth:width),size,spacing),sublist(words,offset+1)),f,firstWidth,width,size,spacing,offset=offset+1);    
+
+function addSizesToWords(words,f,firstWidth,width,size,spacing) =
+    let(wordsAndSizes=[for(i=[0:len(words)-1]) [words[i],measureText(words[i],font=f,size=size,spacing=spacing)]]) 
+    splitWordsAsNeeded(wordsAndSizes,f,firstWidth,width,size,spacing);
+    
+function wrapWordsToLines(words,space,width,x=0,offset=0,soFar=[],curLine=[]) =
+    offset >= len(words) ? (len(curLine)>0 ? concat(soFar,[curLine]) : soFar ) :
+    len(curLine) == 0 || x+words[offset][1] <= width ? wrapWordsToLines(words,space,width,x=x+words[offset][1]+space,offset=offset+1,soFar=soFar,curLine=concat(curLine,[words[offset]])) :
+    wrapWordsToLines(words,space,width,x=words[offset][1],offset=offset+1,soFar=concat(soFar,[curLine]),curLine=[words[offset]]);
+    
+function splitParaToLines(words,f,indent,width,size,spacing) =
+    wrapWordsToLines(addSizesToWords(words,f,width-indent,width,size,spacing),measureText(" ",font=f,size=size,spacing=spacing),width,x=indent);
+    
+function formatLineFlushLeft(words,x,y,space,offset=0,soFar=[]) =
+    offset>=len(words) ? soFar :
+    formatLineFlushLeft(words,x+words[offset][1]+space,y,space,offset=offset+1,soFar=concat(soFar,[[[x,y],words[offset][0]]]));
+        
+function formatLineJustify(words,x,y,totalTextWidth,width,offset=0,soFar=[]) =
+    offset>=len(words) ? soFar :
+    len(words) == 1 ? [[x,y],words[0][0]] :
+    formatLineJustify(words,x+words[offset][1]+(totalTextWidth-width)/(len(words)-1),y,totalTextWidth,width,offset=offset+1,soFar=concat(soFar,[[x,y],words[offset][0]]));
+
+function formatLine(words,x,y,space,width,justify) =
+    justify ? formatLineJustify(words,x,y,totalWidthWords(words),width) :
+        formatLineFlushLeft(words,x,y,space);
+
+function formatParaLines(lines,indent,space,width,b2b,justify) = [for(i=[0:len(lines)-1]) for(w=formatLine(lines[i],i==0?indent:0,-i*b2b,space,width,justify && i+1<len(lines))) w];
+    
+function lastYInPara(para) =
+    len(para) == 0 ? 0 : para[len(para)-1][0][1];
+
+function shiftPara(delta,para) =
+    len(para) == 0 ? [] : 
+    [for(i=[0:len(para)-1]) [para[i][0]+delta,para[i][1]]];
+    
+function joinFormattedParas(paras,b2b,y=0,offset=0,soFar=[]) =
+    offset >= len(paras) ? soFar :
+    joinFormattedParas(paras,b2b,y=y-b2b+lastYInPara(paras[offset]),offset=offset+1,soFar=concat(soFar,shiftPara([0,y],paras[offset])));
+    
+function formatParagraphText(s,f,indent,width,size,spacing,b2b,justify) =
+    let(words=splitstring(s))
+    len(words)==0 ? [] :
+    let(lines=splitParaToLines(words,f,indent,width,size,spacing))
+        formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,justify);    
+    
+module drawWrappedText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,align="left",fonts=FONTS) {
+    paras = splitstring(s,"\n");
+    f = findFont(FONTS,font);
+    b2b = verticalAdvance(f)*linespacing;
+    ss = splitstring(s);
+    ww = addSizesToWords(ss,f,width-indent,width,size,spacing);
+    echo(ww);
+   lines=splitParaToLines(splitstring(s),f,indent,width,size,spacing);
+    echo("L",lines[0]);
+    fl=formatLineFlushLeft(lines[0],0,0,0);
+    echo("f1",fl);
+    echo(formatParagraphText(paras[0],f,indent,width,size,spacing,b2b,align=="justify"));
+    formattedParas = [ for(p=paras) formatParagraphText(p,f,indent,width,size,spacing,b2b,align=="justify") ];
+    echo(formattedParas);
+    formatted = joinFormattedParas(formattedParas);
+    echo(formatted);
+    for(w=formatted)
+        translate(w[0]) drawText(w[1],font=font,size=size,spacing=spacing,fonts=FONTS);    /**/
+}
+
+drawWrappedText("This is a test of the wrapping algorithm balgo",width=58);
+ 
+
 // end MIT licensed code
 
