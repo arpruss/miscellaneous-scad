@@ -4,7 +4,7 @@ include <fontmetricsdata.scad>;
 BOLD = 1;
 ITALIC = 2;
 CONDENSED = 32;
-ASCENDER_TO_EM = 1510/2048; 
+ASCENDER_TO_EM = 1510/2048; // mysterious factor to match OpenSCAD
 METRICS_ADJUST = 1.0255; // this adjusts metrics a little bit to match OpenSCAD -- I don't know why this is needed
 
 _XADVANCE = 1;
@@ -15,8 +15,14 @@ _XMAX = 5;
 _YMAX = 6;
 _KERN = 7;
 
+_FONTID = 0;
+_ASCENDER = 1;
+_DESCENDER = 2;
+_LINEGAP = 3;
+_UNITS_PER_EM = 4;
+_GLYPHDATA = 5;
 
-function fontScale(f) = 1 / (ASCENDER_TO_EM * f[3]);
+function fontScale(f) = 1 / (ASCENDER_TO_EM * f[_UNITS_PER_EM]);
 
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
@@ -71,7 +77,7 @@ function findFont(fonts, s) =
     _isString(s) ? findEntry(fonts, familyAndStyle(s)) : s;
 
 function getGlyphInfo(font,char) =
-    findEntry(font[4],char);
+    findEntry(font[_GLYPHDATA],char);
 
 function measureWithFontAt(string,font,offset) =
     let(g=getGlyphInfo(font,string[offset]))
@@ -95,11 +101,19 @@ function measureText(text="", font="Liberation Sans", size=10., spacing=1., font
 
 function ascender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
-    fontScale(f)*size*f[1]*METRICS_ADJUST;
+    fontScale(f)*size*f[_ASCENDER]*METRICS_ADJUST;
 
 function descender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
-    fontScale(f)*size*f[2]*METRICS_ADJUST;
+    fontScale(f)*size*f[_DESCENDER]*METRICS_ADJUST;
+    
+function linegap(font="Liberation Sans", size=10., fonts=FONTS) =     
+    let(f=findFont(fonts, font))
+    fontScale(f)*size*f[_LINEGAP]*METRICS_ADJUST;
+    
+function verticalAdvance(font="Liberation Sans", size=10., fonts=FONTS) = 
+    let(f=findFont(fonts, font))
+    fontScale(f)*size*(f[_ASCENDER]-f[_DESCENDER]+f[_LINEGAP])*METRICS_ADJUST;
     
 function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
     len(text) == 0 ? 0 :
