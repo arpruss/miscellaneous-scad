@@ -224,25 +224,26 @@ function addSizesToWords(words,f,firstWidth,width,size,spacing) =
 function wrapWordsToLines(words,space,width,x=0,offset=0,soFar=[],curLine=[]) =
     offset >= len(words) ? (len(curLine)>0 ? concat(soFar,[curLine]) : soFar ) :
     len(curLine) == 0 || x+words[offset][1] <= width ? wrapWordsToLines(words,space,width,x=x+words[offset][1]+space,offset=offset+1,soFar=soFar,curLine=concat(curLine,[words[offset]])) :
-    wrapWordsToLines(words,space,width,x=words[offset][1],offset=offset+1,soFar=concat(soFar,[curLine]),curLine=[words[offset]]);
+    wrapWordsToLines(words,space,width,x=words[offset][1]+space,offset=offset+1,soFar=concat(soFar,[curLine]),curLine=[words[offset]]);
     
 function splitParaToLines(words,f,indent,width,size,spacing) =
     wrapWordsToLines(addSizesToWords(words,f,width-indent,width,size,spacing),measureText(" ",font=f,size=size,spacing=spacing),width,x=indent);
     
-function formatLineFlushLeft(words,x,y,space,offset=0,soFar=[]) =
+function formatLineNoJustify(words,x,y,space,offset=0,soFar=[]) =
     offset>=len(words) ? soFar :
-    formatLineFlushLeft(words,x+words[offset][1]+space,y,space,offset=offset+1,soFar=concat(soFar,[[[x,y],words[offset][0]]]));
+    formatLineNoJustify(words,x+words[offset][1]+space,y,space,offset=offset+1,soFar=concat(soFar,[[[x,y],words[offset][0]]]));
+    
+function totalWidthWords(words,space=0,offset=0,soFar=0) =
+    offset>=len(words) ? soFar :
+    totalWidthWords(words,space,offset=offset+1,soFar=soFar + words[offset][1] + (offset>0?space:0));
         
-function formatLineJustify(words,x,y,totalTextWidth,width,offset=0,soFar=[]) =
-    offset>=len(words) ? soFar :
-    len(words) == 1 ? [[x,y],words[0][0]] :
-    formatLineJustify(words,x+words[offset][1]+(totalTextWidth-width)/(len(words)-1),y,totalTextWidth,width,offset=offset+1,soFar=concat(soFar,[[x,y],words[offset][0]]));
+function formatLine(words,x,y,space,width,halign) =
+    halign=="justify" ? formatLineNoJustify(words,x,y,len(words)<=1 ? 0 : (width-totalWidthWords(words))/(len(words)-1)) :
+    halign=="right" ? formatLineNoJustify(words,x-totalWidthWords(words,space=space),y,space) :
+    halign=="center" ? formatLineNoJustify(words,x-totalWidthWords(words,space=space)/2,y,space) :
+    formatLineNoJustify(words,x,y,space);
 
-function formatLine(words,x,y,space,width,justify) =
-    justify ? formatLineJustify(words,x,y,totalWidthWords(words),width) :
-        formatLineFlushLeft(words,x,y,space);
-
-function formatParaLines(lines,indent,space,width,b2b,justify) = [for(i=[0:len(lines)-1]) for(w=formatLine(lines[i],i==0?indent:0,-i*b2b,space,width,justify && i+1<len(lines))) w];
+function formatParaLines(lines,indent,space,width,b2b,halign) = [for(i=[0:len(lines)-1]) for(w=formatLine(lines[i],i==0?indent:0,-i*b2b,space,width,halign=="justify" && i+1==len(lines) ? "left" : halign )) w];
     
 function lastYInPara(para) =
     len(para) == 0 ? 0 : para[len(para)-1][0][1];
@@ -255,34 +256,25 @@ function joinFormattedParas(paras,b2b,y=0,offset=0,soFar=[]) =
     offset >= len(paras) ? soFar :
     joinFormattedParas(paras,b2b,y=y-b2b+lastYInPara(paras[offset]),offset=offset+1,soFar=concat(soFar,shiftPara([0,y],paras[offset])));
     
-function formatParagraphText(s,f,indent,width,size,spacing,b2b,justify) =
+function formatParagraphText(s,f,indent,width,size,spacing,b2b,halign) =
     let(words=splitstring(s))
     len(words)==0 ? [] :
     let(lines=splitParaToLines(words,f,indent,width,size,spacing))
-        formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,justify);    
+        formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,halign);    
+
+function wrapText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) =
+    let(paras = splitstring(s,"\n"),
+        f = findFont(FONTS,font),
+        b2b = verticalAdvance(f)*linespacing,
+        formattedParas = [ for(p=paras) formatParagraphText(p,f,indent,width,size,spacing,b2b,halign) ])
+    joinFormattedParas(formattedParas);
+
     
-module drawWrappedText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,align="left",fonts=FONTS) {
-    paras = splitstring(s,"\n");
-    f = findFont(FONTS,font);
-    b2b = verticalAdvance(f)*linespacing;
-    ss = splitstring(s);
-    ww = addSizesToWords(ss,f,width-indent,width,size,spacing);
-    echo(ww);
-   lines=splitParaToLines(splitstring(s),f,indent,width,size,spacing);
-    echo("L",lines[0]);
-    fl=formatLineFlushLeft(lines[0],0,0,0);
-    echo("f1",fl);
-    echo(formatParagraphText(paras[0],f,indent,width,size,spacing,b2b,align=="justify"));
-    formattedParas = [ for(p=paras) formatParagraphText(p,f,indent,width,size,spacing,b2b,align=="justify") ];
-    echo(formattedParas);
-    formatted = joinFormattedParas(formattedParas);
-    echo(formatted);
+module drawWrappedText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) {
+    formatted = wrapText(s,font=font,size=size,spacing=spacing,indent=indent,width=width,halign=halign,fonts=fonts);
     for(w=formatted)
         translate(w[0]) drawText(w[1],font=font,size=size,spacing=spacing,fonts=FONTS);    /**/
-}
-
-drawWrappedText("This is a test of the wrapping algorithm balgo",width=58);
- 
+} 
 
 // end MIT licensed code
 
