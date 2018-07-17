@@ -5,6 +5,7 @@ BOLD = 1;
 ITALIC = 2;
 CONDENSED = 32;
 ASCENDER_TO_EM = 1510/2048; 
+METRICS_ADJUST = 1.0255; // this adjusts metrics a little bit to match OpenSCAD -- I don't know why this is needed
 
 _XADVANCE = 1;
 _LSB = 2;
@@ -16,7 +17,6 @@ _KERN = 7;
 
 
 function fontScale(f) = 1 / (ASCENDER_TO_EM * f[3]);
-function fontScale1(f) = 1 / f[1];
 
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
@@ -95,11 +95,11 @@ function measureText(text="", font="Liberation Sans", size=10., spacing=1., font
 
 function ascender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
-    fontScale(f)*size*f[1];
+    fontScale(f)*size*f[1]*METRICS_ADJUST;
 
 function descender(font="Liberation Sans", size=10., fonts=FONTS) =
     let(f=findFont(fonts, font))
-    -fontScale(f)*size*f[2];
+    fontScale(f)*size*f[2]*METRICS_ADJUST;
     
 function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
     len(text) == 0 ? 0 :
@@ -109,25 +109,25 @@ function maximizeGlyphMetric(text,f,mult,index,offset=0,soFar=-1e100) =
     
 function measureTextDescender(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    -fontScale(f)*size*maximizeGlyphMetric(text,f,-1,_YMIN);
+    -fontScale(f)*size*METRICS_ADJUST*maximizeGlyphMetric(text,f,-1,_YMIN);
     
 //echo(getGlyphInfo(f, "a")[_
 
 function measureTextAscender(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     let(f=findFont(fonts, font))
-    fontScale(f)*size*maximizeGlyphMetric(text,f,1,_YMAX);
+    fontScale(f)*size*METRICS_ADJUST*maximizeGlyphMetric(text,f,1,_YMAX);
 
 function measureTextLeftBearing(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     len(text)==0 ? 0 : (
     let(f=findFont(fonts,font), 
         g=getGlyphInfo(f, text[0]))
-    g == undef ? 0 : fontScale(f)*size*g[_LSB] );
+    g == undef ? 0 : fontScale(f)*size*(METRICS_ADJUST*(g[_LSB]-g[_XMIN])+g[_XMIN]) );
     
 function measureTextRightBearing(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     len(text)==0 ? 0 : (
     let(f=findFont(fonts, font),
         g=getGlyphInfo(findFont(fonts, font), text[len(text)-1]))
-    g == undef ? 0 : fontScale(f)*size*(g[_XMAX]-g[_XADVANCE]) );
+    g == undef ? 0 : fontScale(f)*size*(METRICS_ADJUST*(g[_XMAX]-g[_XMIN])+g[_XMIN]-g[_XADVANCE]) );
     
 //returns [leftX,bottomY,width,height]
 function measureTextBounds(text="", size=10, font="Liberation Sans",spacing=1,valign="left",halign="baseline",fonts=FONTS) = 
