@@ -88,8 +88,9 @@ function findFont(fonts, s) =
     _isString(s) ? findEntry(fonts, familyAndStyle(s)) : s;
 
 function getGlyphInfo(font,char) =
-    findEntry(font[_GLYPHDATA],char);
-
+    let(g=findEntry(font[_GLYPHDATA],char))
+    g == undef ? findEntry(font[_GLYPHDATA],"_") : g;
+    
 function measureWithFontAt(string,font,offset) =
     let(g=getGlyphInfo(font,string[offset]))
     g == undef ? 0 :
@@ -138,8 +139,6 @@ function measureTextDescender(text="", size=10, font="Liberation Sans", fonts=FO
     let(f=findFont(fonts, font))
     -fontScale(f)*size*METRICS_ADJUST*maximizeGlyphMetric(text,f,-1,_YMIN);
     
-//echo(getGlyphInfo(f, "a")[_
-
 function measureTextAscender(text="", size=10, font="Liberation Sans", fonts=FONTS) = 
     let(f=findFont(fonts, font))
     fontScale(f)*size*METRICS_ADJUST*maximizeGlyphMetric(text,f,1,_YMAX);
@@ -158,7 +157,7 @@ function measureTextRightBearing(text="", size=10, font="Liberation Sans", fonts
     
 //returns [leftX,bottomY,width,height]
 function measureTextBounds(text="", size=10, font="Liberation Sans",spacing=1,valign="left",halign="baseline",fonts=FONTS) = 
-    len(text)==0 ? [0,0,0,0] : (
+    len(text)==0 ? [[0,0],[0,0]] : (
         let(f=findFont(fonts,font),
             w=measureText(text,size=size,font=f,spacing=spacing),
             asc=measureTextAscender(text,size=size,font=f),
@@ -172,7 +171,7 @@ function measureTextBounds(text="", size=10, font="Liberation Sans",spacing=1,va
                valign=="bottom"?-des:
                valign=="center"?-0.5*(asc+des):
                0)
-        [lsb+dx,des+dy,w-lsb+rsb,asc-des]);
+        [[lsb+dx,des+dy],[w-lsb+rsb,asc-des]]);
     
 module drawText(text="", size=10, font="Liberation Sans", halign="left", valign="baseline", spacing=1, fonts=FONTS) {
     
@@ -192,7 +191,7 @@ module drawText(text="", size=10, font="Liberation Sans", halign="left", valign=
         
         scale(sc) {
             for (i=[0:l-1]) {
-                translate([offsetScale*(dx+offsets[i]),dy]) text(text[i], size=adjSize, font=font);
+                translate([offsetScale*(dx+offsets[i]),dy]) text(findEntry(f[_GLYPHDATA],text[i])==undef?"_":text[i], size=adjSize, font=font);
             }
         }
     }
@@ -250,7 +249,7 @@ function lastYInPara(para) =
 
 function shiftPara(delta,para) =
     len(para) == 0 ? [] : 
-    [for(i=[0:len(para)-1]) [para[i][0]+delta,para[i][1]]];
+    [for(i=[0:len(para)-1]) [delta+para[i][0],para[i][1]]];
     
 function joinFormattedParas(paras,b2b,y=0,offset=0,soFar=[]) =
     offset >= len(paras) ? soFar :
@@ -260,21 +259,28 @@ function formatParagraphText(s,f,indent,width,size,spacing,b2b,halign) =
     let(words=splitstring(s))
     len(words)==0 ? [] :
     let(lines=splitParaToLines(words,f,indent,width,size,spacing))
-        formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,halign);    
+        formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,halign); 
 
 function wrapText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) =
-    let(paras = splitstring(s,"\n"),
+    let(paras = splitstring("\n"),
         f = findFont(FONTS,font),
-        b2b = verticalAdvance(f)*linespacing,
-        formattedParas = [ for(p=paras) formatParagraphText(p,f,indent,width,size,spacing,b2b,halign) ])
-    joinFormattedParas(formattedParas);
-
+        b2b = verticalAdvance(f,size=size)*linespacing,
+        formattedParas = [ for(p=paras) formatParagraphText(s,f,indent,width,size,spacing,b2b,halign) ])
+    joinFormattedParas(formattedParas,b2b);
+        
+function measureWrappedTextBounds(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) =
+    let(f=findFont(fonts,font),
+        formatted=wrapText(s,font=font,size=size,spacing=spacing,linespacing=linespacing,indent=indent,width=width,halign=halign,fonts=FONTS),
+        corners=[for(w=formatted) let(b=measureTextBounds(w[1],font=font,size=size,spacing=spacing,fonts=FONTS)) for(xy=[w[0]+b[0],w[0]+b[0]+b[1]]) xy],
+        xCorners=[for(c=corners) c[0]],
+        yCorners=[for(c=corners) c[1]],
+        x0=min(xCorners),
+        y0=min(yCorners))
+        [[x0,y0],[max(xCorners)-x0,max(yCorners)-y0]];
     
 module drawWrappedText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) {
-    formatted = wrapText(s,font=font,size=size,spacing=spacing,indent=indent,width=width,halign=halign,fonts=fonts);
+    f=findFont(fonts,font);
+    formatted = wrapText(s,font=f,size=size,spacing=spacing,indent=indent,width=width,halign=halign,fonts=fonts);
     for(w=formatted)
         translate(w[0]) drawText(w[1],font=font,size=size,spacing=spacing,fonts=FONTS);    /**/
 } 
-
-// end MIT licensed code
-
