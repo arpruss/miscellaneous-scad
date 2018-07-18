@@ -1784,6 +1784,20 @@ function widthHersheyText(text,font=font,size=10,extraSpacing=0,start=0,soFar=0)
     _isString(font) ? widthHersheyText(text,font=findHersheyFont(font),size=size,extraSpacing=extraSpacing) :
     start<len(text) ? widthHersheyText(text,font=font,size=size,extraSpacing=extraSpacing, start=start+1,soFar=soFar+extraSpacing+size*findHersheyGlyph(text[start],font=font)[1]) : soFar;
     
+function subdivideLine(line) =
+    let(delta=line[1]-line[0],
+        l=norm(delta))
+    l*$fn <= 1 ? [line] :
+    let(n=ceil(l*$fn)) 
+    [for(i=[1:n]) 
+        let(t0=(i-1)/n, t=i/n)
+        [[(1-t0)*line[0],t0*line[1]],[(1-t)*line[0],t*line[1]]]];
+    
+function getHersheyGlyphLines(glyph,size=10) =
+    size*[for(line=glyph[2]) 
+        for(sub=subdivideLine(line))
+            [sub[0]+[0,0.5],sub[1]+[0,0.5]]];      
+    
 module drawHersheyGlyph(glyph,size=10) {
     for (line=glyph[2]) {
         hull() {
@@ -1842,35 +1856,46 @@ function iterateToAutoDistance(drawing1,drawing2,minimumDistance,w,precision=0.1
 function getAutoDistance(glyph,nextGlyph,minimumDistance,precision=0.1) =
     len(glyph[2]) == 0 || len(nextGlyph[2]) == 0 ? glyph[1] :
     iterateToAutoDistance(glyph[2],nextGlyph[2],minimumDistance,glyph[1],precision=precision);
-               
-module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
-    f = findHersheyFont(font);
+    
+function cumulativeSums(data,soFar=[]) =
+    len(soFar)>=len(data)+1 ? soFar :
+    len(soFar)==0 ? cumulativeSums(data,soFar=[0]) :
+    cumulativeSums(data,
+        concat(soFar,[ data[len(soFar)-1]+soFar[len(soFar)-1] ]));
+        
+function translateLines(delta,list) = [for (a=list) [delta+a[0],delta+a[1]]];        
+
+function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) =
+    let(f = findHersheyFont(font),
     offsetY =
         valign=="top" ? -size :
         valign=="center" ? size/2 : 
-        0; // "bottom" is same as "baseline": TODO: Fix
-    glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)];
+        0, // "bottom" is same as "baseline": TODO: Fix
+    glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)],
     widths=
         forceMinimumDistance==undef ? [for (g=glyphs) g[1]*size+extraSpacing] :
             [for (i=[0:len(glyphs)-1]) 
                 extraSpacing + (
                     i==len(glyphs)-1 ? glyphs[i][1]*size :
-                    size*getAutoDistance(glyphs[i],glyphs[i+1],forceMinimumDistance/size,precision=minimumDistancePrecision/size) )];
+                    size*getAutoDistance(glyphs[i],glyphs[i+1],forceMinimumDistance/size,precision=minimumDistancePrecision/size) )],
 
-    function cumulativeSums(data,soFar=[]) =
-        len(soFar)>=len(data)+1 ? soFar :
-        len(soFar)==0 ? cumulativeSums(data,soFar=[0]) :
-        cumulativeSums(data,
-            concat(soFar,[ data[len(soFar)-1]+soFar[len(soFar)-1] ]));
-    cWidths=cumulativeSums(widths);
-    width=cWidths[len(cWidths)-1];
+    cWidths=cumulativeSums(widths),
+    width=cWidths[len(cWidths)-1],
     offsetX =
         halign=="center" ? -0.5*width :
         halign=="right" ? -width :
-        0;
-
-    for (i=[0:len(text)-1])
-        translate([offsetX+cWidths[i],offsetY]) drawHersheyGlyph(glyphs[i],size=size) children();
+        0)
+    [for (i=[0:len(text)-1])
+        for(line=translateLines([offsetX+cWidths[i],offsetY], getHersheyGlyphLines(glyphs[i],size=size))) line];
+               
+module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
+    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,$fn=0);
+    echo(lines);
+    for (line=lines) 
+        hull() {
+            translate(line[0]) children();
+            translate(line[1]) children();
+        }
 }
 
 module demo() {
