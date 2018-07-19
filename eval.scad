@@ -332,7 +332,7 @@ function _optimize(expression) =
         _wellDefined(x) ? _optimizedLiteral(x) :
         expression[0] == "'" ? _optimizedLiteral(x) :
         ! _isString(expression) ? 
-            concat([expression[0]], [for(i=[1:len(expression)-1]) _optimize(expression[i])]) :
+            concat([expression[0]], [for(i=[1:len(expression)-1]) (i>1 || expression[0] != "let") ?  _optimize(expression[i]) : expression[i]]) :
         expression;
         
 function compileFunction(expression,optimize=true) = 
