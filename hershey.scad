@@ -1,4 +1,4 @@
-use <linesegmentutilities.scad>;
+//use <linesegmentutilities.scad>;
 
 function _isString(s) = s >= "";
 
@@ -1791,13 +1791,13 @@ function subdivideLine(line) =
     let(n=ceil(l*$fn)) 
     [for(i=[1:n]) 
         let(t0=(i-1)/n, t=i/n)
-        [[(1-t0)*line[0],t0*line[1]],[(1-t)*line[0],t*line[1]]]];
+        [(1-t0)*line[0]+t0*line[1],(1-t)*line[0]+t*line[1]]];
     
 function getHersheyGlyphLines(glyph,size=10) =
     size*[for(line=glyph[2]) 
         for(sub=subdivideLine(line))
             [sub[0]+[0,0.5],sub[1]+[0,0.5]]];      
-    
+        
 module drawHersheyGlyph(glyph,size=10) {
     for (line=glyph[2]) {
         hull() {
@@ -1889,8 +1889,7 @@ function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",
         for(line=translateLines([offsetX+cWidths[i],offsetY], getHersheyGlyphLines(glyphs[i],size=size))) line];
                
 module drawHersheyText(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
-    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,$fn=0);
-    echo(lines);
+    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,$fn=4);
     for (line=lines) 
         hull() {
             translate(line[0]) children();

@@ -287,7 +287,10 @@ function _parseMain(tok,start=0,stop=undef) =
                 op[_NAME] == "let" ?
                     _letOperator( _parseMain(op[_EXTRA_DATA]), _parseMain(tok,start=pos+1,stop=stop)) :
                 op[_ARITY] == 2 ?
-                    [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=stop) ]
+                    (start==pos ? 
+                    /* unary */
+                    
+                    let(j=_indexInTable(op[_OPERATOR], _binary_or_unary)) [ _binary_or_unary[j][1],_parseMain(tok,start=pos+1,stop=stop)] : [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=stop)])
                     : [ op[_OPERATOR], _parseMain(tok,start=pos+1,stop=stop) ];  
             
            
