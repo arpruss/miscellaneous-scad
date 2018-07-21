@@ -17,6 +17,10 @@ function _parseInt(s, start=0, stop=undef, accumulated=0) =
 function _findNonDigit(s, start=0) =
     start >= len(s) || s[start]<"0" || s[start]>"9" ? start :
     _findNonDigit(s, start=start+1);
+    
+function _replaceChar(s,c1,c2,pos=0,soFar="") =
+    pos >= len(s) ? soFar :
+    _replaceChar(s,c1,c2,pos=pos+1,soFar=str(soFar, s[pos]==c1 ? c2 : s[pos]));
 
 function _parseUnsignedFloat(s) =
     len(s) == 0 ? 0 :
