@@ -35,7 +35,7 @@ function getTransform(f,uv,normalize=true,extraParameters=[],delta=0.01) =
         
 module mapHershey(text,f="[u,v,0]",font="timesr",halign="left",valign="baseline",normalize=true,size=1,extraParameters=[]) {
     cf = compileFunction(f);
-    lines = getHersheyTextLines(text,size=1,font=font,halign=halign,valign=valign);
+    lines = getHersheyTextLines(text,size=size,font=font,halign=halign,valign=valign);
     for (line=lines) {
 //        echo(getTransform(cf,line[0],normalize=normalize));
         hull() {
