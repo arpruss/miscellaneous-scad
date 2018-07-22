@@ -1,13 +1,6 @@
 use <hershey.scad>;
 use <eval.scad>;
 
-//font = 0; // [0:cursive, 1:futural, 2:futuram, 3:gothgbt, 4:gothgrt, 5:gothiceng, 6:gothicger, 7:gothicita, 8:gothitt, 9:rowmand, 10:rowmans, 11:rowmant, 12:scriptc, 13:scripts, 14:timesi, 15:timesib, 16:timesr, 17:timesrb]
-//text = "Arma virumque cano, Troiae qui primus ab oris / Italiam, fato profugus, Laviniaque venit / litora, multum ille et terris iactatus et alto / vi superum saevae memorem Iunonis ob iram; / multa quoque et bello passus, dum conderet urbem, / inferretque deos Latio, genus unde Latinum, / Albanique patres, atque altae moenia Romae.";
-//formula = "let(angle=u*10,z=20*(v-1.5*angle/360),r=30-z/3) [r*cos(angle),r*sin(angle),z]";
-
-//uv = _replaceChar(formula,"@","=");
-//fonts=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
-
 function normalize(vect) = 
     let(n=norm(vect))
     n == 0 ? [0,0,0] : vect/n;
@@ -28,13 +21,52 @@ function getTransform(f,uv,normalize=true,extraParameters=[],delta=0.01) =
         t = (norm(f_u)+norm(f_v))/2,
         adjNormal = t==0 ? normal : normal/t)
         
-        normalize ? makeMatrix(normalize(f_u),normalize(f_v),normalize(normal),fc) : makeMatrix(f_u,f_v,normal,fc);;
+        normalize ? makeMatrix(normalize(f_u),normalize(f_v),normalize(normal),fc) : makeMatrix(f_u,f_v,normal,fc);
         
+function _slice(a,start,end=undef) =
+    let(end = end==undef ? len(a) : end)
+        start>=end ? [] : [for (i=[start:end-1]) a[i]];
+            
+function _compare2D(a,b) =
+    a[0] < b[0] ? -1 :
+    b[0] < a[0] ? 1 :
+    a[1] < b[1] ? -1 :
+    b[1] < a[1] ? 1 :
+    0;
+
+function _mergeLists2DUnique(a,b,merged=[]) =
+    len(a)==0 ? concat(merged,b) :
+    len(b)==0 ? concat(merged,a) :
+    let(comp=_compare2D(a[0],b[0]))
+    comp == -1 ? _mergeLists2DUnique(_slice(a,1), b, merged=concat(merged,[a[0]])) : 
+    comp == 1 ? _mergeLists2DUnique(_slice(b,1), a, merged=concat(merged,[b[0]])) :
+    _mergeLists2DUnique(_slice(a,1), _slice(b,1), merged=concat(merged,[a[0]]));        
+
+function mergeSort2DUnique(a) =
+    let(l=len(a))
+        l <= 1 ? a :
+        let(split=floor(l/2),
+            b=_slice(a,0,end=split),
+            c=_slice(a,split))
+            _mergeLists2DUnique(mergeSort2DUnique(b),mergeSort2DUnique(c));
+            
+// assume positive values           
+function calculateDistances(f,variableVar,variableValue,fixedVar,fixedValue,maxDistance,prevPosition,nextPosition,distance=0,delta=0.01,extras=[],soFar=[]) = 
+    distance+norm(nextPosition-prevPosition) >= maxDistance ? concat(soFar,[distance+norm(nextPosition-prevPosition)]) :
+    calculateDistances(f,variableVar,variableValue+delta,fixedVar,fixedValue,maxDistance,nextPosition,eval(f,concat(extras,[[variableVar,variableValue+delta],[fixedVar,fixedValue]])),distance=distance+norm(nextPosition-prevPosition),delta=delta,extras=extras,soFar=concat(soFar,[distance+norm(nextPosition-prevPosition)] ));
+    
+cf = compileFunction("[u,v,u+v]");    
+    
+function findValue(list,value,pos=0) =
+    pos >= len(list) ? pos-1 :
+    list[pos] == value ? pos :
+    pos > 0 && (list[pos-1]-value)*(list[pos]-value)<0 ? pos-1+(value-list[pos-1])/(list[pos]-list[pos-1]) :
+    findValue(list,value,pos=pos+1);    
+    
 module mapHershey(text,f="[u,v,0]",font="timesr",halign="left",valign="baseline",normalize=true,size=1,extraParameters=[]) {
     cf = compileFunction(f);
     lines = getHersheyTextLines(text,size=size,font=font,halign=halign,valign=valign);
     for (line=lines) {
-//        echo(getTransform(cf,line[0],normalize=normalize));
         hull() {
             multmatrix(getTransform(cf,line[0],normalize=normalize,extraParameters=extraParameters)) children();
             multmatrix(getTransform(cf,line[1],normalize=normalize,extraParameters=extraParameters)) children();
