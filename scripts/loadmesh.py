@@ -9,13 +9,13 @@ def loadMesh(filename, reverseTriangles=False):
              triangle = None
              for line in f:
                 line = line.strip()
-                if line.startswith('endfacet'):
+                if line.startswith(b'endfacet'):
                     if triangle is not None:
                         triangles.append(tuple(triangle))
                         triangle = None
-                elif line.startswith('facet'):
+                elif line.startswith(b'facet'):
                     triangle = []
-                elif triangle is not None and line.startswith('vertex'):
+                elif triangle is not None and line.startswith(b'vertex'):
                     triangle.append(tuple(float(x) for x in line.split()[1:4]))
              if not triangles:
                 f.seek(5)

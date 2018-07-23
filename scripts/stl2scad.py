@@ -6,8 +6,7 @@ def toSCAD(polygons):
         return '[%.7g,%.7g,%.7g]' % tuple(v)
 
     scad = []
-    scad.append('module stlObject1() {polyhedron(')
-    scad.append(' points=[')
+    scad.append('stlObject1_points=[')
     
     minDimension = min( max(max(v[i] for v in polygon) for polygon in polygons) - 
         min(min(v[i] for v in polygon) for polygon in polygons) for i in range(3))
@@ -38,8 +37,8 @@ def toSCAD(polygons):
                 pointDict[s] = len(pointDict)
                 scad.append('   '+s+",")
 
-    scad.append(' ],')
-    scad.append(' faces=[')
+    scad.append(' ];')
+    scad.append('stlObject1_faces=[')
     stderr.write("Getting faces.\n" )
     for polygon in polygons:
         p = '  ['
@@ -48,8 +47,8 @@ def toSCAD(polygons):
             s = format(vv[i]-m[i] for i in range(3))
             p += '%d,' % pointDict[s]
         scad.append(p+'],')
-    scad.append(' ]);')
-    scad.append('}')
+    scad.append('];')
+    scad.append('module stlObject1() { polyhedron(points=stlObject1_points,faces=stlObject1_faces); }')
     scad.append('stlObject1_size=[%.7g,%.7g,%.7g];' % tuple(sizes))
     scad.append('stlObject1();')
     stderr.write("Joining.\n" )
