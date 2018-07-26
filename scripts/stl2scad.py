@@ -1,12 +1,12 @@
 from loadmesh import loadMesh
 from sys import argv, stderr
 
-def toSCAD(polygons):
+def toSCAD(polygons,name="stlObject1"):
     def format(v):
         return '[%.7g,%.7g,%.7g]' % tuple(v)
 
     scad = []
-    scad.append('stlObject1_points=[')
+    scad.append(name + '_points=[')
     
     minDimension = min( max(max(v[i] for v in polygon) for polygon in polygons) - 
         min(min(v[i] for v in polygon) for polygon in polygons) for i in range(3))
@@ -38,7 +38,7 @@ def toSCAD(polygons):
                 scad.append('   '+s+",")
 
     scad.append(' ];')
-    scad.append('stlObject1_faces=[')
+    scad.append(name + '_faces=[')
     stderr.write("Getting faces.\n" )
     for polygon in polygons:
         p = '  ['
@@ -48,12 +48,15 @@ def toSCAD(polygons):
             p += '%d,' % pointDict[s]
         scad.append(p+'],')
     scad.append('];')
-    scad.append('module stlObject1() { polyhedron(points=stlObject1_points,faces=stlObject1_faces); }')
-    scad.append('stlObject1_size=[%.7g,%.7g,%.7g];' % tuple(sizes))
+    scad.append('module ' + name + '() { polyhedron(points=' + name + '_points, faces=' + name + '_faces); }')
+    scad.append(name+"_min=[for(i=[0:2]) min([for(p=" + name + "_points) p[i]])];")
+    scad.append(name+"_max=[for(i=[0:2]) max([for(p=" + name + "_points) p[i]])];")
+    scad.append('stlObject1_size=[for(i=[0:2]) '+name+'_max[i]-'+name+'_min[i]];')
     scad.append('stlObject1();')
     stderr.write("Joining.\n" )
     return '\n'.join(scad)
     
 if __name__ == '__main__':
-    print(toSCAD(loadMesh(argv[1], reverseTriangles=True)))
-       
+    objectName = argv[2] if len(argv) > 2 else "stlObject1";
+    print(toSCAD(loadMesh(argv[1], reverseTriangles=True), name=objectName))
+    
