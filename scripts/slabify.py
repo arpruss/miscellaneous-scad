@@ -1,6 +1,7 @@
 #
-# Make a flat single sided stl file above the xy plane into a solid slab
+# Make a flat single sided stl file aligned parallel to the xy plane into a solid slab
 #
+# python slabify.py filename.stl [thickness]
 
 from loadmesh import loadMesh
 from sys import argv, stderr
@@ -8,6 +9,10 @@ from exportmesh import *
 
 mesh = loadMesh(argv[1], reverseTriangles=False)
 out = argv[1] + "-slab.stl" if not argv[1].lower().endswith(".stl") else argv[1][:-4]+"-slab.stl"
+if len(argv) > 2:
+    thickness = float(argv[2])
+else:
+    thickness = 10
 
 def triedges(tri):
     yield (tri[0],tri[1])
@@ -24,10 +29,12 @@ for tri in mesh:
         else:
             edges[sedge] = 1
 
+minZ = min(v[2] for v in tri for tri in mesh)
+            
 for tri in mesh:
     mesh2.append((None,tri))
     def proj(v):
-        return tuple((v[0],v[1],0.))
+        return tuple((v[0],v[1],minZ-thickness))
     projected = tuple(reversed(tuple(proj(v) for v in tri)))
     mesh2.append((None,projected))
     for edge in triedges(tri):

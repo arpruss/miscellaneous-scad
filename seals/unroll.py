@@ -13,6 +13,8 @@ with open(argv[1]) as f:
     for line in f:
         try:
             v = tuple(float(x) for x in line.split(",")[:3])
+            if len(v) < 3:
+                raise Error()
             points.append(v)
             r = sqrt(v[0]*v[0]+v[1]*v[1])
             sumR += r
