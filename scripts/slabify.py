@@ -18,13 +18,13 @@ xMin = float("-inf")
 yMin = float("-inf")
 xMax = float("inf")
 yMax = float("inf")
-if len(argv) > 3
+if len(argv) > 3:
     xMin = float(argv[3])
-if len(argv) > 4
+if len(argv) > 4:
     yMin = float(argv[4])
-if len(argv) > 5
+if len(argv) > 5:
     xMax = float(argv[5])
-if len(argv) > 6
+if len(argv) > 6:
     yMax = float(argv[6])
 
 def triedges(tri):
@@ -38,7 +38,7 @@ def upwardFacing(tri):
     return a[0]*b[1]-a[1]*b[0] > 0
     
 def inRange(tri):
-    for v in in tri:
+    for v in tri:
         if v[0] < xMin or v[0] > xMax or v[1] < yMin or v[1] > yMax:
             return False
     return True
