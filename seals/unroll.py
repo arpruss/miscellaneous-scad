@@ -52,4 +52,4 @@ with open(out+".txt", "w") as f:
 
 stderr.write("0<=x && x<=%.5f && %.5f<=y && y<=%.5f\n" % (4*pi*avgR,minZ,maxZ))
 subprocess.call(["meshlabserver", "-i", out+".txt", "-s", "process_unroll.mlx", "-o", out+".stl"])
-subprocess.call(["pypy", "../scripts/slabify.py", out+".stl", "10", "0", str(minZ), str(4*pi*avgR), str(maxZ)])
+subprocess.call(["pypy", "../scripts/slabify.py", out+".stl", "4", "0", str(minZ), str(4*pi*avgR), str(maxZ)])
