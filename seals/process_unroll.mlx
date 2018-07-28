@@ -1,0 +1,34 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Compute normals for point sets">
+  <Param type="RichInt" value="10" name="K" description="Neighbour num" tooltip="The number of neighbors used to estimate normals."/>
+  <Param type="RichInt" value="0" name="smoothIter" description="Smooth Iteration" tooltip="The number of smoothing iteration done on the p used to estimate and propagate normals."/>
+  <Param type="RichBool" value="false" name="flipFlag" description="Flip normals w.r.t. viewpoint" tooltip="If the 'viewpoint' (i.e. scanner position) is known, it can be used to disambiguate normals orientation, so that all the normals will be oriented in the same direction."/>
+  <Param y="0" z="0" type="RichPoint3f" x="0" name="viewPos" description="Viewpoint Pos." tooltip="The viewpoint position can be set by hand (i.e. getting the current viewpoint) or it can be retrieved from mesh camera, if the viewpoint position is stored there."/>
+ </filter>
+ <filter name="Per Vertex Normal Function">
+  <Param type="RichString" value="nz&lt;0 ? -nx : nx" name="x" description="func nx = " tooltip="insert function to generate new x for the normal"/>
+  <Param type="RichString" value="nz&lt;0 ? -ny : ny" name="y" description="func ny = " tooltip="insert function to generate new y for the normal"/>
+  <Param type="RichString" value="nz&lt;0 ? -nz : nz" name="z" description="func nz = " tooltip="insert function to generate new z for the normal"/>
+  <Param type="RichBool" value="false" name="onselected" description="only on selection" tooltip="if checked, only affects selected vertices"/>
+ </filter>
+ <xmlfilter name="Screened Poisson Surface Reconstruction">
+  <xmlparam value="0" name="cgDepth"/>
+  <xmlparam value="false" name="confidence"/>
+  <xmlparam value="10" name="depth"/>
+  <xmlparam value="5" name="fullDepth"/>
+  <xmlparam value="8" name="iters"/>
+  <xmlparam value="4" name="pointWeight"/>
+  <xmlparam value="false" name="preClean"/>
+  <xmlparam value="1.5" name="samplesPerNode"/>
+  <xmlparam value="1.1" name="scale"/>
+  <xmlparam value="false" name="visibleLayer"/>
+ </xmlfilter>
+ <filter name="Delete Current Mesh"/>
+ <filter name="Close Holes">
+  <Param type="RichInt" value="30" name="MaxHoleSize" description="Max size to be closed " tooltip="The size is expressed as number of edges composing the hole boundary"/>
+  <Param type="RichBool" value="false" name="Selected" description="Close holes with selected faces" tooltip="Only the holes with at least one of the boundary faces selected are closed"/>
+  <Param type="RichBool" value="true" name="NewFaceSelected" description="Select the newly created faces" tooltip="After closing a hole the faces that have been created are left selected. Any previous selection is lost. Useful for example for smoothing the newly created holes."/>
+  <Param type="RichBool" value="true" name="SelfIntersection" description="Prevent creation of selfIntersecting faces" tooltip="When closing an holes it tries to prevent the creation of faces that intersect faces adjacent to the boundary of the hole. It is an heuristic, non intersetcting hole filling can be NP-complete."/>
+ </filter>
+</FilterScript>
