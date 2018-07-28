@@ -1,0 +1,10 @@
+Point clouds from http://repository.edition-topoi.org/ were licensed under
+https://creativecommons.org/licenses/by-nc-sa/3.0/
+
+The original point clouds were licensed CC-BY-NC-SA-3.0/DE, but of course the 
+original seals have been in the public domain for millennia, and I believe a 
+mere 3D scan does not add copyright. But I am not a lawyer, and European law 
+may be different, so I hereby put the CC-BY-NC-SA notice on these files just 
+to avoid trouble. However, I am not myself claiming any copyright on any of 
+the transformations I made of the point cloud, so if point clouds of ancient 
+objects have no copyright, the files posted here have no copyright either.
