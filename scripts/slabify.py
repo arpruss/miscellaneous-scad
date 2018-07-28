@@ -29,19 +29,20 @@ for tri in mesh:
         else:
             edges[sedge] = 1
 
-minZ = min(v[2] for v in tri for tri in mesh)
+print(len(mesh))
+minZ = min(v[2] for tri in mesh for v in tri)
             
 for tri in mesh:
-    mesh2.append((None,tri))
+    mesh2.append(tri)
     def proj(v):
         return tuple((v[0],v[1],minZ-thickness))
     projected = tuple(reversed(tuple(proj(v) for v in tri)))
-    mesh2.append((None,projected))
+    mesh2.append(projected)
     for edge in triedges(tri):
         if edges[tuple(sorted(edge))] == 1:
             tri2 = (edge[1],edge[0],proj(edge[1]))
             tri3 = (proj(edge[0]),proj(edge[1]),edge[0])
-            mesh2.append((None,tri2))
-            mesh2.append((None,tri3))
+            mesh2.append(tri2)
+            mesh2.append(tri3)
 
 saveSTL(out, mesh2)                       

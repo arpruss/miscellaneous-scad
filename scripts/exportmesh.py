@@ -10,7 +10,10 @@ except:
     basestring = str
 
 def isColorTriangleList(polys):
-    return isinstance(polys[0][1][0][0], Number)
+    try:
+        return isinstance(polys[0][1][0][0], Number)
+    except:
+        return False
     
 def toPolyhedra(polys):
     if isColorTriangleList(polys):
@@ -18,9 +21,20 @@ def toPolyhedra(polys):
     else:
         return polys
         
+def isSimpleTriangleMesh(data):
+    try:
+        return len(data[0]) == 3 and len(data[0][0]) == 3 and isinstance(data[0][0][0], Number)
+    except:
+        return False
+        
 def toMesh(polys):
     if isColorTriangleList(polys):
         return polys
+    elif isSimpleTriangleMesh(polys):
+        output = []
+        for tri in polys:
+            output.append((None,tri))
+        return output
     else:
         output = []
         for rgb,polyhedron in polys:
