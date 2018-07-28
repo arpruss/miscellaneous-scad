@@ -5,7 +5,8 @@ for x in VA[0-9][0-9][0-9][0-9][0-9].txt ; do
     pypy ../scripts/relief.py ${x%.*}.stl 2
     pypy unroll.py $x
     echo 'color("gray") import("'${x%.*}-unroll-slab.stl'");' > ${x%.*}-unroll.scad
-    echo 'translate([0,-30,0]) text("'${x%.*}$'",size=8);' >> ${x%.*}-unroll.scad
-    openscad --camera 80,0,200,80,0,0 --autocenter --imgsize=1600,600 -o ${x%.*}.png ${x%.*}-unroll.scad 
-    mogrify -trim ${x%.*}.png
+    echo 'translate([0,-45,0]) text("'${x%.*}$'",size=8);' >> ${x%.*}-unroll.scad
+    openscad --camera 80,0,400,80,0,0 --autocenter --imgsize=3000,1500 -o ${x%.*}.png ${x%.*}-unroll.scad 
+    convert ${x%.*}.png -trim  ${x%.*}.jpg
+    rm ${x%.*}.png
 done
