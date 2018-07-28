@@ -1,5 +1,6 @@
 #
 # Make a flat single sided stl file aligned parallel to the xy plane into a solid slab
+# omits all non-upward-facing triangles
 #
 # python slabify.py filename.stl [thickness]
 
@@ -18,6 +19,18 @@ def triedges(tri):
     yield (tri[0],tri[1])
     yield (tri[1],tri[2])
     yield (tri[2],tri[0])
+    
+def upwardFacing(tri):
+    a = (tri[1][0]-tri[0][0],tri[1][1]-tri[0][1])
+    b = (tri[2][0]-tri[0][0],tri[2][1]-tri[0][1])
+    return a[0]*b[1]-a[1]*b[0] > 0
+    
+pruned = []    
+for tri in mesh:
+    if upwardFacing(tri):
+        pruned.append(tri)
+        
+mesh = pruned
 
 mesh2 = []
 edges = {}
