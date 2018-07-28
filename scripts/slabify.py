@@ -2,7 +2,7 @@
 # Make a flat single sided stl file aligned parallel to the xy plane into a solid slab
 # omits all non-upward-facing triangles
 #
-# python slabify.py filename.stl [thickness]
+# python slabify.py filename.stl [thickness [xmin ymin xmax ymax]]
 
 from loadmesh import loadMesh
 from sys import argv, stderr
@@ -14,6 +14,18 @@ if len(argv) > 2:
     thickness = float(argv[2])
 else:
     thickness = 10
+xMin = float("-inf")
+yMin = float("-inf")
+xMax = float("inf")
+yMax = float("inf")
+if len(argv) > 3
+    xMin = float(argv[3])
+if len(argv) > 4
+    yMin = float(argv[4])
+if len(argv) > 5
+    xMax = float(argv[5])
+if len(argv) > 6
+    yMax = float(argv[6])
 
 def triedges(tri):
     yield (tri[0],tri[1])
@@ -25,9 +37,15 @@ def upwardFacing(tri):
     b = (tri[2][0]-tri[0][0],tri[2][1]-tri[0][1])
     return a[0]*b[1]-a[1]*b[0] > 0
     
+def inRange(tri):
+    for v in in tri:
+        if v[0] < xMin or v[0] > xMax or v[1] < yMin or v[1] > yMax:
+            return False
+    return True
+    
 pruned = []    
 for tri in mesh:
-    if upwardFacing(tri):
+    if upwardFacing(tri) and inRange(tri):
         pruned.append(tri)
         
 mesh = pruned
