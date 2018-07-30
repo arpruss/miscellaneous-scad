@@ -25,6 +25,22 @@
   <xmlparam value="false" name="visibleLayer"/>
  </xmlfilter>
  <filter name="Delete Current Mesh"/>
+ <filter name="Remove Duplicate Faces"/>
+ <filter name="Remove Duplicated Vertex"/>
+ <filter name="Remove Zero Area Faces"/>
+ <filter name="Remove Unreferenced Vertex"/>
+ <filter name="Remove Isolated pieces (wrt Diameter)">
+  <Param type="RichAbsPerc" value="0.669358" min="0" name="MinComponentDiag" max="0.743731"/>
+ </filter>
+ <filter name="Remove Duplicate Faces"/>
+ <filter name="Remove Duplicated Vertex"/>
+ <filter name="Remove Faces from Non Manifold Edges"/>
+ <filter name="Select non Manifold Vertices"/>
+ <filter name="Delete Selected Vertices"/>
+ <filter name="Remove Duplicate Faces"/>
+ <filter name="Remove Duplicated Vertex"/>
+ <filter name="Remove Zero Area Faces"/>
+ <filter name="Remove Unreferenced Vertex"/>
  <filter name="Close Holes">
   <Param type="RichInt" value="30" name="MaxHoleSize" description="Max size to be closed " tooltip="The size is expressed as number of edges composing the hole boundary"/>
   <Param type="RichBool" value="false" name="Selected" description="Close holes with selected faces" tooltip="Only the holes with at least one of the boundary faces selected are closed"/>
