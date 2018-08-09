@@ -45,7 +45,7 @@ def inRange(tri):
     
 pruned = []    
 for tri in mesh:
-    if upwardFacing(tri) and inRange(tri):
+    if upwardFacing(tri) and inRange(tri) and not (tri[1][0] == tri[2][0] and tri[1][1] == tri[2][1]):
         pruned.append(tri)
         
 mesh = pruned
@@ -59,7 +59,7 @@ for tri in mesh:
             edges[sedge] += 1
         else:
             edges[sedge] = 1
-
+            
 print(len(mesh))
 minZ = min(v[2] for tri in mesh for v in tri)
             

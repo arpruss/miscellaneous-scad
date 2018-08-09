@@ -18,14 +18,14 @@ def radius(v):
     return sqrt(v[0]*v[0]+v[1]*v[1])
     
 print(len(mesh))
-maxR = max(radius(v) for tri in mesh for v in tri)
-stderr.write("maxR = %.2f\n" % maxR)
+avgR = sum(radius(v) for tri in mesh for v in tri) / (3*len(mesh))
+stderr.write("avgR = %.2f\n" % avgR)
 
 mesh2 = []
 
 for tri in mesh:
     def fixVertex(v):
-        a = (radius(v)/maxR)**(relief-1)
+        a = (radius(v)/avgR)**(relief-1)
         return (v[0]*a,v[1]*a,v[2])
     mesh2.append(tuple( fixVertex(v) for v in tri ))
 
