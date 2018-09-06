@@ -18,7 +18,7 @@ outerWall = 0.75;
 // Thickness of main drawer walls and dividers running forward and back
 drawerWall=0.45; 
 // Thickness of divider walls running horizontally
-dividerWall=0.45; 
+horizontalDividerWall=0.75; 
 drawerWidth = 136;
 drawerDepth = 70; 
 drawerHeight = 16;
@@ -138,8 +138,8 @@ module drawer(numberOfDrawerCompartmentsHorizontally, numberOfDrawerCompartments
     }
     if (numberOfDrawerCompartmentsInDepth > 1) {
         for (i=[0:numberOfDrawerCompartmentsInDepth-2]) {
-            translate([0,drawerWall+(drawerDepth-2*drawerWall)/numberOfDrawerCompartmentsInDepth*(1+i)-dividerWall/2,0])
-            cube([drawerWidth,dividerWall,drawerHeight]);
+            translate([0,drawerWall+(drawerDepth-2*drawerWall)/numberOfDrawerCompartmentsInDepth*(1+i)-horizontalDividerWall/2,0])
+            cube([drawerWidth,horizontalDividerWall,drawerHeight]);
         }
     }
 }
