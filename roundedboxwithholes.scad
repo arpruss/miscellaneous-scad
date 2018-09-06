@@ -1,16 +1,28 @@
 create = 0; // [0:lid, 1:box]
 rounding = 5;
 outerWidth = 40;
-outerLength = 60;
+outerLength = 80;
 sideWall = 1;
 lip = 3;
 baseThickness = 1.5;
 lidThickness = 1.5;
 lidThicknessTolerance = 0.25;
 lidSideTolerance = 0.25;
-height = 20;
-screwHoleDiameter = 2;
-screwHoleDepth = 5;
+height = 18;
+screwHoleDiameter = 2.9;
+screwHoleDepth = 12;
+switchHoleDiameter = 6;
+verticalSwitchTextOffset = 8;
+horizontalSwitchTextOffset = 7;
+switchLayout = [
+    [ [-2/3, 0.4], "v", "WingDings 3", 5, ["\u00C5\u00C6", "\u00C6\u00C5"] ],
+    [ [-1/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
+    [ [1/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
+    [ [2/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
+    [ [0, -0.6], "h", "WingDings 3", 5, ["\u00C5", "\u00C6"] ],
+    [ [2/3, -0.6], "h", "Arial Black", 5, ["0","1"] ]
+    ];
+textThickness = 1.5;
 
 module ribbon(points,closed=true) {
     for (i=[0:len(points)-(closed?1:2)]) {
@@ -21,7 +33,7 @@ module ribbon(points,closed=true) {
     }
 }
 
-$fn = 10;
+$fn = 24;
 nudge = 0.01;
 
 adjWidth = outerWidth - rounding - sideWall;
@@ -62,8 +74,20 @@ module lid() {
     difference() {
         linear_extrude(height=lidThickness) hull() ribbon(rounded(inset=sideWall+nudge+lidSideTolerance)) circle(d=nudge);
         for (i=[0:3]) translate([innerCorners[i][0],innerCorners[i][1],-nudge]) cylinder(d=screwHoleDiameter,h=lidThickness+2*nudge);
+        for (switch=switchLayout) {
+            x = switch[0][0]*adjLength/2;
+            y = switch[0][1]*adjWidth/2;
+            offset = switch[1] == "v" ? verticalSwitchTextOffset : horizontalSwitchTextOffset;
+            translate([x,y,-nudge]) cylinder(d=switchHoleDiameter,h=lidThickness+2*nudge);
+            t = switch[1] == "v" ? [ [x,y+offset], [x,y-offset] ] : [ [x-offset,y], [x+offset,y] ];
+            for (i=[0:1]) {
+                translate([0,0,lidThickness-nudge]) translate(t[i]) #linear_extrude(height=textThickness) text(switch[4][i],font=switch[2],size=switch[3],valign="center",halign="center");
+            }
+            
+        }
     }
 }
 
-if (create == 1) render(convexity=2) mainBox();
+render(convexity=2) 
+if (create == 1) mainBox();
     else lid();
