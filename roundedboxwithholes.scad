@@ -17,7 +17,7 @@ switchHoleDiameter = 6.8;
 verticalSwitchTextOffset = 8;
 horizontalSwitchTextOffset = 7.2;
 switchLayout = [
-    [ [-2/3, 0.4], "v", "WingDings 3", 5, ["\u00C5\u00C6", "\u00C6\u00C5"] ],
+    [ [-2/3, 0.4], "v", "WingDings 3", 5, ["\u00C6\u00C5","\u00C5\u00C6"] ],
     [ [-1/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
     [ [1/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
     [ [2/3, 0.4], "v", "WingDings 3", 5, ["\u00C7", "\u00C8"] ],
