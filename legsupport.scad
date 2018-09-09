@@ -7,8 +7,7 @@ supportWidth = 50;
 thicknessAtBottom = 3;
 thicknessAtTop = 3;
 topVerticalityControl = 0.7;
-bottomHorizontalityControl = 0.8;
-precision = 0.05;
+bottomHorizontalityControl = 0.7;
 countersinkDiameter = 8;
 screwHoleDiameter = 3.5;
 screwHoleLength = 3;
@@ -23,6 +22,7 @@ zFaceHolePositions =
 
 module dummy() {}
 
+precision = 0.03;
 nudge = 0.005;
 
 curve = Bezier([ 
@@ -34,15 +34,33 @@ curve = Bezier([
     OFFSET([0,-topVerticalityControl*supportHeight]),
     [thicknessAtTop,supportHeight] ], precision=precision); 
 
-sections = [for(p=curve) let(d=p[0]+postSize)
+function maxInRange(c,i,start,end) =
+    start > end ? -1e20 :
+    max([for(j=[start:end]) c[j][i]]);
+        
+function makeMonotone(c) =
+    let(last=len(c)-1)
+    [for(i=[0:last]) [maxInRange(c,0,i,last),min(maxInRange(c,1,0,i),supportHeight)]];
+
+function makeUnique(c) =
+    [for(i=[0:len(c)-1]) if(i==0 || c[i]!=c[i-1]) c[i]];
+        
+function makeStrictlyMonotone(c) =
+    let(minimumSpacing = min([for(i=[1:len(c)-1]) if(c[i][1] > c[i][0]) c[i][1]-c[i][0]]),
+        delta = minimumSpacing / len(c) / 100)
+    [for(i=[0:len(c)-1]) i==0 || c[i][1]!=c[i-1][1] ? c[i] : [c[i][0], c[i][1]+i*delta]];
+
+curve2 = makeStrictlyMonotone(makeUnique(makeMonotone(curve)));     
+ 
+sections = [for(p=curve2) let(d=p[0]+postSize)
      [ [0,0,p[1]], [d,0,p[1]], [d,d,p[1]], [0,d,p[1] ] ]
      ];
 
 module support() {
     render(convexity=2)
     difference() {
-        tubeMesh(sections);
-        translate([0,0,-nudge]) cube([postSize,postSize,supportHeight+2*nudge]);
+        tubeMesh(sections,optimize=false);
+        translate([0,0,-nudge]) cube([postSize,postSize,supportHeight+2*nudge+10]);
     }
 }
 
