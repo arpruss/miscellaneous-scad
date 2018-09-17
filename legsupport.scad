@@ -6,10 +6,10 @@ supportHeight = 50;
 supportWidth = 50;
 thicknessAtBottom = 3;
 thicknessAtTop = 3;
-topVerticalityControl = 0.7;
-bottomHorizontalityControl = 0.7;
-countersinkDiameter = 8;
-screwHoleDiameter = 3.5;
+topVerticalityControl = 0.6;
+bottomHorizontalityControl = 0.6;
+countersinkDiameter = 9;
+screwHoleDiameter = 4.3;
 screwHoleLength = 3;
 teardropHoles = true;
 minimumHoleDistanceFromEdge = 5;
@@ -18,7 +18,7 @@ xFaceHolePositions =
 yFaceHolePositions = 
     [ [1,1], [1,0], [0,1] ];
 zFaceHolePositions = 
-    [ [0,0.1], [0.5,0.4], [1,0.1] ];
+    [ [0,0.1], [0.5,0.7], [1,0.1] ];
 
 module dummy() {}
 
