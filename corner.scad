@@ -1,12 +1,14 @@
-thickness = 8;
-width = 46;
+width = 45-.3;
+thickness = width-36.9;
 height = 50;
 attenuate = 2;
+
+echo(thickness);
 
 module base(delta) {
     hull() {
     circle(d=thickness-2*delta);
-    translate([width-thickness-thickness/2+delta,-thickness/2+delta]) square(thickness-2*delta);
+    translate([width-thickness,0]) circle(d=thickness-2*delta);
     }
 }
 
