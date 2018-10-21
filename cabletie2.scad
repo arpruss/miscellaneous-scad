@@ -6,8 +6,8 @@ use <ribbon.scad>;
 corner=5;
 cableDiameter=5;
 tieThickness=2;
-tieWidth=23;
-tieLength=25;
+tieWidth=25.9;
+tieLength=35;
 screwHoleDiameter=4;
 //</params>
 

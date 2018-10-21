@@ -1,8 +1,8 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 0; // [1:yes, 0:no]
-includeTop = 1; // [1:yes, 0:no]
+includeBottom = 1; // [1:yes, 0:no]
+includeTop = 0; // [1:yes, 0:no]
 includeGamecubePort = 0; // [1:yes, 0:no]
 includeEllipticalPort = 0; // [1:yes, 0:no]
 includeNunchuckPort = 0; // [1:yes, 0:no]
@@ -50,8 +50,8 @@ led1YOffsetFromButton1 = 1.27;
 ledSpacing = 5.08;
 pcbToPCBSpacing = 6;
 usbPortWidth = 10;
-usbPortHeight = 4.5;
-usbPortZOffsetDown = 1;
+usbPortHeight = 5;
+usbPortZOffsetDown = -0.5;
 directionSwitchNeckDiameter = 5.8;
 directionSwitchOuterDiameter = 11.12;
 directionSwitchNeck = 1.1;
