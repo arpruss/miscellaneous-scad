@@ -1,12 +1,10 @@
 use <tubemesh.scad>;
 
-right = 1;
-
-boardThickness = right ? 5.27 : 9.52;
-length = 114; // fix
-deltaBottom = 1.5; // fix
-deltaTop = 1.5; // fix
-deltaRatio = 1.5;
+boardThickness = 5.27;
+length = 114; 
+inset1 = 1.5; 
+inset2 = 1.5; 
+insetRatio = 1.5;
 bottomSlideWidth = 15;
 topSlideWidth = 10;
 holderWidth = 9;
@@ -18,25 +16,25 @@ holeDiameter = 4;
 hole1Offset = 10; 
 numHoles = 4;
 
-function crossSection(delta=0) =
+function crossSection(inset=0) =
         [[-holderWidth,-bottomMaximumThickness],
         [bottomSlideWidth,-bottomMinimumThickness],
-        [bottomSlideWidth,-delta],
-        [-delta,-delta],
-        [-delta,boardThickness+tolerance+delta],
-        [topSlideWidth,boardThickness+tolerance+delta],
+        [bottomSlideWidth,-inset],
+        [-inset,-inset],
+        [-inset,boardThickness+tolerance+inset],
+        [topSlideWidth,boardThickness+tolerance+inset],
         [topSlideWidth,boardThickness+tolerance+topThickness],
         [-holderWidth,boardThickness+tolerance+topThickness]];
 
 module slide() {
-    s0 = crossSection(delta=deltaBottom);
+    s0 = crossSection(inset=inset1);
     s1 = crossSection();
-    s2 = crossSection(delta=deltaTop);
-    tubeMesh([sectionZ(s0,0), sectionZ(s1,deltaBottom*deltaRatio), sectionZ(s1,length-(deltaBottom+deltaTop)*deltaRatio), sectionZ(s2,length)]);
+    s2 = crossSection(inset=inset2);
+    tubeMesh([sectionZ(s0,0), sectionZ(s1,inset1*insetRatio), sectionZ(s1,length-(inset1+inset2)*insetRatio), sectionZ(s2,length)]);
 }
 
+rotate([90,0,0])
 render(convexity=2)
-mirror([right?0:1,0,0])
 difference() {
     slide();
     for (i=[0:numHoles-1]) {
