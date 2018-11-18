@@ -1,6 +1,6 @@
 use <tubemesh.scad>;
 
-length = 140;
+length = 130;
 thickness = 8;
 minWidth = 5;
 maxWidth = 10;
