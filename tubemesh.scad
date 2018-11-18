@@ -213,7 +213,7 @@ module mySphere(r=10,d=undef) {
     polyhedron(points=data[0], faces=data[1]);
 }
 
-module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",startCap=true,endCap=true,optimize=false) {
+module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=false) {
     
     fc = compileFunction(curve);
     n = max(len(section1),len(section2));
@@ -226,7 +226,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t
                         (1-t)*section1interp+t*section2interp] :
                       [for(i=[0:numSlices])
                         let(t=i/numSlices,
-                            t1=eval(fc,[["t",t]]),
+                            t1=eval(fc,concat([["t",t]],curveParams)),
                             theta = t*twist,
                             section=(1-t1)*section1interp+t1*section2interp)
                         [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[0]*sin(theta)+p[1]*cos(theta),height*t]]];

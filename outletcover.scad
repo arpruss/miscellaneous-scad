@@ -1,25 +1,32 @@
 use <tubemesh.scad>;
 
-h = 4.5*25.4;
-w = 2.75*25.4;
-spacing = 3.25*25.4;
+//<params>
+h = 114.3;
+w = 69.85;
+screwSpacing = 82.55;
 thickness = 5;
 taper = 5;
 screwDiameter = 4;
-screwHead = 8.25;
+screwHeadDiameter = 8.25;
 screwHeadDepth = 2.25;
+taperFormula = "asin(t)/90";
+//</params>
+
+module dummy() {}
+
 nudge = 0.01;
 
-function slice(taper,z) = [ [ -w/2+taper,-h/2+taper,z ],[ w/2-taper,-h/2+taper,z], [w/2-taper,h/2-taper,z], [-w/2+taper,h/2-taper,z]];
+slice0 = [ [ -w/2,-h/2 ],[ w/2,-h/2], [w/2,h/2], [-w/2,h/2]];
+slice1 = [ [ -w/2+taper,-h/2+taper],[ w/2-taper,-h/2+taper], [w/2-taper,h/2-taper], [-w/2+taper,h/2-taper]];
 
 $fn = 32;
 difference() {
-    tubeMesh([for(t=[0:0.025:1]) slice(taper*asin(t)/90,t*thickness)]);
+    morphExtrude(slice0,slice1,height=thickness,curve=taperFormula,numSlices=40);
     translate([0,0,-nudge])
     for (s=[-1,1]) {
-        translate([0,s*spacing/2,0]) {
+        translate([0,s*screwSpacing/2,0]) {
         cylinder(d=screwDiameter,h=thickness+2*nudge);
-        translate([0,0,thickness-screwHeadDepth]) cylinder(d=screwHead,h=screwHeadDepth+nudge*2);
+        translate([0,0,thickness-screwHeadDepth]) cylinder(d=screwHeadDiameter,h=screwHeadDepth+nudge*2);
         }
     }
 }
