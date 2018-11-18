@@ -1,3 +1,5 @@
+use <eval.scad>;
+
 // params = [sections,sectionCounts]
 
 // written for tail-recursion
@@ -211,7 +213,9 @@ module mySphere(r=10,d=undef) {
     polyhedron(points=data[0], faces=data[1]);
 }
 
-module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap=true,endCap=true,optimize=false) {
+module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",startCap=true,endCap=true,optimize=false) {
+    
+    fc = compileFunction(curve);
     n = max(len(section1),len(section2));
              
     section1interp = _interpolateSection(section1,n);
@@ -222,8 +226,9 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,startCap
                         (1-t)*section1interp+t*section2interp] :
                       [for(i=[0:numSlices])
                         let(t=i/numSlices,
+                            t1=eval(fc,[["t",t]]),
                             theta = t*twist,
-                            section=(1-t)*section1interp+t*section2interp)
+                            section=(1-t1)*section1interp+t1*section2interp)
                         [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[0]*sin(theta)+p[1]*cos(theta),height*t]]];
                             
     tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=false);   
@@ -247,6 +252,6 @@ translate([15,0,0]) morphExtrude(ngonPoints(30,d=6), ngonPoints(2,d=4), height=1
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
-translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20 );
+translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, curve="sin(90*t)" );
 translate([80,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, twist=90 );
 //</skip>

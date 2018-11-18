@@ -14,8 +14,9 @@ def process(name):
         for line in f:
             m = re.match(r'(include|use)\s+<([^>]+)>', line)
             if m:
-                current.append("//"+line.strip())
+                current.append("\n//BEGIN: "+line.strip())
                 process(m.group(2))
+                current.append("\n//END: "+line.strip()+"\n")
             else:
                 lineStripped = line.strip()
                 if lineStripped == "//<params>":
