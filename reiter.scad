@@ -14,8 +14,8 @@ maximumRadius = 50;
 color1 = [.26,.71,.9];
 color2 = [1,1,1];
 thickness = 10;
-variableThickness = 0; // [0:no, 1:yes]
-starProfile = 1; // [0:no, 1:yes]
+variableThickness = 1; // [0:no, 1:yes]
+starProfile = 0; // [0:no, 1:yes (slow)]
 hexSize = 10;
 // If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is ignored
 joinMode = 0; // [0:no, 1:yes]
@@ -177,8 +177,8 @@ if (starProfile) {
     render(convexity=5)
     intersection() {
         draw(simulated);
-        rotate([0,0,360/12]) starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenRadius=maxRadius,bottomOddRadius=maxRadius,bottopCenter=[0,0,maxHeight], bottomEvenZ = 0, 
-        bottomOddZ = 0, topEvenRadius=maxRadius, topOddRadius=maxRadius, topEvenZ=maxHeight, topOddZ=0.01);
+        rotate([0,0,360/12]) starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenRadius=maxRadius,bottomOddRadius=maxRadius*sqrt(3)/2,bottopCenter=[0,0,maxHeight], bottomEvenZ = 0, 
+        bottomOddZ = 0, topEvenRadius=maxRadius, topOddRadius=maxRadius*sqrt(3)/2, topEvenZ=maxHeight, topOddZ=0.01);
     }
     
 }
