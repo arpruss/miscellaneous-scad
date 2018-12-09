@@ -27,7 +27,7 @@ ceiling_extra = 4;
 ceiling_holes = 0; // [1:true, 0:false ]
 wings_width = 10;
 wings_thickness = 1.5;
-wings_screw_hole_diameter = 0;
+wings_screw_hole_diameter = 3;
 have_ventilation = 1; // [1:true, 0:false]
 ventilate_hole_width = 4;
 ventilate_strip_width = 3;
@@ -210,8 +210,12 @@ module bottom() {
         l = pcb[0];
         
         linear_extrude(height=wings_thickness) {
+                difference() {
                 polygon([
                        [-l/2,0], [-l/2+wings_width,-wings_width], [l/2-wings_width,-wings_width],[l/2,0]]);
+                    translate([-l/2+wings_width+wings_screw_hole_diameter/2,-wings_width/2]) circle(d=wings_screw_hole_diameter,$fn=16);
+                    translate([l/2-wings_width-wings_screw_hole_diameter/2,-wings_width/2]) circle(d=wings_screw_hole_diameter,$fn=16);
+                }
             }
         }
     if (wings_thickness>0 && wings_width>0) {
