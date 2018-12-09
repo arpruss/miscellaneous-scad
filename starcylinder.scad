@@ -1,5 +1,3 @@
-use <tubemesh.scad>;
-
 function makeFaces(bc,b1,b2,tc,t1,t2)
     = [ [bc,b1,b2],
         [tc,t2,t1],

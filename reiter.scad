@@ -1,6 +1,8 @@
 use <starcylinder.scad>;
 
-// [Simulation]
+//<params>
+
+/* [Simulation] */
 alpha = 1.6;
 beta = 0.7;
 gamma = 0.002;
@@ -10,19 +12,21 @@ steps = 100;
 // in hexes
 maximumRadius = 50;
 
-// [Rendering]
+/* [Rendering] */
 color1 = [.26,.71,.9];
 color2 = [1,1,1];
 thickness = 10;
 variableThickness = 1; // [0:no, 1:yes]
-starProfile = 0; // [0:no, 1:yes (slow)]
+starProfile = 0; // [0:no, 1:yes (slow, monochrome)]
 hexSize = 10;
 // If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is ignored
 joinMode = 0; // [0:no, 1:yes]
 // How much of the hex to fill.
 filledFraction = 1;
-// set to 
+// set to 0 to get a different result each time
 randomSeed = 20;
+
+//</params>
 
 module dummy(){}
 //gamma_variation_degrees_per_step = 30;
