@@ -1,20 +1,19 @@
 alpha = 1.6;
 beta = 0.7;
 gamma = 0.002;
-gamma_variation_amplitude_ratio = 0;
+gamma_variation_amplitude_ratio = 0.2;
 random_beta_variation = 0.3; 
 steps = 100;
 maximumRadius = 50;
 color1 = [.26,.71,.9];
 color2 = [1,1,1];
-hexHeight = 5;
-variableHexHeight = 1; // [0:no, 1:yes]
+Thickness = 5;
+variableThickness = 1; // [0:no, 1:yes]
 hexSize = 10;
 // If you use join mode, it is recommended you set filledFraction to 0.5 or less.
 joinMode = 0; // [0:no, 1:yes]
 // How much of the hex to fill.
 filledFraction = 1;
-thickness = 2;
 
 module dummy(){}
 //gamma_variation_degrees_per_step = 30;
@@ -98,7 +97,7 @@ module show(i,j) {
     translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
 }
 
-function getHeight(v) = variableHexHeight ? (min(v,1.25)-1)*4*hexHeight : hexHeight;
+function getHeight(v) = variableThickness ? (min(v,1.25)-1)*4*Thickness : Thickness;
 
 module visualize(data) {
     for(i=[0:len(data)-1]) {
