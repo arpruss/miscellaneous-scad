@@ -1,16 +1,23 @@
+use <starcylinder.scad>;
+
+// [Simulation]
 alpha = 1.6;
 beta = 0.7;
 gamma = 0.002;
 gamma_variation_amplitude_ratio = 0.2;
 random_beta_variation = 0.3; 
 steps = 100;
+// in hexes
 maximumRadius = 50;
+
+// [Rendering]
 color1 = [.26,.71,.9];
 color2 = [1,1,1];
 thickness = 10;
-variableThickness = 1; // [0:no, 1:yes]
+variableThickness = 0; // [0:no, 1:yes]
+starProfile = 1; // [0:no, 1:yes]
 hexSize = 10;
-// If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is disabled then
+// If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is ignored
 joinMode = 0; // [0:no, 1:yes]
 // How much of the hex to fill.
 filledFraction = 1;
@@ -26,7 +33,7 @@ module dummy(){}
 // b0.7 is nice, too
 // elegant 1.6,0.7,.002
 
-animate = 1;
+animate = 0;
 
 cos30 = cos(30);
 sin30 = sin(30);
@@ -51,7 +58,7 @@ numRandomPoints = (1+steps) * numCells;
 
 rawRandomData = randomSeed ? rands(0,1,numRandomPoints,randomSeed) : rands(0,1,numRandomPoints);
 
-data = [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) i==0 ? 1 : beta-random_beta_variation/2+random_beta_variation*rawRandomData[cumulativeRowSizes[i]+j  ]]];
+startData = [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) i==0 ? 1 : beta-random_beta_variation/2+random_beta_variation*rawRandomData[cumulativeRowSizes[i]+j  ]]];
     
 randomData = [for (step=[0:steps-1]) [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) rawRandomData[(1+step)*numCells+cumulativeRowSizes[i]+j  ]]]];
 
@@ -107,6 +114,11 @@ function evolve(data, n) =
 
 function getCoordinates(i,j) = 
         hexSize*([0,i]+[cos(30),-sin(30)]*j);
+        
+function getRadius(v,i,j) =
+        v < 1 ? 0 :
+        norm(getCoordinates(i,j))+1.001*hexSize*filledFraction/2;
+        
 
 function getColor(v) =
     let(t=min((v-1)*6,1)) 
@@ -117,7 +129,7 @@ module show(i,j) {
     translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
 }
 
-function getHeight(v) = variableThickness ? (min(v,1.25)-1)*4*thickness : thickness;
+function getHeight(v) = (variableThickness || joinMode) ? (min(v,1.25)-1)*4*thickness : thickness;
 
 module visualize(data) {
     for(i=[0:len(data)-1]) {
@@ -148,15 +160,30 @@ module foldout() {
     }
 }
 
-if (animate) {
-    foldout() visualize(evolve(data,round($t*steps)));
+module draw(simulated) {
+    if (joinMode)
+        visualizeJoined(simulated);
+    else
+        visualize(simulated);
+}
+
+simulated = evolve(startData,animate ? round($t*steps) : steps);
+
+if (starProfile) {
+    maxRadius = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getRadius(simulated[i][j],i,j)]);
+    maxHeight = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getHeight(simulated[i][j])]);
+    echo(maxRadius,maxHeight);
+        
+    render(convexity=5)
+    intersection() {
+        draw(simulated);
+        rotate([0,0,360/12]) starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenRadius=maxRadius,bottomOddRadius=maxRadius,bottopCenter=[0,0,maxHeight], bottomEvenZ = 0, 
+        bottomOddZ = 0, topEvenRadius=maxRadius, topOddRadius=maxRadius, topEvenZ=maxHeight, topOddZ=0.01);
+    }
+    
 }
 else {
-//    linear_extrude(height=thickness)
-        if (joinMode)
-            visualizeJoined(evolve(data,steps));
-        else
-            visualize(evolve(data,steps));
+    draw(simulated);
 }
 
 //echo(evolveCell(data,1,0));
