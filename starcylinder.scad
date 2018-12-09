@@ -17,6 +17,17 @@ function joinStars(bottomCenter,bottomRing,topCenter,topRing) =
         let(n=len(bottomRing),bc=0,tc=1,br=2,tr=br+n)
         [for(i=[0:n-1]) for(f=makeFaces(bc,br+i,br+(i+1)%n,tc,br+i,tr+(i+1)%n)) f]
     ];
+        
+module polyhedronFaces(points=[], faces=[], radius=1) {
+    for (f=faces) {
+        echo(f);
+        hull() {
+            for(p=f) {
+                translate(points[p]) sphere(r=radius);
+            }
+        }
+    }
+}
 
 module starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenZ=0, bottomOddZ=0,
 	bottomEvenRadius=50, bottomOddRadius=30, topCenter=[10,0,0], topEvenZ=10, topOddZ=0.01,
@@ -31,7 +42,7 @@ module starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenZ=0, bottomOddZ=0
 						  [topEvenRadius*cos(angle),topEvenRadius*sin(angle),topEvenZ]];
     
     pointsAndFaces = joinStars(bottomCenter,bottom,topCenter,top);
-    polyhedron(points=pointsAndFaces[0],points=pointsAndFaces[1]);
+    polyhedronFaces(points=pointsAndFaces[0],faces=pointsAndFaces[1]);
     echo(pointsAndFaces[0]);
     echo(len(pointsAndFaces[0]));
     echo(pointsAndFaces[1]);
