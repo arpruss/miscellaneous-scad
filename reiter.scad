@@ -5,12 +5,12 @@ use <starcylinder.scad>;
 /* [Simulation] */
 alpha = 1.6;
 beta = 0.7;
-gamma = 0.002;
-gamma_variation_amplitude_ratio = 0.2;
-random_beta_variation = 0.3; 
-steps = 100;
+gamma = 0.003;
+gamma_variation_amplitude_ratio = 0.5;
+random_beta_variation = 0.4; 
+steps = 180;
 // in hexes
-maximumRadius = 50;
+maximumRadius = 60;
 
 /* [Rendering] */
 color1 = [.26,.71,.9];
@@ -38,6 +38,7 @@ module dummy(){}
 // elegant 1.6,0.7,.002
 
 animate = 0;
+samples = 0;
 
 cos30 = cos(30);
 sin30 = sin(30);
@@ -60,7 +61,9 @@ numCells = cumulativeRowSizes[maximumRadius+1];
 
 numRandomPoints = (1+steps) * numCells;
 
-rawRandomData = randomSeed ? rands(0,1,numRandomPoints,randomSeed) : rands(0,1,numRandomPoints);
+seed = samples ? 1+round($t*samples) : randomSeed;
+
+rawRandomData = seed ? rands(0,1,numRandomPoints,seed) : rands(0,1,numRandomPoints);
 
 startData = [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) i==0 ? 1 : beta-random_beta_variation/2+random_beta_variation*rawRandomData[cumulativeRowSizes[i]+j  ]]];
     
@@ -173,10 +176,10 @@ module draw(simulated) {
 
 simulated = evolve(startData,animate ? round($t*steps) : steps);
 
+maxRadius = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getRadius(simulated[i][j],i,j)]);
+
 if (starProfile) {
-    maxRadius = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getRadius(simulated[i][j],i,j)]);
     maxHeight = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getHeight(simulated[i][j])]);
-    echo(maxRadius,maxHeight);
         
     render(convexity=5)
     intersection() {
@@ -188,6 +191,15 @@ if (starProfile) {
 }
 else {
     draw(simulated);
+}
+
+if (samples) {
+    corner = getCoordinates(maximumRadius,0)[1] * .9;
+    msg = str("Seed: ",seed);
+    color("yellow")
+    linear_extrude(height=1)
+    translate([-corner,-corner])
+    text(msg, size=hexSize*maximumRadius/9);
 }
 
 //echo(evolveCell(data,1,0));
