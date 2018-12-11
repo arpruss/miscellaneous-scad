@@ -8,7 +8,7 @@ beta = 0.7;
 gamma = 0.003;
 gamma_variation_amplitude_ratio = 0.5;
 random_beta_variation = 0.4; 
-steps = 180;
+steps = 150;
 // in hexes
 maximumRadius = 60;
 
