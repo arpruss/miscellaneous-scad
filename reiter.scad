@@ -11,6 +11,8 @@ random_beta_variation = 0.4;
 steps = 150;
 // in hexes
 maximumRadius = 60;
+// This will reduce edge effects.
+edge_mirror = 1; // [0:no, 1:yes]
 
 /* [Rendering] */
 color1 = [.26,.71,.9];
@@ -73,7 +75,9 @@ randomData = [for (step=[0:steps-1]) [for (i=[0:maximumRadius]) [for(j=[0:rowSiz
 // remove from the data by using symmetries.
 function get(data,i,j) = 
     i < 0 ? data[1][0] :
-    i > maximumRadius ? beta :
+    i > maximumRadius ? 
+    ( edge_mirror ? get(data,maximumRadius,max(j,rowSize(maximumRadius)-1)) : beta )
+    :
     i <= 1 ? data[i][0] :
     let(rs = rowSize(i)) (
     j < 0 ? data[i][-j] :
