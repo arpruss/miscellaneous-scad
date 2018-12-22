@@ -142,7 +142,7 @@ function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
 function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];        
     
 function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) (p[i]==undef?0:p[i])+delta[i]]];
-                
+    
 module tubeMesh(sections,startCap=true,endCap=true,optimize=true) {
     pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
     polyhedron(points=pAndF[0],faces=pAndF[1]);
@@ -213,6 +213,12 @@ module mySphere(r=10,d=undef) {
     polyhedron(points=data[0], faces=data[1]);
 }
 
+function twistSectionXY(section,theta) = 
+    [for (p=section) [for(i=[0:len(p)-1])
+        i == 0 ? p[0]*cos(theta)-p[1]*sin(theta) :
+        i == 1 ? p[0]*sin(theta)+p[1]*cos(theta) :
+        p[i]]];
+
 module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=false) {
     
     fc = compileFunction(curve);
@@ -229,7 +235,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t
                             t1=eval(fc,concat([["t",t]],curveParams)),
                             theta = t*twist,
                             section=(1-t1)*section1interp+t1*section2interp)
-                        [for(p=section) [p[0]*cos(theta)-p[1]*sin(theta),p[0]*sin(theta)+p[1]*cos(theta),height*t]]];
+                        twistSectionXY(sectionZ(section,height*t),theta)];
                             
     tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=false);   
 }

@@ -9,28 +9,33 @@ gamma = 0.003;
 gamma_variation_amplitude_ratio = 0.5;
 random_beta_variation = 0.4; 
 steps = 150;
-// in hexes
-maximumRadius = 60;
 // This will reduce edge effects.
 edge_mirror = 1; // [0:no, 1:yes]
+// in mm
+diameter = 170;
+// in hexes
+maximumSimulationSizeInHexes = 60;
+// set to 0 to get a different result each time
+randomSeed = 99;
 
 /* [Rendering] */
 color1 = [.26,.71,.9];
 color2 = [1,1,1];
-thickness = 10;
+thickness = 2;
+// This is only relevant if variable thickness is active.
+minimumThickness = 0.75; 
 variableThickness = 1; // [0:no, 1:yes]
 starProfile = 0; // [0:no, 1:yes (slow, monochrome)]
-hexSize = 10;
+diameter = 150;
 // If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is ignored
 joinMode = 0; // [0:no, 1:yes]
 // How much of the hex to fill.
 filledFraction = 1;
-// set to 0 to get a different result each time
-randomSeed = 20;
 
 //</params>
 
 module dummy(){}
+maximumRadius = maximumSimulationSizeInHexes;
 //gamma_variation_degrees_per_step = 30;
 
 // filamentary: a0.8,b0.7,g0.01,n100,r30
@@ -124,23 +129,23 @@ function evolve(data, n) =
             evolveCell(data,u,i,j,n) ] ], n-1);
 
 function getCoordinates(i,j) = 
-        hexSize*([0,i]+[cos(30),-sin(30)]*j);
+        ([0,i]+[cos(30),-sin(30)]*j);
         
 function getRadius(v,i,j) =
         v < 1 ? 0 :
-        norm(getCoordinates(i,j))+1.001*hexSize*filledFraction/2;
+        norm(getCoordinates(i,j))+1.001*filledFraction/2;
         
 
-function getColor(v) =
-    let(t=min((v-1)*6,1)) 
-        t*color1+(1-t)*color2;
+function interpolate(v,y0,y1) = let(t=(v-minValue)/(maxValue-minValue)) (1-t)*y0+t*y1;
+
+function getColor(v) = interpolate(v,color1,color2);
 
 module show(i,j) {
     foldout() 
-    translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
+    translate(hexSize*getCoordinates(i,j)) circle(r=hexSize*1.001/sqrt(3)*filledFraction,$fn=6);
 }
 
-function getHeight(v) = (variableThickness || joinMode) ? (min(v,1.25)-1)*4*thickness : thickness;
+function getHeight(v) = (variableThickness && !joinMode) ? interpolate(v,minimumThickness,thickness) : thickness;
 
 module visualize(data) {
     for(i=[0:len(data)-1]) {
@@ -181,6 +186,9 @@ module draw(simulated) {
 simulated = evolve(startData,animate ? round($t*steps) : steps);
 
 maxRadius = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getRadius(simulated[i][j],i,j)]);
+hexSize = diameter / (2*maxRadius);
+maxValue = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) simulated[i][j]]);
+minValue = min([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) if (simulated[i][j]>=1) simulated[i][j]]);
 
 if (starProfile) {
     maxHeight = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getHeight(simulated[i][j])]);
