@@ -145,7 +145,7 @@ function SplineAroundPoint(a,b,c,tension=0.5,includeLeftCP=true,includeRightCP=t
         [b,POLAR(tension*norm(c-b),GetSplineAngle(a,b,c))] :
         [b];
 
-function SplinePointsToBezier(points,tension=0.5,closed=false)
+function BezierSmoothPoints(points,tension=0.5,closed=false)
     = let (n=len(points))
         flatten(
         closed ? [ for (i=[0:n]) SplineAroundPoint(points[(n+i-1)%n],points[i%n],points[(i+1)%n],tension=tension,includeLeftCP=i>0,includeRightCP=i<n) ] :
@@ -218,5 +218,5 @@ translate([0,75])
 polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
 translate([0,-40])
-BezierVisualize(SplinePointsToBezier([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-1);
+BezierVisualize(BezierSmoothPoints([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-1);
 //</skip>
