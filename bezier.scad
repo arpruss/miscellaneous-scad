@@ -120,12 +120,16 @@ function RemoveDuplicates(p,eps=0.00001) = let(safeEps = eps/len(p)) [for (i=[0:
 function Bezier(p,precision=0.05,eps=0.00001,optimize=true) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(q)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,optimize=optimize,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
     
 function GetSplineAngle(a,b,c) =
-    let(ba=norm(b-a),cb=norm(c-b))
+    a==c && b==a ? 0 :
+    a==c ? let(ba=b-a) atan2(ba[1],ba[0]) :
+    let(ca=c-a) atan2(ca[1],ca[0]);
+
+/*    let(ba=norm(b-a),cb=norm(c-b))
         ba == 0 && cb == 0 ? 0 :
     let(v = ba == 0 ? c-b :
             cb == 0 ? b-a : 
             (c-b)*norm(b-a)/norm(c-b)+(b-a))
-    atan2(v[1],v[0]);
+    atan2(v[1],v[0]); */
 
 // do a spline around b
 function SplineAroundPoint(a,b,c,tension=0.5,includeLeftCP=true,includeRightCP=true) = 
