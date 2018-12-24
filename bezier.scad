@@ -119,6 +119,34 @@ function RemoveDuplicates(p,eps=0.00001) = let(safeEps = eps/len(p)) [for (i=[0:
 
 function Bezier(p,precision=0.05,eps=0.00001,optimize=true) = let(q=DecodeSpecialBezierPoints(p), nodes=(len(q)-1)/3) RemoveDuplicates(flatten([for (i=[0:nodes-1]) Bezier2(q,optimize=optimize,index=i*3,precision=precision,rightEndPoint=(i==nodes-1))]),eps=eps);
     
+function GetSplineAngle(a,b,c) =
+    let(ba=norm(b-a),cb=norm(c-b))
+        ba == 0 && cb == 0 ? 0 :
+    let(v = ba == 0 ? c-b :
+            cb == 0 ? b-a : 
+            (c-b)*norm(b-a)/norm(c-b)+(b-a))
+    atan2(v[1],v[0]);
+
+// do a spline around b
+function SplineAroundPoint(a,b,c,tension=0.5,includeLeftCP=true,includeRightCP=true) = 
+    includeLeftCP && includeRightCP ?
+        [POLAR(tension*norm(a-b),GetSplineAngle(c,b,a)),b,POLAR(tension*norm(c-b),GetSplineAngle(a,b,c))] :
+    includeLeftCP ?
+        [POLAR(tension*norm(a-b),GetSplineAngle(c,b,a)),b] :
+    includeRightCP ?
+        [b,POLAR(tension*norm(c-b),GetSplineAngle(a,b,c))] :
+        [b];
+
+function SplinePointsToBezier(points,tension=0.5,closed=false)
+    = let (n=len(points))
+        flatten(
+        closed ? [ for (i=[0:n]) SplineAroundPoint(points[(n+i-1)%n],points[i%n],points[(i+1)%n],tension=tension,includeLeftCP=i>0,includeRightCP=i<n) ] :
+        [ for (i=[0:n-1]) 
+            SplineAroundPoint(
+            i==0 ? 2*points[0]-points[1] : points[(n+i-1)%n],
+            points[i],
+            i==n-1 ? 2*points[n-1]-points[n-2] : points[(i+1)%n],tension=tension,includeLeftCP=i>0,includeRightCP=i<n-1  ) ]);
+
 module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
     $fn = 16;
     dim = len(p[0]);
@@ -181,4 +209,6 @@ polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(-1),[10,10],/*C*/[15,10],/*C*/O
 translate([0,75])
 polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
+translate([0,-40])
+BezierVisualize(SplinePointsToBezier([[0,0],[10,10],[20,0]],closed=true,tension=0.25));
 //</skip>
