@@ -59,7 +59,11 @@ function isStraight2(p1,c1,c2,p2,eps=1e-4) =
     len(p1) == 2 &&
     onLine2(p1,p2,c1,eps=eps) && onLine2(p2,p1,c2,eps=eps);
 
-function Bezier2(p,index=0,precision=0.05,rightEndPoint=true,optimize=true) = let(nPoints=ceil(1/precision)) 
+function Bezier2(p,index=0,precision=0.05,rightEndPoint=true,optimize=true) = let(nPoints=
+        max(2, precision < 0 ?
+                    let(l=norm(p[2]-p[0]))
+                    (l==0 ? 2 : l/-precision)
+                    : ceil(1/precision)) )
     optimize && isStraight2(p[index],p[index+1],p[index+2],p[index+3]) ? (rightEndPoint?[p[index+0],p[index+3]]:[p[index+0]] ) :
     [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
     
@@ -214,5 +218,5 @@ translate([0,75])
 polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
 translate([0,-40])
-BezierVisualize(SplinePointsToBezier([[0,0],[10,10],[20,0]],closed=true,tension=0.25));
+BezierVisualize(SplinePointsToBezier([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-1);
 //</skip>
