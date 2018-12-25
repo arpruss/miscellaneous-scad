@@ -22,12 +22,13 @@ module end() {
         cylinder(d=insideDiameter+pressFitTolerance*2,h=endThickness+nudge);
     }
     translate([0,0,2*endThickness-nudge])
-    cylinder(d=nubThickness, h=nubLength+nudge);
+    cylinder(d=nubThickness, h=nubLength+nudge-nubThickness/2);
+    translate([0,0,2*endThickness+nubLength-nubThickness/2]) sphere(d=nubThickness);
 }
 
 module inside() {
     fullEndThickness = nubLength+2*endThickness;
-    length = nubToNubDistance - 2*fullEndThickness + 2*endThickness;
+    length = nubToNubDistance - 2*fullEndThickness + 2*endThickness - 2*pressFitTolerance;
     difference() {
         cylinder(d=insideDiameter,h=length);
         translate([0,0,(length-2*endThickness)*.75+endThickness]) rotate([90,0,0])
