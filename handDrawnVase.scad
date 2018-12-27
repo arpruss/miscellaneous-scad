@@ -34,8 +34,11 @@ nextAngle = angle(profile[lowestIndex], profile[(lowestIndex+1+np)%np]);
 prevAngle = angle(profile[lowestIndex], profile[(lowestIndex-1+np)%np]);
 direction = nextAngle<prevAngle ? 1 : -1;
 
-adjHighestIndex = direction*lowestIndex < direction*highestIndex ? highestIndex : np+highestIndex;
-pointsInverted = [for(i=[lowestIndex:direction:adjHighestIndex]) [profile[i%np][1],50+profile[i%np][0]]];
+pointsInverted = direction > 0 ? 
+    let(adjHighestIndex = lowestIndex <= highestIndex ? highestIndex : highestIndex+np) [for(i=[lowestIndex:adjHighestIndex]) [profile[i%np][1],50+profile[i%np][0]]] :
+    let(adjLowestIndex = highestIndex <= lowestIndex ? lowestIndex : lowestIndex+np,
+    n = lowestIndex-highestIndex)
+    [for(i=[0:n]) let(ii=lowestIndex-i) [profile[ii%np][1],50+profile[ii%np][0]]];
 
 function findSegment(f,x,soFar=0) =
     soFar >= len(f) ? len(f)-1 :
