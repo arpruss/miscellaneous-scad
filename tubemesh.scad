@@ -139,7 +139,10 @@ function pointsAndFaces(sections,startCap=true,endCap=true,optimize=true) =
             faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) 
         _removeDuplicates(points0,faces0);
         
-function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];        
+function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];
+function sectionX(section,x) = [for(yz=section) [x,yz[0],yz[1]]];
+function sectionY(section,y) = [for(xz=section) [xz[0],y,xz[1]]];
+    
     
 function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) (p[i]==undef?0:p[i])+delta[i]]];
     

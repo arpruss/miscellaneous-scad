@@ -1,41 +1,51 @@
-nubToNubDistance = 50;
-nubLength = 5;
-nubThickness = 2;
-endDiameter = 30;
+endToEndLength = 26;
+wireDiameter = 2.25;
+topNubLength = 3;
+topNubThickness = 2.3;
+bottomNubThickness = 3;
+bottomNubLength = 4;
+endDiameter = 22.4;
 endThickness = 2;
-insideDiameter = 10;
-pressFitTolerance = 0.2;
-threadHoleDiameter = 3;
+hubThickness = 3;
+hubWall = 1;
+insideDiameter = 8;
+wirePressFitTolerance = 0.08;
+stemPressFitTolerance = 0.04;
+threadHoleDiameter = 2.65;
+includeBottomEnd = 1; // [0:No,1:Yes]
+includeTopEnd = 1; // [0:No,1:Yes]
 
 module dummy() {}
 
 nudge = 0.001;
 $fn = 64;
+insideLength = endToEndLength-2*endThickness;
 
-module end() {
+module end(withStem) {
     difference() {
+        id = insideDiameter+stemPressFitTolerance*2;
         union() {
             cylinder(d=endDiameter,h=endThickness);
-            cylinder(d1=insideDiameter+pressFitTolerance*2+2*endThickness,d2=insideDiameter+pressFitTolerance*2,h=endThickness*2);
+            translate([0,0,endThickness-nudge])
+            cylinder(d1=id+2*hubWall+hubThickness,d2=id+2*hubWall,h=hubThickness+nudge);
+            if (withStem) {
+                translate([0,0,endThickness]) cylinder(d=insideDiameter,h=insideLength);
+            }
         }
-        translate([0,0,-nudge])
-        cylinder(d=insideDiameter+pressFitTolerance*2,h=endThickness+nudge);
-    }
-    translate([0,0,2*endThickness-nudge])
-    cylinder(d=nubThickness, h=nubLength+nudge-nubThickness/2);
-    translate([0,0,2*endThickness+nubLength-nubThickness/2]) sphere(d=nubThickness);
-}
-
-module inside() {
-    fullEndThickness = nubLength+2*endThickness;
-    length = nubToNubDistance - 2*fullEndThickness + 2*endThickness - 2*pressFitTolerance;
-    difference() {
-        cylinder(d=insideDiameter,h=length);
-        translate([0,0,(length-2*endThickness)*.75+endThickness]) rotate([90,0,0])
-        cylinder(d=threadHoleDiameter,h=insideDiameter*2,center=true);
+        union() {            
+            if (!withStem) {
+                translate([0,0,endThickness]) cylinder(d=insideDiameter+2*stemPressFitTolerance,h=insideLength);
+            }
+            else {
+                translate([(id+2*hubWall+hubThickness+endDiameter)/4,0,-nudge]) cylinder(d=threadHoleDiameter,h=endThickness+hubThickness+2*nudge);
+            }
+            translate([0,0,-nudge])
+            cylinder(d=wireDiameter+(withStem?2*wirePressFitTolerance:0),h=endToEndLength+2*nudge);
+        }
     }
 }
 
-end();
-translate([-endDiameter/2-insideDiameter/2-5,0,0]) inside();
-translate([endDiameter+5,0,0]) end();
+if (includeTopEnd)
+    end(true);
+if (includeBottomEnd)
+    translate([endDiameter+5,0,0]) end(false);
