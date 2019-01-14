@@ -200,6 +200,29 @@ module _ribbon(thickness=2) {
             }
 }
 
+module filletLine3D(start=[0,0,0],end=[0,0,100],direction1=[10,0,0],direction2=undef,tension1=0.5,tension2=0.5,nudge=0.005) {
+    l0 = norm(end-start);
+    d0 = (end-start)/l0;
+    proj1 = direction1 - (direction1*d0)*d0;
+    l1 = norm(proj1);
+    d1 = proj1/l1;
+    direction2 = (direction2==undef ? cross(d0,proj1) : direction2);
+    // project onto normal plane just in case
+    proj2 = direction2 - (direction2*d0)*d0;
+    l2 = norm(proj2);
+    d2 = proj2/l2;
+    cp1 = norm(proj1) * tension1;
+    cp2 = norm(proj2) * tension2;
+    matrix = concat([for (i=[0:2]) [d1[i],d2[i],d0[i],start[i]] ], [[0,0,0,1]]);
+    curve = Bezier( [ [-nudge,-nudge], SHARP(), SHARP(),
+                      [l1,-nudge], OFFSET([-cp1,0]), OFFSET([0,-cp2]), [-nudge,l2] ], precision=0.1 );
+    multmatrix(m=matrix) 
+    linear_extrude(height=l0) polygon(curve);
+}
+
+translate([-30,0,0])
+filletLine3D(start=[0,0,0], end=[0,0,5], direction1=[5,0,0],direction2=[0,5,0]);
+
 translate([-20,0,0])
 BezierVisualize([[0,0,10],[10,5,3],[10,10,20],[20,20,20],SYMMETRIC(),[0,0,8],[0,0,0]], lineThickness=1,nodeSize=2);
 

@@ -225,6 +225,8 @@ function twistSectionXY(section,theta) =
 module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=false) {
     
     fc = compileFunction(curve);
+    function getCurve(t) = (curve=="t" ? t : eval(fc,concat([["t",t]],curveParams)));
+    
     n = max(len(section1),len(section2));
              
     section1interp = _interpolateSection(section1,n);
@@ -235,7 +237,7 @@ module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t
                         (1-t)*section1interp+t*section2interp] :
                       [for(i=[0:numSlices])
                         let(t=i/numSlices,
-                            t1=eval(fc,concat([["t",t]],curveParams)),
+                            t1=getCurve(t),
                             theta = t*twist,
                             section=(1-t1)*section1interp+t1*section2interp)
                         twistSectionXY(sectionZ(section,height*t),theta)];
