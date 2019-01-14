@@ -13,7 +13,7 @@ endAngle = 30;
 stopWall = 2;
 cornerSize = 4;
 extraCutHeight = 2;
-part = 0; // [0:miter,1:end stop]
+part = 2; // [0:miter,1:right end stop,2:left end stop]
 //</params>
 
 module dummy() {}
@@ -28,6 +28,7 @@ tubeCutHeight = tubingDiameter1 + extraCutHeight;
 module solid() {
     cornerTri = [[nudge,0],[-cornerSize,0],[nudge,cornerSize]];
     sideProfile = [[0,0],[length1,0],[length1,extraCutHeight+tubingDiameter1/2],[length1-((part==0)?(tubeCutHeight-tubingDiameter1/2)*tan(endAngle):0),extraCutHeight+tubeCutHeight],[(tubeCutHeight-tubingDiameter1/2)*tan(endAngle),extraCutHeight+tubeCutHeight],[0,extraCutHeight+tubingDiameter1/2]];
+    
     translate([0,-clampingWidth1-tubingMax/2,0]) cube([length1,tubingMax+clampingWidth1,baseThickness+nudge]);
     translate([0,-tubingMax/2,baseThickness]) 
     difference() {
@@ -48,7 +49,9 @@ if (part==0) {
         translate([length1/2-kerf1/2,-tubingMax/2-cornerSize ,baseThickness]) cube([kerf1,tubingMax+cornerSize+nudge,extraCutHeight+tubingMax+nudge]);
     }
 }
-else if (part==1) {
-    solid();
-    translate([length1-stopWall,-tubingMax/2,0]) cube([stopWall,tubingMax,extraCutHeight+tubeCutHeight+baseThickness+nudge]);
+else if (part==1 || part==2) {
+    mirror([part==2?1:0,0,0]) {
+        solid();
+        translate([length1-stopWall,-tubingMax/2,0]) cube([stopWall,tubingMax,extraCutHeight+tubeCutHeight+baseThickness+nudge]);
+    }
 }
