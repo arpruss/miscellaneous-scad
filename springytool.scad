@@ -187,7 +187,7 @@ module holder_inside(h) {
      }
          if (mini_support_thickness>0) {
                       translate([width/2,tool_holder_height/2,pen_screw_nut_thickness+insideTopZ])
-         cylinder(d=pen_screw_hole_diameter+2*nudge, h=mini_support_thickness+nudge, $fn=12);
+         cylinder(d=pen_screw_hole_diameter+.1+2*nudge, h=mini_support_thickness+nudge, $fn=12);
          }
  }
 
