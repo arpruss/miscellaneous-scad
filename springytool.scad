@@ -1,8 +1,11 @@
 use <ribbon.scad>;
 
-width = 64.9;
+//<params>
+// put 60 for MPCNC
+width = 60; // 64.9; // original: 64.9;
 height = 48;
-edge_thickness = 2.5; // must exceed spring_thickness
+// must exceed spring_thickness
+edge_thickness = 2.5; 
 spring_thickness = 1;
 triangle_wall_thickness = 1.5;
 base_thickness = 2;
@@ -23,9 +26,9 @@ pen_screw_hole_diameter = 2.9;
 pen_screw_nut_thickness = 2.8;
 pen_screw_nut_desired_width = 5.33;
 
-//
 base_screw_hole_diameter = 2.9;
-base_screw_nut_thickness = 2.8; // 2.3?
+// set to zero to put a screw head on the front side
+base_screw_nut_thickness = 2.8; 
 base_screw_nut_desired_width = 5.33;
 
 module dummy() {}

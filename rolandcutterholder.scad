@@ -1,7 +1,9 @@
-width = 64.9;
+// use 60 for MPCNC; 64.9 for original DaVinci 1.0a clip
+width = 60; 
 cornerSnip = 5.7;
 
-holes = [[7,13],[58,13],[7,35],[58,35]];
+// for MPCNC:  [[6, 12], [54, 12], [6, 36], [54, 36]] and for original DaVinci 1.0a clip: [[7,13],[58,13],[7,35],[58,35]]
+holes = [[6, 12], [54, 12], [6, 36], [54, 36]];
 
 baseThickness = 3;
 cutterDesiredDiameter = 11.5;
@@ -17,7 +19,9 @@ cutterTolerance = 0.25;
 widthAroundCollar = 7;
 
 screwHoleDiameter = 2.9;
-screwNutThickness = 2.8; // 2.3?
+// this can also be a screw head countersink, if you set screwNutSides to something big
+screwNutSides = 6;
+screwNutThickness = 2.8; 
 screwNutDesiredWidth = 5.33;
 nutTolerance = 0.08;
 pinDiameter = 2.93;
@@ -34,7 +38,7 @@ wave_fraction = 0.5;
 
 springSupportThickness = 2;
 
-capTaperStart = 2+7.75;
+capTaperStart = 9.75;
 
 includeHolder = 1; // [0:no, 1:yes]
 includeStrap = 1; // [0:no, 1:yes]
@@ -76,7 +80,7 @@ module baseScrewHoles() {
     for (i=[0:len(holes)-1]) {
         translate(holes[i]) {
             translate([0,0,-nudge]) cylinder(h=screwAreaThickness+2*nudge+100, d=screwHoleDiameter, $fn=16);
-            translate([0,0,screwAreaThickness-screwNutThickness]) cylinder(h=screwNutThickness+nudge+100,d=screwNutWidth*2/sqrt(3),$fn=6);
+            translate([0,0,screwAreaThickness-screwNutThickness]) cylinder(h=screwNutThickness+nudge+100,d=screwNutWidth/cos(180/screwNutSides),$fn=screwNutSides);
         }
     } 
 }
