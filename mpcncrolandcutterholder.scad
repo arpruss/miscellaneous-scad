@@ -1,5 +1,11 @@
+include <mpcnctoolprofile.scad>;
+
 width = 60; 
-cornerSnip = 5.7;
+
+joiningScrewDiameter = 3;
+joiningScrewDepth = 9;
+
+mpcncProfileMinimumThickness = 8;
 
 screwHorizontalSpacing = 48;
 screwY1 = 5;
@@ -18,11 +24,13 @@ cutterTolerance = 0.25;
 
 widthAroundCollar = 7;
 
-baseScrewHoleDiameter = 2.9;
-baseScrewHeadDiameter = 6;
 collarScrewHoleDiameter = 2.9;
 collarScrewNutThickness = 2.8; 
 collarScrewNutWidth = 5.33;
+
+mpcncToolMountDiameter = 6;
+mpcncScrewHead = 10;
+
 screwTolerance = 0.1;
 
 pinDiameter = 2.93;
@@ -41,6 +49,7 @@ springSupportThickness = 2;
 capTaperStart = 9.75;
 
 includeHolder = 1; // [0:no, 1:yes]
+includeHolderAttachment = 1; // [0:no, 1:yes]
 includeStrap = 1; // [0:no, 1:yes]
 includeCap = 1; // [0:no, 1:yes]
 
@@ -97,19 +106,15 @@ module cutterHolder() {
 }
 
 module screwAndNut() {
-    cylinder(d=collarScrewHoleDiameter,h=holderHeight+    baseThickness+2*nudge,$fn=16);
-    cylinder(d=collarScrewNutWidth*2/sqrt(3),h=baseThickness+collarScrewNutThickness+nudge,$fn=6);
+    translate([0,0,-100]) {
+        cylinder(d=collarScrewHoleDiameter,h=holderHeight+    baseThickness+2*nudge+100,$fn=16);
+        cylinder(d=collarScrewNutWidth*2/sqrt(3),h=baseThickness+collarScrewNutThickness+nudge+100,$fn=6);
+    }
 }
 
 module baseWithHolder() {
-    difference() {
-        union() {
-            base();
-            cutterHolder();
-        }
-        translate([width/2-holderWidth/2+widthAroundCutter/2,spaceBelowCollar/2,-nudge]) screwAndNut();
-            translate([width/2+holderWidth/2-widthAroundCutter/2,spaceBelowCollar/2,-nudge]) screwAndNut();
-    }
+    base();
+    cutterHolder();
 }
 
 module ribbon(points, thickness=1, closed=false) {
@@ -143,23 +148,23 @@ springX = width/2-pinAreaWidth/2-springWidth;
 echo(springY);
 springBreadth = 2*baseThickness+collarDiameter;
 
-module springs() {
+module springs(height=springBreadth,trianglesOnly=false) {
     triangle1 = [[springSupportThickness/2,springY-springX*.75], [springX,springY], [springSupportThickness/2,springY+springX*.75]];
     triangle2 = [for (i=[0:2]) [width-triangle1[i][0],triangle1[i][1]]];
     
-    echo(springWidth);
-    echo(amplitude);
-    linear_extrude(height=springBreadth) {
-        translate([springX,springY])
-        spring(springWidth,amplitude);
-        translate([width-springX-springWidth,springY])
-        spring(springWidth,amplitude);
-        translate([width/2-pinAreaWidth/2,springY])
-        spring(pinAreaWidth,springThickness);
+    linear_extrude(height=height) {
+        if (!trianglesOnly) {
+            translate([springX,springY])
+            spring(springWidth,amplitude);
+            translate([width-springX-springWidth,springY])
+            spring(springWidth,amplitude);
+            translate([width/2-pinAreaWidth/2,springY])
+            spring(pinAreaWidth,springThickness);
+        }
         ribbon(triangle1,thickness=springSupportThickness,closed=true);
         ribbon(triangle2,thickness=springSupportThickness,closed=true);
     }
-    linear_extrude(height=springBreadth) {
+    linear_extrude(height=height) {
         polygon(points=triangle1);
         polygon(points=triangle2);
     }
@@ -186,16 +191,39 @@ module strap() {
 }
 
 module mainCutterHolder() {
+    
     render(convexity=10) {
         difference() {
             union() {
+                intersection() {
+                    translate([width/2,0,nudge-mpcncProfileMinimumThickness])
+                    rotate([-90,0,0])
+                    linear_extrude(height=height+100) drawMPCNCToolProfile(minimumThickness=mpcncProfileMinimumThickness,base=width);
+                    union() {
+                        translate([0,0,-50]) {
+                            cube([width,height+nudge,100]);
+                            springs(height=50,trianglesOnly=true);
+                        }
+                    }
+                    
+                }
                 baseWithHolder();
                 springs();
             }
-            baseScrewHoles();
-            translate([-nudge,-nudge,-nudge]) linear_extrude(height=baseThickness+2*nudge) polygon([[0,0],[cornerSnip+nudge,0],[0,cornerSnip+nudge]]);
-            translate([width+nudge,-nudge,-nudge]) linear_extrude(height=baseThickness+2*nudge) polygon([[0,0],[-cornerSnip-nudge,0],[0,cornerSnip+nudge]]);
-            
+            translate([width-joiningScrewDiameter*1.5,mpcncFirstScrewHeight+mpcncScrewVerticalSpacing/2,-joiningScrewDepth]) cylinder(d=joiningScrewDiameter+2*screwTolerance,h=100,$fn=16);
+            translate([joiningScrewDiameter*1.5,mpcncFirstScrewHeight+mpcncScrewVerticalSpacing/2,-joiningScrewDepth]) cylinder(d=joiningScrewDiameter+2*screwTolerance,h=100,$fn=16);
+            translate([width/2-holderWidth/2+widthAroundCutter/2,spaceBelowCollar/2,-nudge]) screwAndNut();
+                translate([width/2+holderWidth/2-widthAroundCutter/2,spaceBelowCollar/2,-nudge]) screwAndNut();
+            translate([width/2,0,0])
+            for (s=[0,1]) {
+                mirror([s,0,0])
+                for (y=[mpcncFirstScrewHeight,mpcncFirstScrewHeight+mpcncScrewVerticalSpacing]) {
+                    translate([mpcncRightScrewCoordinates[0],y,-mpcncRightScrewCoordinates[1]-mpcncProfileMinimumThickness-nudge]) rotate([0,mpcncScrewInwardTiltAngle,0]) {
+                        cylinder(d=mpcncScrewDiameter,h=100,$fn=16);
+                        translate([0,0,mpcncRightScrewCoordinates[1]+mpcncProfileMinimumThickness+baseThickness-1]) cylinder(d=mpcncScrewHead,h=100,$fn=16);
+                    }
+                }
+            }
         }
         
     }
@@ -229,14 +257,31 @@ module cap() {
 }
 
 if (includeHolder) {
-    mainCutterHolder();
+    render(convexity=5)
+    intersection() {
+        cube([100,100,100]);
+        mainCutterHolder();
+    }
+}
+
+if (includeHolderAttachment) {
+    translate([width+10,0,0]) 
+    render(convexity=5)
+    intersection() {
+        translate([width,0,-nudge])
+        rotate([0,180,0])
+        mainCutterHolder();
+        cube([100,100,100]);
+    }
 }
 
 if (includeStrap) {
+    translate([-width/2,0,0]) 
     translate([width/2,-5,0]) rotate([0,0,180])
     strap();
 }
 
 if (includeCap) {
+    translate([-width/2,0,0]) 
     translate([0,-cutterDiameter/2-8,0]) cap();
 }

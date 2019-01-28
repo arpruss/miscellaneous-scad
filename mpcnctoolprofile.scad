@@ -6,11 +6,14 @@ mpcncToolProfile0 = [ [28.891,3.350+0.258],
              [4.502,4.788+0.258],
              [3.072,4.944+0.258] ];
 mpcncToolProfile = concat([for(p=mpcncToolProfile0) p],[for(i=[0:len(mpcncToolProfile0)-1]) [-mpcncToolProfile0[len(mpcncToolProfile0)-1-i][0],mpcncToolProfile0[len(mpcncToolProfile0)-1-i][1]]]);
-rightMPCNCScrewCoordinates = (mpcncToolProfile[1]+mpcncToolProfile[2])/2;
-leftMPCNCScrewCoordinates = [-rightMPCNCScrewCoordinates[0],rightMPCNCScrewCoordinates[1]];
-screwInwardTiltAngle = atan2(mpcncToolProfile[1][1]-mpcncToolProfile[2][1],mpcncToolProfile[1][0]-mpcncToolProfile[2][0]);
+mpcncRightScrewCoordinates = (mpcncToolProfile[1]+mpcncToolProfile[2])/2;
+mpcncLeftScrewCoordinates = [-mpcncRightScrewCoordinates[0],mpcncRightScrewCoordinates[1]];
+mpcncFirstScrewHeight = 6;
+mpcncScrewVerticalSpacing = 25;
+mpcncScrewDiameter = 5.6473;
+mpcncScrewInwardTiltAngle = atan2(mpcncToolProfile[1][1]-mpcncToolProfile[2][1],mpcncToolProfile[1][0]-mpcncToolProfile[2][0]);
 
-module drawToolProfile(minimumThickness=10,base=55,corner=1) {
+module drawMPCNCToolProfile(minimumThickness=10,base=55,corner=1) {
     adjustedmpcncToolProfile = concat([[base/2,-minimumThickness],[mpcncToolProfile[0][0]+corner,mpcncToolProfile[0][1]-corner]],
         mpcncToolProfile,
         [[-mpcncToolProfile[0][0]-corner,mpcncToolProfile[0][1]-corner],
@@ -19,4 +22,4 @@ module drawToolProfile(minimumThickness=10,base=55,corner=1) {
 }
 
 
-drawToolProfile();
+//drawToolProfile();
