@@ -18,12 +18,12 @@ cutterTolerance = 0.25;
 
 widthAroundCollar = 7;
 
-screwHoleDiameter = 2.9;
+screwHoleDiameter = 3.2;
 // this can also be a screw head countersink, if you set screwNutSides to something big
 screwNutSides = 6;
 screwNutThickness = 2.8; 
 screwNutDesiredWidth = 5.33;
-nutTolerance = 0.08;
+nutTolerance = 0.2;
 pinDiameter = 2.93;
 
 screwAreaExtraThickness = 2;

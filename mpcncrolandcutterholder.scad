@@ -1,17 +1,18 @@
 include <mpcnctoolprofile.scad>;
 
+includeHolder = 1; // [0:no, 1:yes]
+includeHolderAttachment = 1; // [0:no, 1:yes]
+includeStrap = 0; // [0:no, 1:yes]
+includeCap = 0; // [0:no, 1:yes]
+
 width = 60; 
 
-joiningScrewDiameter = 3;
-joiningScrewDepth = 9;
+joiningScrewDiameter = 2.2;
+joiningScrewDepth = 8;
 
-mpcncProfileMinimumThickness = 8;
+mpcncProfileMinimumThickness = 5;
 
-screwHorizontalSpacing = 48;
-screwY1 = 5;
-screwY2 = 40;
-
-baseThickness = 3;
+baseThickness = 3.5;
 cutterDesiredDiameter = 11.5;
 collarDesiredDiameter = 15.85;
 collarDesiredThickness = 2;
@@ -24,12 +25,13 @@ cutterTolerance = 0.25;
 
 widthAroundCollar = 7;
 
-collarScrewHoleDiameter = 2.9;
+collarScrewHoleDiameter = 3.4;
 collarScrewNutThickness = 2.8; 
 collarScrewNutWidth = 5.33;
+nutTolerance = 0.15;
 
 mpcncToolMountDiameter = 6;
-mpcncScrewHead = 10;
+mpcncScrewHead = 9;
 
 screwTolerance = 0.1;
 
@@ -48,17 +50,7 @@ springSupportThickness = 2;
 
 capTaperStart = 9.75;
 
-includeHolder = 1; // [0:no, 1:yes]
-includeHolderAttachment = 1; // [0:no, 1:yes]
-includeStrap = 1; // [0:no, 1:yes]
-includeCap = 1; // [0:no, 1:yes]
-
 module dummy() {}
-
-holes = [ [width/2-screwHorizontalSpacing/2, screwY1],
-          [width/2+screwHorizontalSpacing/2, screwY1],
-          [width/2-screwHorizontalSpacing/2, screwY2],
-          [width/2+screwHorizontalSpacing/2, screwY2]];
 
 cutterDiameter = cutterDesiredDiameter + cutterTolerance;
 collarDiameter = collarDesiredDiameter + cutterTolerance;
@@ -83,15 +75,6 @@ module base() {
             square([width,height]);
 }
 
-module baseScrewHoles() {
-    for (i=[0:len(holes)-1]) {
-        translate(holes[i]) {
-            translate([0,0,-nudge]) cylinder(h=baseThickness+2*nudge+100, d=baseScrewHoleDiameter, $fn=16);
-            translate([0,0,baseThickness]) cylinder(h=baseThickness+2*nudge+100, d=baseScrewHeadDiameter+2*screwTolerance, $fn=16);
-        }
-    } 
-}
-
 module cutterHolder() {
     render(convexity=6)
     translate([width/2-holderWidth/2,0,baseThickness]) {
@@ -108,7 +91,8 @@ module cutterHolder() {
 module screwAndNut() {
     translate([0,0,-100]) {
         cylinder(d=collarScrewHoleDiameter,h=holderHeight+    baseThickness+2*nudge+100,$fn=16);
-        cylinder(d=collarScrewNutWidth*2/sqrt(3),h=baseThickness+collarScrewNutThickness+nudge+100,$fn=6);
+        cylinder(d=(collarScrewNutWidth+nutTolerance)*2/sqrt(3),h=baseThickness+collarScrewNutThickness+nudge+100,$fn=6);
+        cylinder(d=(collarScrewNutWidth+1)*2/sqrt(3),h=100+2*nudge,$fn=6);
     }
 }
 
@@ -190,11 +174,11 @@ module strap() {
 }
 }
 
-module mainCutterHolder() {
-    
+module mainCutterHolder(top=true,bottom=true) {    
     render(convexity=10) {
         difference() {
             union() {
+                if (bottom)
                 intersection() {
                     translate([width/2,0,nudge-mpcncProfileMinimumThickness])
                     rotate([-90,0,0])
@@ -207,8 +191,10 @@ module mainCutterHolder() {
                     }
                     
                 }
-                baseWithHolder();
-                springs();
+                if (top) {
+                    baseWithHolder();
+                    springs();
+                }
             }
             translate([width-joiningScrewDiameter*1.5,mpcncFirstScrewHeight+mpcncScrewVerticalSpacing/2,-joiningScrewDepth]) cylinder(d=joiningScrewDiameter+2*screwTolerance,h=100,$fn=16);
             translate([joiningScrewDiameter*1.5,mpcncFirstScrewHeight+mpcncScrewVerticalSpacing/2,-joiningScrewDepth]) cylinder(d=joiningScrewDiameter+2*screwTolerance,h=100,$fn=16);
@@ -258,30 +244,23 @@ module cap() {
 
 if (includeHolder) {
     render(convexity=5)
-    intersection() {
-        cube([100,100,100]);
-        mainCutterHolder();
-    }
+    mainCutterHolder(top=true,bottom=false);
 }
 
 if (includeHolderAttachment) {
     translate([width+10,0,0]) 
     render(convexity=5)
-    intersection() {
-        translate([width,0,-nudge])
-        rotate([0,180,0])
-        mainCutterHolder();
-        cube([100,100,100]);
-    }
+    translate([width,0,0])
+    rotate([0,180,0])
+    mainCutterHolder(top=false,bottom=true);
 }
 
 if (includeStrap) {
-    translate([-width/2,0,0]) 
     translate([width/2,-5,0]) rotate([0,0,180])
     strap();
 }
 
 if (includeCap) {
-    translate([-width/2,0,0]) 
+    translate([width,0,0]) 
     translate([0,-cutterDiameter/2-8,0]) cap();
 }

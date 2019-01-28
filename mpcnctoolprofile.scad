@@ -10,7 +10,7 @@ mpcncRightScrewCoordinates = (mpcncToolProfile[1]+mpcncToolProfile[2])/2;
 mpcncLeftScrewCoordinates = [-mpcncRightScrewCoordinates[0],mpcncRightScrewCoordinates[1]];
 mpcncFirstScrewHeight = 6;
 mpcncScrewVerticalSpacing = 25;
-mpcncScrewDiameter = 5.6473;
+mpcncScrewDiameter = 4.25;
 mpcncScrewInwardTiltAngle = atan2(mpcncToolProfile[1][1]-mpcncToolProfile[2][1],mpcncToolProfile[1][0]-mpcncToolProfile[2][0]);
 
 module drawMPCNCToolProfile(minimumThickness=10,base=55,corner=1) {
