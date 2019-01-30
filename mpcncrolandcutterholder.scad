@@ -1,9 +1,10 @@
 include <mpcnctoolprofile.scad>;
 
+//<params>
 includeHolder = 1; // [0:no, 1:yes]
 includeHolderAttachment = 1; // [0:no, 1:yes]
-includeStrap = 0; // [0:no, 1:yes]
-includeCap = 0; // [0:no, 1:yes]
+includeStrap = 1; // [0:no, 1:yes]
+includeCap = 1; // [0:no, 1:yes]
 
 width = 60; 
 
@@ -49,6 +50,7 @@ wave_fraction = 0.5;
 springSupportThickness = 2;
 
 capTaperStart = 9.75;
+//</params>
 
 module dummy() {}
 
