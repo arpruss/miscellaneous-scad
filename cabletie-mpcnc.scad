@@ -2,8 +2,8 @@ use <bezier.scad>;
 use <ribbon.scad>;
 
 //<params>
-cableDiameter=5;
-cableWidth=10;
+cableDiameter=8;
+cableWidth=13;
 tieThickness=1.5;
 tieWidth=12;
 tieLength=25;
