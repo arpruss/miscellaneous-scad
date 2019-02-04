@@ -1,6 +1,6 @@
 angles = [12,15,18];
 labels = ["A", "B", "C"];
-angleNumber = 2;
+angleNumber = 0;
 currentAngle = 12; 
 radius = 105;
 boardDiameter = 450;
@@ -11,6 +11,10 @@ tolerance = 0.2;
 hexMinimumDistance = 10;
 hexThickness = 6;
 boltDiameter = 6.35;
+jointDiameter = 10;
+jointThickness = 5;
+jointHorizontalTolerance = 1;
+jointVerticalTolerance = 2;
 
 module dummy() {}
 
@@ -63,13 +67,16 @@ difference() {
     }
         
     else {
+        baseOffset = getOffset(angles[angleNumber-1]);
+        h = baseOffset-currentOffset;
+        for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,h-nudge]) cylinder(d=jointDiameter,h=jointThickness);
         difference() {
-            baseOffset = getOffset(angles[angleNumber-1]);
-            echo("Thickness", baseOffset-currentOffset);
-            cylinder(d=min(getWidth(getOffset(angles[0])),trimSize+knobSize),h=baseOffset-currentOffset);
+            echo("Thickness", h);
+            cylinder(d=min(getWidth(getOffset(angles[0])),trimSize+knobSize),h=h);
             translate([0,0,-nudge]) cylinder(d=boltDiameter+2*tolerance,h=radius*2);
         }
     }
+    for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,-nudge]) cylinder(d=jointDiameter+2*jointHorizontalTolerance,h=jointThickness+jointVerticalTolerance);
     for (angle=[0:45:360-45]) rotate([0,0,angle]) translate([trimSize/2+knobSize/2,0,-1]) cylinder(d=knobSize,h=radius+10);
     translate([0,10,-nudge])
     mirror([1,0,0])
