@@ -8,26 +8,29 @@ License URL: https://creativecommons.org/licenses/by-nc-sa/3.0/
 */
 
 cylinderfn = 0.2;
-wall_width = 1.75;
+wall_width = 1.5;
+bottom_wall = 1.25;
 
+ventilationScale = 1.4;
 ventilationHole = 22;
-bigHoleDiameter = 10.5;
+bigHoleDiameter = 13;
 bigHoleStickout = 8;
 bigHoleZ = 39;
 bigHoleY = 60;
-ramps_xtra = 0;
+ramps_xtra = 1;
 ramps_x = 60.50;	
-ramps_y = 101.62+9; // +9mm for lcd "smart adapter"
-ramps_z = 44.5;
+ramps_y = 101.62+16; // +9mm for lcd "smart adapter"
+ramps_z = 48;
+screw_hole_shifts = 6;
 ramps_z_spacing = 5;
 ramps_doubleopening = true;
 ramps_makefanhole = true;
 ramps_doubleopening_z_from_pcb_bottom = 27;
-m3_r	 = 0; //3.2/2;
+m3_r	 = 1.6; //3.2/2;
 m3_nut_r	= (6.08+0.2)/2;
 m3_nut_hight	= 2.4+0.5;
 
-metallscrew_r = 0; // 2.8/2;
+metallscrew_r = 1.5; // 2.8/2;
 
 fan_r = 60/2;
 fan_screws_r = 4.4/2;
@@ -53,16 +56,16 @@ module rampsbox() {
 	difference() {
 		union() {
 			cnccube(x=ramps_x+ramps_xtra*2, y=ramps_y+ramps_xtra*2, z=ramps_z, r=m3_r+wall_width, w=wall_width);
-			translate([ramps_xtra,ramps_xtra,0]) rampsmount(r=metallscrew_r+wall_width, h=ramps_z_spacing+wall_width);
+			translate([ramps_xtra,ramps_xtra+screw_hole_shifts,0]) rampsmount(r=metallscrew_r+wall_width, h=ramps_z_spacing+wall_width);
     d = bigHoleDiameter+2*wall_width;
     x = -bigHoleStickout-metallscrew_r*2-wall_width;
-    translate([x,bigHoleY-d/2,bigHoleZ-d/2]) cube([bigHoleStickout,d,d+nudge]);
-    translate([x,bigHoleY,bigHoleZ]) rotate([0,90,0]) cylinder(d=d,h=bigHoleStickout);
-    translate([x+bigHoleStickout,bigHoleY+d/2,bigHoleZ-d/2+nudge]) 
+    y = bigHoleY-d/2+1;
+    translate([x,y,bigHoleZ-d/2]) cube([bigHoleStickout,d,d+nudge]);
+    translate([x+bigHoleStickout,y+d,bigHoleZ-d/2+nudge]) 
             rotate([90,0,0])
-            linear_extrude(height=d) polygon([[0,0],[-bigHoleStickout,0],[0,-bigHoleStickout]]);
+            linear_extrude(height=d) polygon([[0,0],[-bigHoleStickout,0],[0,-1.5*bigHoleStickout]]);
 		}
-		translate([ramps_xtra,ramps_xtra,-1]) rampsmount(r=metallscrew_r, h=ramps_z_spacing+wall_width+2);
+		translate([ramps_xtra,ramps_xtra+screw_hole_shifts,-1]) rampsmount(r=metallscrew_r, h=ramps_z_spacing+wall_width+2);
 
 		if (ramps_doubleopening == false && ramps_makefanhole) {
 			translate([ramps_x/2+ramps_xtra,ramps_y+ramps_xtra*2,ramps_z/2+wall_width]) rotate([-90,0,0]) fancuts(r_fan=fan_r, r_screws=fan_screws_r, offset_screws=fan_offset_screws, h=(m3_r+wall_width)*2);
@@ -76,8 +79,8 @@ module rampscuts() {
 	translate([8.26,-ramps_xtra-m3_r*2-wall_width*2-1,0.5]) cube([14.11,ramps_xtra+m3_r*2+wall_width*2+2,ramps_z]);
 	translate([0,-ramps_xtra-m3_r*2-wall_width*2-1,14]) cube([ramps_x,ramps_xtra+m3_r*2+wall_width*2+2,ramps_z]);
     // this starts in the reset hole position
-    for (i=[0:2]) 
-	translate([i==1?10:-10,31.77+7.33/2+i*(ventilationHole+5),14.4+7.33/2]) rotate([0,90,0]) cylinder(d=ventilationHole,h=300);
+    for (i=[-1:2]) 
+	translate([i==1?10:-10,2+31.77+7.33/2+i*(ventilationHole+5),14.4+7.33/2]) rotate([0,90,0]) scale([ventilationScale,1,1]) cylinder(d=ventilationHole,h=300);
     translate([-50,bigHoleY,bigHoleZ-(wall_width+ramps_z_spacing)]) rotate([0,90,0]) cylinder(d=bigHoleDiameter,h=51);
 	if (ramps_doubleopening) {
 		translate([1.35,ramps_y+ramps_xtra-1,ramps_doubleopening_z_from_pcb_bottom]) cube([ramps_x-1.35*2,ramps_xtra+m3_r*2+wall_width*2+2,ramps_z]);	
