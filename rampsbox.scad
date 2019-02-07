@@ -38,7 +38,11 @@ fan_offset_screws = 50/2;
 
 nudge = 0.01;
 
-rampsbox();
+trellisSpacing = 9;
+trellisWidth = 2.5;
+
+//rampsbox();
+rampslid2();
 
 //translate([0,0,ramps_z+wall_width*2]) rampslid();
 
@@ -50,6 +54,47 @@ module rampslid() {
 			fancuts(r_fan=fan_r, r_screws=fan_screws_r, offset_screws=fan_offset_screws, h=wall_width+2);
 		}
 	}
+}
+
+module trellis() {
+    for (x=[-200:trellisWidth+trellisSpacing:200])
+        translate([x,-200]) square([trellisWidth,400]);
+}
+
+module rampslid2() {
+    difference() {
+    intersection() {
+        linear_extrude(height=wall_width)
+        difference() {
+            union() {
+                rotate(45) trellis();
+                rotate(-45) trellis();
+                delta = 0;
+                difference() {
+                    translate([-200,-200]) square([400,400]);
+                    translate([delta,delta]) square([ramps_x+ramps_xtra*2-2*delta,ramps_y+ramps_xtra*2-2*delta]);
+                }
+                translate([ramps_x/2,0]) {
+                    circle(d=ramps_x);
+                }
+            }
+            translate([ramps_x/2,0]) {
+                circle(d=ramps_x-8);
+            }
+        }
+	difference() {
+		cnccube(x=ramps_x+ramps_xtra*2, y=ramps_y+ramps_xtra*2, z=0, r=m3_r+wall_width, w=wall_width);
+/*		if (ramps_doubleopening && ramps_makefanhole) {
+			translate([ramps_x/2+ramps_xtra,ramps_xtra+60.45-fan_r/2,-1])
+			fancuts(r_fan=fan_r, r_screws=fan_screws_r, offset_screws=fan_offset_screws, h=wall_width+2);
+		} */
+	}
+}
+translate([0,0,-1])
+        linear_extrude(height=100) translate([ramps_x/2,0]) {
+            circle(d=ramps_x-8);
+        }
+    }
 }
 
 module rampsbox() {
