@@ -34,7 +34,7 @@ function PointAlongBez4(p0, p1, p2, p3, u) = [for (i=[0:len(p0)-1])
 	BEZ03(u)*p0[i]+BEZ13(u)*p1[i]+BEZ23(u)*p2[i]+BEZ33(u)*p3[i]];
 // End public domain Bezier stuff
 
-function REPEAT_MIRRORED(v) = ["m",v];
+function REPEAT_MIRRORED(v,angleStart=0,angleEnd=360) = ["m",v,angleStart,angleEnd];
 function SMOOTH_REL(x) = ["r",x];
 function SMOOTH_ABS(x) = ["a",x];
 function SYMMETRIC() = ["r",1];
