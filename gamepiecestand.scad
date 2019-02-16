@@ -2,7 +2,7 @@ baseDiameter = 30;
 baseThickness = 2.5;
 holderThickness = 1.75;
 holderHeight = 4;
-holderSpacing = 2.1;
+holderSpacing = 2.85;
 holderWidth = 15;
 holderWidth2 = 8;
 

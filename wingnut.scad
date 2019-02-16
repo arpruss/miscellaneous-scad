@@ -1,16 +1,25 @@
 use <Bezier.scad>;
+use <tubemesh.scad>;
 
+//<params>
 screwDiameter = 6.35;
 nutAcrossFlats = 11.1125;
 nutThickness = 5.55625;
 nutTolerance = 0.1;
 screwTolerance = 0.4;
-minWall = 2.5;
+minWallVertical = 2.5;
+minWallHorizontal = 3;
 outerDiameter = 45;
 neckLength = 4;
 wingTipSize = 6;
 wingThickness = 10;
-captive = true;
+wings = 3; // [3:3, 4:4, 5:5, 6:6, 7:7, 8:8]
+captive = 1; // [0:No, 1:Yes]
+throughHole = 1; // [0:No, 1:Yes]
+bezierTensionInside = 0.5;
+bezierTensionFromOutside = 0.5;
+chamfer = 1;
+//</params>
 
 module dummy() {
 }
@@ -18,10 +27,9 @@ module dummy() {
 nudge = 0.01;
 R = outerDiameter / 2;
 nutDiameter = nutAcrossFlats / cos(180/6) + 2 * nutTolerance;
-r = nutDiameter/2 + minWall;
+r = nutDiameter/2 + minWallHorizontal;
 w = wingTipSize;
-
-    echo(nutAcrossFlats/cos(180/6));
+angle = 360/wings;
 
 function trimVector(path,n) =
     n <= 0 ? [] :
@@ -33,25 +41,34 @@ function trimPath360(path,pos=0,crossedXAxis=false)
       (crossedXAxis && atan2(path[pos][1],path[pos][0]) >= 0) ? trimVector(path,pos) :
       trimPath360(path,pos=pos+1,crossedXAxis=crossedXAxis || atan2(path[pos][1],path[pos][0]) < 0);
            
-path = trimPath360(Bezier(
-    [ [ R,0 ], SHARP(), SHARP(), [R, w/2],
-      POLAR(r/2,180), POLAR(r/2,60-90), r*[cos(60),sin(60)],
-     REPEAT_MIRRORED([cos(90+60),sin(90+60)]),
-     REPEAT_MIRRORED([cos(90+120),sin(90+120)]),
-     REPEAT_MIRRORED([cos(90+240),sin(90+240)]),
+function getPath(r,R,w) = trimPath360(Bezier(
+    [ [ R,0 ], SHARP(), SHARP(), [R, w/2-chamfer],
+      SHARP(), SHARP(), [R-chamfer, w/2],
+      POLAR(r*bezierTensionFromOutside,180), POLAR(r*bezierTensionInside,angle/2-90), r*[cos(angle/2),sin(angle/2)],
+     REPEAT_MIRRORED([cos(90+angle/2),sin(90+angle/2)]),
+     REPEAT_MIRRORED([cos(90+angle),sin(90+angle)]),
+     REPEAT_MIRRORED([cos(90+2*angle),sin(90+2*angle)]),
+     REPEAT_MIRRORED([cos(90+4*angle),sin(90+4*angle)]),
      ]));
-
+    
 module solid() {
-    linear_extrude(height = wingThickness)     
-    polygon(path);
-    translate([0,0,wingThickness-nudge])
-    cylinder(r=r, h=neckLength+nudge);
+    tubeMesh(
+        [sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),0),
+         sectionZ(getPath(r,R,w),chamfer),
+         sectionZ(getPath(r,R,w),wingThickness-chamfer),
+         sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),wingThickness)]);
+    translate([0,0,chamfer])
+    cylinder(r=r, h=neckLength+wingThickness-chamfer);
 }
 
 nt = nutThickness+.1;
+z0 = neckLength+wingThickness-(captive?minWallVertical:-nudge)-nt;
 difference() {
     solid();
-    translate([0,0,neckLength+wingThickness-(captive?minWall:-nudge)-nt])
+    translate([0,0,z0])
     cylinder(d=nutDiameter,h=nt,$fn=6);
-    translate([0,0,-nudge]) cylinder(d=screwDiameter+2*screwTolerance,h=neckLength+wingThickness+2*nudge,$fn=16);
+    translate([0,0,throughHole?-nudge:minWallVertical]) cylinder(d=screwDiameter+2*screwTolerance,h=neckLength+wingThickness+2*nudge,$fn=16);
+
+echo("Nut ends at ", z0+nt);
+
 }
