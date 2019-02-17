@@ -1,4 +1,4 @@
-﻿from sys import argv
+from sys import argv
 from loadmesh import *
 
 def project(polygons, xAxis, yAxis):

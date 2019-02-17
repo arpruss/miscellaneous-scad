@@ -1,4 +1,4 @@
-use <Bezier.scad>;
+use <bezier.scad>;
 use <tubemesh.scad>;
 
 //<params>
