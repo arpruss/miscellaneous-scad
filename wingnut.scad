@@ -1,4 +1,4 @@
-use <bezier.scad>;
+use <Bezier.scad>;
 use <tubemesh.scad>;
 
 //<params>
@@ -51,14 +51,15 @@ function getPath(r,R,w) = trimPath360(Bezier(
      REPEAT_MIRRORED([cos(90+4*angle),sin(90+4*angle)]),
      ]));
     
+path = getPath(r,R,w);    
+
 module solid() {
     tubeMesh(
-        [sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),0),
-         sectionZ(getPath(r,R,w),chamfer),
+        [sectionZ(getPath(r,R,w),0),
          sectionZ(getPath(r,R,w),wingThickness-chamfer),
          sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),wingThickness)]);
-    translate([0,0,chamfer])
-    cylinder(r=r, h=neckLength+wingThickness-chamfer);
+    translate([0,0,0])
+    cylinder(r=r, h=neckLength+wingThickness);
 }
 
 nt = nutThickness+.1;
