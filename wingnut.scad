@@ -55,7 +55,9 @@ path = getPath(r,R,w);
 
 module solid() {
     tubeMesh(
-        [sectionZ(getPath(r,R,w),0),
+        [
+         sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),0),
+         sectionZ(getPath(r,R,w),chamfer),
          sectionZ(getPath(r,R,w),wingThickness-chamfer),
          sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),wingThickness)]);
     translate([0,0,0])
