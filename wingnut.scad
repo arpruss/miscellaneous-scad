@@ -60,8 +60,8 @@ module solid() {
          sectionZ(getPath(r,R,w),chamfer),
          sectionZ(getPath(r,R,w),wingThickness-chamfer),
          sectionZ(getPath(r-chamfer,R-chamfer,w-chamfer*2),wingThickness)]);
-    translate([0,0,0])
-    cylinder(r=r, h=neckLength+wingThickness);
+    translate([0,0,chamfer])
+    cylinder(r=r, h=neckLength+wingThickness-chamfer);
 }
 
 nt = nutThickness+.1;
