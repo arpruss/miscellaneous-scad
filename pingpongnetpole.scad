@@ -3,12 +3,12 @@ use <Bezier.scad>;
 //<params>
 width = 15;
 spacing = 20;
-restAngle = 20;
+restAngle = 15;
 jawLength = 20;
 handleLength = 25;
 jawThickness = 2.5;
 bottomTeethOffset = 1;
-bottomToothHeight = 1.5;
+bottomToothHeight = 0;
 bottomToothWidth = 1.5;
 // 0.5 for symmetric teeth
 bottomToothSet = 0.2; 
@@ -17,7 +17,8 @@ topToothHeight = 0;
 // 0.5 for symmetric teeth
 topToothWidth = 1.5;
 topToothSet = 0.3; 
-springThickness = 2.25;
+springThickness = 1.5;
+poleScrewHoleDiameter = 3;
 //</params>
 
 module dummy(){}
@@ -37,7 +38,7 @@ module ribbon(points, thickness=1, closed=false) {
     }
 }
 
-module jaw(toothHeight, toothWidth, toothSet, teethOffset) {
+module jaw(toothHeight, toothWidth, toothSet, teethOffset, holes=true) {
 
     jawProfile = [
         [jawLength+handleLength,-width/2],
@@ -53,9 +54,17 @@ module jaw(toothHeight, toothWidth, toothSet, teethOffset) {
 
        translate([0,0,width]) rotate([-90,0,0]) 
         linear_extrude(height=jawThickness) 
-/*        polygon([[jawLength+handleLength,width],[jawLength+handleLength,0],[0.25*width,0],[0,0.25*width],[0,0.75*width],[0.25*width,width]]); */
-        translate([0,width/2])
-        polygon(Bezier(jawProfile));
+        difference() {
+            translate([0,width/2])
+            polygon(Bezier(jawProfile));
+            if (holes) {
+                translate([width*0.5-width*0.2,width*0.3])
+                circle(d=poleScrewHoleDiameter,$fn=16);
+                translate([width*0.5+width*0.2,width-width*0.3])
+                circle(d=poleScrewHoleDiameter,$fn=16);
+            }
+        }
+        
          {
             if (toothHeight > 0) {
                n = floor((jawLength-teethOffset) / toothWidth);
@@ -80,5 +89,5 @@ linear_extrude(height=width) {
 }
 
     translate(springPoints[len(springPoints)-1])    
-    rotate([0,0,restAngle/2.]) jaw(bottomToothHeight, bottomToothWidth, bottomToothSet, bottomTeethOffset);
-    translate(springPoints[0]) rotate([0,0,-restAngle/2.]) translate([0,0,width]) rotate([180,0,0]) jaw(topToothHeight, topToothWidth, topToothSet, topTeethOffset);
+    rotate([0,0,restAngle/2.]) jaw(bottomToothHeight, bottomToothWidth, bottomToothSet, bottomTeethOffset, holes=false);
+    translate(springPoints[0]) rotate([0,0,-restAngle/2.]) translate([0,0,width]) rotate([180,0,0]) jaw(topToothHeight, topToothWidth, topToothSet, topTeethOffset, holes=true);
