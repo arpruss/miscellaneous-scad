@@ -255,7 +255,7 @@ module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,cu
                       [for(i=[0:numSlices])
                         let(t=i/numSlices,
                             t1=getCurve(t),
-                            theta = t*twist,
+                            theta = -t*twist,
                             section=(1-t1)*section1interp+t1*section2interp)
                         twistSectionXY(sectionZ(section,height*t),theta)];
                             
