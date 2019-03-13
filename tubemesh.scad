@@ -104,7 +104,7 @@ function _bestTriangles(points,tt, pos=0, best=[0,-1/0]) =
             best = let(q=_measureQuality(points,tt[pos])) 
                         q>best[1] ? [pos,q] : best);
 
-function _getMaxShift(o) = !o ? 0 : o-1;
+function _getMaxShift(o) = (!o || o==true) ? 0 : o-1;
 
 function _tubeSegmentTriangles(points,index1,n1,index2,n2,optimize=1) =
     _bestTriangles(points,[for (shift=[-_getMaxShift(optimize):_getMaxShift(optimize)]) _tubeSegmentTriangles0(points,index1,n1,index2,n2,shift=shift,optimize=optimize)]);

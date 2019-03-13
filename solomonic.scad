@@ -4,7 +4,7 @@ use <tubemesh.scad>;
 offset = 3;
 radius = 10;
 height = 100;
-twists = 2;
+twists = 4;
 precision = 1;
 //</params>
 
