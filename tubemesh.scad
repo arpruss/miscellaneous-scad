@@ -237,7 +237,7 @@ function twistSectionXY(section,theta) =
         i == 1 ? p[0]*sin(theta)+p[1]*cos(theta) :
         p[i]]];
 
-module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=0) {
+module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=1) {
     
     section2 = section2==undef ? section1 : section2;
     
