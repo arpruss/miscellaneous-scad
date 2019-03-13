@@ -38,7 +38,6 @@ function _doSquare(points,i11,i21,i22,i12,optimize=true) =
         m2 <= m1 ? [[i11,i21,i22], [i22,i12,i11]] :
                   [[i11,i21,i12], [i21,i22,i12]];
     
-/*
 function _inTriangle(v1,t) = (v1==t[0] || v1==t[1] || v1==t[2]);
    
 function _findTheDistinctVertex(t1,t2) = 
@@ -52,14 +51,13 @@ function _findTheDistinctVertex(t1,t2) =
 function _rotateTriangle(t,i) = 
     [for (j=[0:2]) t[(j+i)%3]];
   
+/*    
 function _optimize2Triangles(points,t1,t2) = 
     let(i1 = _findTheDistinctVertex(t1,t2))
     i1 == undef ? [t1,t2] :
     let(i2 = _findTheDistinctVertex(t2,t1))
     i2 == undef ? [t1,t2] :
-    let(t1 = _rotateTriangle(t1,i1),
-        t2 = _rotateTriangle(t2,i2)) 
-    _doSquare(points,t1[1],t2[0],t2[1],t1[0],optimize=true); 
+    _doSquare(points,t1[(i1+2)%3],t1[i1],t2[(i2+2)%3],t2[i2],optimize=true); 
      
 // a greedy optimization for a strip of triangles most of which adjoin one another; written for tail-recursion        
 function _optimizeTriangles(points,triangles,position=0,optimize=true,iterations=4) =
@@ -75,7 +73,7 @@ function _optimizeTriangles(points,triangles,position=0,optimize=true,iterations
                         i == position2 ? opt[1] :
                             triangles[i]],
                 position=position+1);
-*/
+*/                
 
 function _removeEmptyTriangles(points,triangles) = 
     [for(t=triangles)
@@ -92,7 +90,7 @@ function _tubeSegmentTriangles(points,index1,n1,index2,n2,i=0,soFar=[],optimize=
                 i12=floor((i22)*n1/n2+0.5)%n1,
                 add = i11==i12 ? [[index1+i11,index2+i21,index2+i22]] :
                     _doSquare(points,index1+i11,index2+i21,index2+i22,index1+i12,optimize=optimize))
-                _tubeSegmentTriangles(points,index1,n1,index2,n2,i=i+1,soFar=concat(soFar,add),optimize=optimize);         
+                _tubeSegmentTriangles(points,index1,n1,index2,n2,i=i+1,soFar=concat(soFar,add),optimize=optimize);
 
 function _tubeSegmentFaces(points,index,n1,n2,optimize=true)
     = n1<n2 ? _tubeSegmentTriangles(points,index,n1,index+n1,n2,optimize=optimize) :
@@ -222,7 +220,9 @@ function twistSectionXY(section,theta) =
         i == 1 ? p[0]*sin(theta)+p[1]*cos(theta) :
         p[i]]];
 
-module morphExtrude(section1,section2,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=false) {
+module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=false) {
+    
+    section2 = section2==undef ? section1 : section2;
     
     fc = compileFunction(curve);
     function getCurve(t) = (curve=="t" ? t : eval(fc,concat([["t",t]],curveParams)));

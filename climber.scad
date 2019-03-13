@@ -16,7 +16,7 @@ points_svg_1_4 = [ [-30.132738344,12.721441999],[-30.119703315,12.349391199],[-3
 
 module polygon_svg_1() {
  render(convexity=4) linear_extrude(height=height_svg) {
-    resize(newsize=[30,30])
+    scale(40/size_svg_1[1])
     difference() {
       polygon(points=points_svg_1_1);
       union() {

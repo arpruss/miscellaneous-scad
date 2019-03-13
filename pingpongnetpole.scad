@@ -1,12 +1,12 @@
 use <Bezier.scad>;
 
 //<params>
-width = 15;
-spacing = 20;
-restAngle = 15;
-jawLength = 20;
-handleLength = 25;
-jawThickness = 2.5;
+width = 25.5;
+spacing = 31;
+restAngle = 19.5;
+jawLength = 25;
+handleLength = 38;
+jawThickness = 2.4;
 bottomTeethOffset = 1;
 bottomToothHeight = 0;
 bottomToothWidth = 1.5;
@@ -17,8 +17,8 @@ topToothHeight = 0;
 // 0.5 for symmetric teeth
 topToothWidth = 1.5;
 topToothSet = 0.3; 
-springThickness = 1.5;
-poleScrewHoleDiameter = 3;
+springThickness = 2.2;
+poleScrewHoleDiameter = 4;
 //</params>
 
 module dummy(){}
