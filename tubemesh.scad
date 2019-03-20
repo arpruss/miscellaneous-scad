@@ -177,6 +177,11 @@ function sectionY(section,y) = [for(xz=section) [xz[0],y,xz[1]]];
     
 function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) (p[i]==undef?0:p[i])+delta[i]]];
     
+// the optimize parameter can be:
+//   -1: nearest neighbor mesh optimization; this can produce meshes that are not watertight, and hence is not recommended unless you know what you are doing
+//   0: no optimization at all
+//   1: minimal optimization at the quad level
+//   n>1: shift corresponding points layers by up to n-1 points to try to have the best triangles
 module tubeMesh(sections,startCap=true,endCap=true,optimize=1) {
     pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
     polyhedron(points=pAndF[0],faces=pAndF[1]);
@@ -297,5 +302,5 @@ translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4)
 mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
 translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, curve="sin(90*t)" );
-translate([80,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, twist=90 );
+translate([80,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, twist=90);
 //</skip>
