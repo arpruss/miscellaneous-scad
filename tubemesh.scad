@@ -81,17 +81,33 @@ function _removeEmptyTriangles(points,triangles) =
     [for(t=triangles)
         if(points[t[0]] != points[t[1]] && points[t[1]] != points[t[2]] && points[t[2]] != points[t[0]]) t]; 
 
+// tail recursion
+function _getClosest(points,index,count,ref,best=[undef,undef])
+        = count <= 0 ? (best[0]==undef ? index : best[0]) :
+          _getClosest(points,index+1,count-1,ref,
+            best = best[0] == undef ||
+            norm(points[index]-ref) < best[1] ?
+            [index,norm(points[index]-ref)] : best);
+
+function _getIndices(points,index1,n1,index2,n2,shift,i,optimize) = 
+        let (i1=[index2+_mod(i+shift,n2),
+                 index2+_mod(i+1+shift,n2)])
+        optimize < 0 ?
+        [[_getClosest(points,index1,n1,points[i1[0]]),
+          _getClosest(points,index1,n1,points[i1[1]])],
+          i1] : 
+        [[index1+floor(i*n1/n2+0.5)%n1,
+         index1+floor(((i+1)%n2)*n1/n2+0.5)%n1],
+         i1];        
+
 // n1 and n2 should be fairly small, so this doesn't need
 // tail-recursion
 // this assumes n1<=n2
 function _tubeSegmentTriangles0(points,index1,n1,index2,n2,shift=0,i=0,soFar=[],optimize=1)
     = i>=n2 ? _removeEmptyTriangles(points,soFar) :
-            let(i21=_mod(i+shift,n2),
-                i22=_mod(i+1+shift,n2),
-                i11=floor((i)*n1/n2+0.5)%n1,
-                i12=floor(((i+1)%n2)*n1/n2+0.5)%n1,
-                add = i11==i12 ? [[index1+i11,index2+i21,index2+i22]] :
-                    _doSquare(points,index1+i11,index2+i21,index2+i22,index1+i12,optimize=optimize))
+            let(ii = _getIndices(points,index1,n1,index2,n2,shift,i,optimize),                
+                add = ii[0][0] == ii[0][1] ? [[ii[0][0],ii[1][0],ii[1][1]]] :
+                    _doSquare(points,ii[0][0],ii[1][0],ii[1][1],ii[0][1],optimize=optimize))
                 _tubeSegmentTriangles0(points,index1,n1,index2,n2,i=i+1,soFar=concat(soFar,add),shift=shift,optimize=optimize);
         
 function _measureQuality(points, triangles, pos=0, sumThinnest=1e100) =
@@ -104,7 +120,7 @@ function _bestTriangles(points,tt, pos=0, best=[0,-1/0]) =
             best = let(q=_measureQuality(points,tt[pos])) 
                         q>best[1] ? [pos,q] : best);
 
-function _getMaxShift(o) = (!o || o==true) ? 0 : o-1;
+function _getMaxShift(o) = (!o || o==true || o < 0) ? 0 : o-1;
 
 function _tubeSegmentTriangles(points,index1,n1,index2,n2,optimize=1) =
     _bestTriangles(points,[for (shift=[-_getMaxShift(optimize):_getMaxShift(optimize)]) _tubeSegmentTriangles0(points,index1,n1,index2,n2,shift=shift,optimize=optimize)]);
@@ -227,7 +243,7 @@ module mySphere(r=10,d=undef) {
                         r1 = cos(lat),
                         count = max(3,floor(0.5 + pointsAround * abs(r1))))
                         ngonPoints(count,r=r1,z=z1)];
-    data = pointsAndFaces(sections,optimize=0);
+    data = pointsAndFaces(sections,optimize=-1);
     polyhedron(points=data[0], faces=data[1]);
 }
 

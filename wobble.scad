@@ -1,3 +1,5 @@
+use <tubemesh.scad>;
+
 angles = [12,15,18];
 labels = ["A", "B", "C"];
 angleNumber = 0;
@@ -5,16 +7,17 @@ currentAngle = 12;
 radius = 105;
 boardDiameter = 450;
 trimSize = 100;
-knobSize = 15;
+knobSize = 20;
 hexSize = 11.11; // across flats
-tolerance = 0.2;
+tolerance = 0.1;
 hexMinimumDistance = 10;
-hexThickness = 6;
+hexThickness = 5.6;
 boltDiameter = 6.35;
 jointDiameter = 10;
 jointThickness = 5;
 jointHorizontalTolerance = 1;
 jointVerticalTolerance = 2;
+alignmentHoles = 0; //[0:no,1:yes]
 
 module dummy() {}
 
@@ -50,7 +53,7 @@ difference() {
     if (angleNumber == 0) {
         difference() {
             intersection() {
-                translate([0,0,-currentOffset]) sphere(r=radius);
+                translate([0,0,-currentOffset]) sphere(r=radius,$fn=128);
                 translate([-radius-1,-radius-1,0]) cube([2*radius+2,2*radius+2,radius+1]);
                 cylinder(d=trimSize+knobSize,h=radius);
                 echo("Thickness", getHeight(currentOffset));
@@ -69,6 +72,7 @@ difference() {
     else {
         baseOffset = getOffset(angles[angleNumber-1]);
         h = baseOffset-currentOffset;
+        if (alignmentHoles)
         for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,h-nudge]) cylinder(d=jointDiameter,h=jointThickness);
         difference() {
             echo("Thickness", h);
@@ -76,8 +80,10 @@ difference() {
             translate([0,0,-nudge]) cylinder(d=boltDiameter+2*tolerance,h=radius*2);
         }
     }
-    for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,-nudge]) cylinder(d=jointDiameter+2*jointHorizontalTolerance,h=jointThickness+jointVerticalTolerance);
-    for (angle=[0:45:360-45]) rotate([0,0,angle]) translate([trimSize/2+knobSize/2,0,-1]) cylinder(d=knobSize,h=radius+10);
+    if (alignmentHoles) { 
+        for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,-nudge]) cylinder(d=jointDiameter+2*jointHorizontalTolerance,h=jointThickness+jointVerticalTolerance);
+        }
+        for (angle=[0:60:360-45]) rotate([0,0,angle]) translate([trimSize/2+knobSize/2,0,-1]) cylinder(d=knobSize,h=radius+10);
     translate([0,10,-nudge])
     mirror([1,0,0])
     linear_extrude(height=2)

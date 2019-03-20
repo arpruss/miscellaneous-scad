@@ -8,7 +8,7 @@ thickness = 2;
 // Generation rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of generating with zero neighbors. The last entry is the probability of generating with six neighbors.
 generationRule = [0,.4,0,0,0,0,0];
 // Survival rule. A sequence of probabilities depending on how many neighbors there are, between 0 and 6. The first entry is the probability of surviving with zero neighbors. The last entry is the probability of surviving with six neighbors.
-survivalRule = [1,1,1,1,1,1,1];
+survivalRule = [1,1,1,1,1,0,1];
 color1 = [.26,.71,1];
 color2 = [1,1,1];
 // Set to 0 to get something different each time.
