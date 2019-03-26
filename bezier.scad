@@ -55,15 +55,18 @@ function SMOOTH_ABS(x) = ["a",x];
 function SYMMETRIC() = ["r",1];
 function OFFSET(v) = ["o",v];
 function SHARP() = OFFSET([0,0,0]);
+function LINE() = ["l",0];
 function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
-function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o");
+function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o" || v[0]=="l");
 
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
-function getControlPoint(cp,node,otherCP,otherNode) = 
-    let(v=node-otherCP)
-(cp[0]=="r"?(node+cp[1]*v):( cp[0]=="a"? (
+function getControlPoint(cp,node,otherCP,otherNode,nextNode) = 
+    let(v=node-otherCP) (          
+    cp[0]=="r" ? node+cp[1]*v:
+    cp[0]=="a" ? (
         norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) : 
-        cp) );
+    cp[0]=="l" ? (2*node+nextNode)/3 :
+        cp );
 
 function onLine2(a,b,c,eps=1e-4) =
     norm(c-a) <= eps ? true 
@@ -93,7 +96,8 @@ function flatten(listOfLists) = [ for(list = listOfLists) for(item = list) item 
 //   SMOOTH_ABS(x): like SYMMETRIC, but the distance of the control point to the node is exactly x
 // You can also replace any control point with:
 //   OFFSET(v): puts the control point at the corresponding node plus the vector v
-//   SHARP(): equivalent to OFFSET([0,0]); useful for straight lines
+//   SHARP(): equivalent to OFFSET([0,0])
+//   LINE(): when used for both control points between two nodes, generates a straight line
 //   POLAR(r,angle): like OFFSET, except the offset is specified in polar coordinates
 
 function DecodeBezierOffset(control,node) = control[0] == "o" ? node+control[1] : control;
@@ -129,7 +133,7 @@ function DecodeSpecialBezierPoints(p0) =
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
         p=DecodeBezierOffsets(p0),
-        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4]))])
+        basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4],p[i+2]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4],p[i-2]))])
         doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
@@ -229,7 +233,7 @@ module filletLine3D(start=[0,0,0],end=[0,0,100],direction1=[10,0,0],direction2=u
     cp1 = norm(proj1) * tension1;
     cp2 = norm(proj2) * tension2;
     matrix = concat([for (i=[0:2]) [d1[i],d2[i],d0[i],start[i]] ], [[0,0,0,1]]);
-    curve = Bezier( [ [-nudge,-nudge], SHARP(), SHARP(),
+    curve = Bezier( [ [-nudge,-nudge], LINE(), LINE(),
                       [l1,-nudge], OFFSET([-cp1,0]), OFFSET([0,-cp2]), [-nudge,l2] ], precision=0.1 );
     multmatrix(m=matrix) 
     linear_extrude(height=l0) polygon(curve);
@@ -253,7 +257,7 @@ polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_REL(-1),[10,10],/*C*/[15,10],/*C*/O
 translate([0,60])
 polygon(Bezier([[0,0],/*C*/[5,0],/*C*/SMOOTH_ABS(-1),[10,10],/*C*/[15,10],/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 translate([0,75])
-polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
+polygon(Bezier([[0,0],/*C*/LINE(),/*C*/LINE(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
 translate([0,-40])
 BezierVisualize(BezierSmoothPoints([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-.1);
