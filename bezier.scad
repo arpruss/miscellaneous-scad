@@ -26,13 +26,28 @@ SOFTWARE.
 
 
 // Public domain Bezier stuff from www.thingiverse.com/thing:8443
-function BEZ03(u) = pow((1-u), 3);
-function BEZ13(u) = 3*u*(pow((1-u),2));
-function BEZ23(u) = 3*(pow(u,2))*(1-u);
+function BEZ03(u) = pow(1-u, 3);
+function BEZ13(u) = 3*u*pow(1-u,2);
+function BEZ23(u) = 3*pow(u,2)*(1-u);
 function BEZ33(u) = pow(u,3);
-function PointAlongBez4(p0, p1, p2, p3, u) = [for (i=[0:len(p0)-1]) 
-	BEZ03(u)*p0[i]+BEZ13(u)*p1[i]+BEZ23(u)*p2[i]+BEZ33(u)*p3[i]];
+function PointAlongBez4(p0, p1, p2, p3, u) = 
+	BEZ03(u)*p0+BEZ13(u)*p1+BEZ23(u)*p2+BEZ33(u)*p3;
 // End public domain Bezier stuff
+function d2BEZ03(u) = 6*(1-u);
+function d2BEZ13(u) = 18*u-12;
+function d2BEZ23(u) = -18*u+6;
+function d2BEZ33(u) = 6*u;
+    
+function worstCase2ndDerivative(p0, p1, p2, p3, u1, u2)
+    = norm([
+        for(i=[0:len(p0)-1])
+            max([for(u=[u1,u2])
+                d2BEZ03(u)*p0[i]+d2BEZ13(u)*p1[i]+
+                d2BEZ23(u)*p2[i]+d2BEZ33(u)*p3[i]]) ]);
+    
+function neededIntervalLength(p0,p1,p2,p3,u1,u2,tolerance)
+    = let(d2=worstCase2ndDerivative(p0,p1,p2,p3,u1,u2))
+        d2==0 ? u2-u1+1 : sqrt(2*tolerance/d2);
 
 function REPEAT_MIRRORED(v,angleStart=0,angleEnd=360) = ["m",v,angleStart,angleEnd];
 function SMOOTH_REL(x) = ["r",x];
@@ -60,9 +75,9 @@ function isStraight2(p1,c1,c2,p2,eps=1e-4) =
     onLine2(p1,p2,c1,eps=eps) && onLine2(p2,p1,c2,eps=eps);
 
 function Bezier2(p,index=0,precision=0.05,rightEndPoint=true,optimize=true) = let(nPoints=
-        max(2, precision < 0 ?
-                    let(l=norm(p[2]-p[0]))
-                    (l==0 ? 2 : l/-precision)
+        max(1, precision < 0 ?
+                    ceil(1/
+                        neededIntervalLength(p[index],p[index+1],p[index+2],p[index+3],0,1,-precision))  
                     : ceil(1/precision)) )
     optimize && isStraight2(p[index],p[index+1],p[index+2],p[index+3]) ? (rightEndPoint?[p[index+0],p[index+3]]:[p[index+0]] ) :
     [for (i=[0:nPoints-(rightEndPoint?0:1)]) PointAlongBez4(p[index+0],p[index+1],p[index+2],p[index+3],i/nPoints)];
@@ -241,5 +256,5 @@ translate([0,75])
 polygon(Bezier([[0,0],/*C*/SHARP(),/*C*/SHARP(),[10,10],/*C*/SHARP(),/*C*/OFFSET([-5,0]),[20,0]],precision=0.05));
 }
 translate([0,-40])
-BezierVisualize(BezierSmoothPoints([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-1);
+BezierVisualize(BezierSmoothPoints([[0,0],[10,10],[20,0]],closed=true,tension=0.25),precision=-.1);
 //</skip>
