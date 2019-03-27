@@ -14,7 +14,9 @@ function _flatten(list) = [for (a=list) for(b=a) b];
             
 function _reverseTriangle(t) = [t[2], t[1], t[0]];
 
-function _mod(a,b) = a >= 0 ? a%b : b+(a%b);
+function _mod(a,b) = 
+    let (m=a%b)
+    m < 0 ? b+m : m;
 
 // smallest angle in triangle
 function _minAngle(p1,p2,p3) =
@@ -252,8 +254,13 @@ module mySphere(r=10,d=undef) {
     polyhedron(points=data[0], faces=data[1]);
 }
 
-function twistSectionXY(section,theta) = 
-    [for (p=section) [for(i=[0:len(p)-1])
+function twistSectionXY(section,theta,autoShift=false) = 
+    let(
+    n = len(section),
+    shift=autoShift ? floor(n*_mod(theta,360)/360) : 0)
+    [for (a=[0:len(section)-1]) 
+        let(p=section[_mod(a-shift,n)])
+        [for(i=[0:len(p)-1])
         i == 0 ? p[0]*cos(theta)-p[1]*sin(theta) :
         i == 1 ? p[0]*sin(theta)+p[1]*cos(theta) :
         p[i]]];
@@ -279,7 +286,7 @@ module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,cu
                             theta = -t*twist,
                             section=(1-t1)*section1interp+t1*section2interp)
                         twistSectionXY(sectionZ(section,height*t),theta)];
-                            
+                      
     tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=optimize);   
 }
 
