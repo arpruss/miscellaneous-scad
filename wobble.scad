@@ -13,6 +13,7 @@ tolerance = 0.1;
 hexMinimumDistance = 10;
 hexThickness = 5.6;
 boltDiameter = 6.35;
+boltTolerance = 0.2;
 jointDiameter = 10;
 jointThickness = 5;
 jointHorizontalTolerance = 1;
@@ -64,7 +65,7 @@ difference() {
             }
             h0 = hexMinimumDistance + hexThickness + tolerance + 
         boltDiameter + heightDifference;
-            #translate([0,0,-nudge]) cylinder(d=boltDiameter+2*tolerance,h=h0);
+            translate([0,0,-nudge]) cylinder(d=boltDiameter+2*boltTolerance,h=h0);
             translate([0,0,hexMinimumDistance]) cylinder(d=hexDiameter,h=hexThickness,$fn=6);
         }
     }

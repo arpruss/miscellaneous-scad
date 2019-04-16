@@ -1,7 +1,5 @@
 use <eval.scad>;
 
-// params = [sections,sectionCounts]
-
 // written for tail-recursion
 // _subtotals[i] = list[0] + ... + list[i-1]
 function _subtotals(list,soFar=[]) =
@@ -183,7 +181,7 @@ function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) 
 //   -1: nearest neighbor mesh optimization; this can produce meshes that are not watertight, and hence is not recommended unless you know what you are doing
 //   0: no optimization at all
 //   1: minimal optimization at the quad level
-//   n>1: shift corresponding points layers by up to n-1 points to try to have the best triangles
+//   n>1: shift corresponding points in different layers by up to n-1 points to try to have the best triangles
 module tubeMesh(sections,startCap=true,endCap=true,optimize=1) {
     pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
     polyhedron(points=pAndF[0],faces=pAndF[1]);
@@ -292,9 +290,9 @@ module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,cu
 
 module cone(r=10,d=undef,height=10) {
     radius = d==undef ? r : d/2;
-    pointsAround = 
-        $fn ? $fn :
-        max(3, floor(0.5+360/$fa), floor(0.5+2*radius*PI/$fs));
+
+    pointsAround = getPointsAround(radius);
+
     morphExtrude(ngonPoints(n=pointsAround,r=radius), [[0,0]], height=height,optimize=0);
 }
 
