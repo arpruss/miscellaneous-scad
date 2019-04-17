@@ -1,6 +1,7 @@
 function _isString(v) = v >= "";
 function _isVector(v) = !(v>="") && len(v) != undef;
 function _isFloat(v) = v+0 != undef;
+function _isRange(v) = len(v)==undef && v[0] != undef;
 
 function _substr(s, start=0, stop=undef, soFar = "") =
     start >= (stop==undef ? len(s) : stop) ? soFar :
@@ -228,7 +229,7 @@ function _parseLiteralOrVariable(s) =
         s == "PI" ? PI :
         s == "true" ? true :
         s == "false" ? false :
-        s == "undef" ? undef :
+        //s == "undef" ? undef : // TODO: better fix for undef than this hackish one
         _isalpha_(s[0]) ? s : 
         _parseUnsignedFloat(s);
         
@@ -280,7 +281,7 @@ function _letOperator(a,b) =
 /* This takes a fully tokenized vector, each element of which is either a line from the _operators table or a vector containing a single non-operator string, and parses it using general parenthesis and operator parsing. Comma expressions for building vectors will be parsed in the next pass. */
 function _parseMain(tok,start=0,stop=undef) = 
     let( stop= stop==undef ? len(tok) : stop )
-        stop <= start ? undef :
+        stop <= start ? [] :
         tok[start][0] == "(" && _endParens(tok,start=start+1,stop=stop,openCount=1)==stop ? 
             _parseMain(tok,start=start+1,stop=stop-1) : 
         let( lp = _mainOperator(tok,start,stop) )
@@ -290,12 +291,12 @@ function _parseMain(tok,start=0,stop=undef) =
                     [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=lp[2]), _parseMain(tok,start=lp[2]+1,stop=stop) ] :
                 op[_NAME] == "let" ?
                     _letOperator( _parseMain(op[_EXTRA_DATA]), _parseMain(tok,start=pos+1,stop=stop)) :
+                let(rhs=_parseMain(tok,start=pos+1,stop=stop))
                 op[_ARITY] == 2 ?
                     (start==pos ? 
-                    /* unary */
-                    
-                    let(j=_indexInTable(op[_OPERATOR], _binary_or_unary)) [ _binary_or_unary[j][1],_parseMain(tok,start=pos+1,stop=stop)] : [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), _parseMain(tok,start=pos+1,stop=stop)])
-                    : [ op[_OPERATOR], _parseMain(tok,start=pos+1,stop=stop) ];  
+                    /* unary use of binary operator */                    
+                    let(j=_indexInTable(op[_OPERATOR], _binary_or_unary)) [ _binary_or_unary[j][1],rhs] : [ op[_OPERATOR], _parseMain(tok,start=start,stop=pos), rhs])
+                    : [ op[_OPERATOR], rhs ];
             
            
 // this upgrades sequences of binary commas to vectors            
@@ -308,7 +309,8 @@ function _fixCommas(expression) =
                 ["[[",a,b]
         : 
     _isVector(expression) ?
-            concat([expression[0]], [for (i=[1:len(expression)-1]) _fixCommas(expression[i])]) :
+            (expression[1] == [] ? [expression[0]] :
+            concat([expression[0]], [for (i=[1:1:len(expression)-1]) _fixCommas(expression[i])]) ) :
             expression;
 
 // fix arguments from vectors
@@ -400,7 +402,7 @@ function eval(c,v=[]) =
     op == "rands" ? rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
     op == "round" ? round(eval(c[1],v)) :
     op == "sign" ? sign(eval(c[1],v)) :
-    op == "[" ? [for (i=[1:len(c)-1]) eval(c[i],v)] :
+    op == "[" ? [for (i=[1:1:len(c)-1]) eval(c[i],v)] :
     op == "#" ? eval(c[1],v)[eval(c[2],v)] :
     op == "<" ? eval(c[1],v)<eval(c[2],v) :
     op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
