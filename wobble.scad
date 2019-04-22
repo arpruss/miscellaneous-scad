@@ -1,29 +1,30 @@
-use <tubemesh.scad>;
-
 angles = [12,15,17];
 labels = ["A", "B", "C"];
 angleNumber = 0;
-currentAngle = 12; 
 sphereRadius = 105;
 boardDiameter = 450;
 trimSize = 100;
 knobSize = 20;
-// measured across flats
-hexNutSizeSize = 11.11; 
+// measured across flats; 11.11 for 1/4" and 12.7 for 5/16
+hexNutSize = 12.7; 
+// 5.6 for 1/4"; 6.75 for 5/16
+hexNutThickness = 6.75;
+// minimum amount of plastic between nut and wooden board
+hexNutMinimumDistance = 10;
 tolerance = 0.1;
-hexNutSizeMinimumDistance = 10;
-hexNutSizeThickness = 5.6;
-boltDiameter = 6.35;
+// 6.35 for 1/4"; 8.23 for 5/16
+boltDiameter = 8.23;
 boltTolerance = 0.2;
 jointDiameter = 10;
 jointThickness = 5;
 jointHorizontalTolerance = 1;
 jointVerticalTolerance = 2;
+angleLabel = 1; //[0:no,1:yes]
 alignmentHoles = 0; //[0:no,1:yes]
 
 module dummy() {}
 
-hexNutSizeDiameter = (hexNutSizeSize+tolerance*2)/cos(180/6);
+hexNutSizeDiameter = (hexNutSize+tolerance*2)/cos(180/6);
 
 function getOffset(angle) = let(boardRadius = boardDiameter / 2,
     y0 = sphereRadius * cos(angle),
@@ -35,9 +36,9 @@ function getContactHeight(angle) = sphereRadius-sphereRadius*cos(angle);
 function getContactRadius(angle) = sphereRadius*sin(angle);
 function getWidth(offset) = 2*sqrt(sphereRadius*sphereRadius - offset*offset);
 function getHeight(offset) = sphereRadius-offset;
-echo(15,getHeight(getOffset(12)),getWidth(getOffset(12)),getContactHeight(12));
+/*echo(15,getHeight(getOffset(12)),getWidth(getOffset(12)),getContactHeight(12));
 echo(17,getHeight(getOffset(15)),getWidth(getOffset(15)),getContactHeight(15));
-echo(20,getHeight(getOffset(18)),getWidth(getOffset(18)),getContactHeight(18));
+echo(20,getHeight(getOffset(18)),getWidth(getOffset(18)),getContactHeight(18));*/
 
 currentAngle = angles[angleNumber];
 currentOffset = getOffset(currentAngle);
@@ -64,16 +65,16 @@ difference() {
             if (getContactRadius(currentAngle) > trimSize/2) {
                 echo("trimSize too small!");
             }
-            h0 = hexNutSizeMinimumDistance + hexNutSizeThickness + tolerance + 
-        boltDiameter + heightDifference;
+            h0 = hexNutMinimumDistance + hexNutThickness + tolerance + 
+        0.5*boltDiameter + heightDifference;
             echo("Bolt should stick out ",h0,"mm from board");
             translate([0,0,-nudge]) cylinder(d=boltDiameter+2*boltTolerance,h=h0);
             bhe = (sphereRadius-currentOffset)-h0;
             echo("Bolt hole ends ",bhe,"mm before end of plastic");
             if (bhe<=4.8)
                 echo("WARNING: That not enough!");
-            translate([0,0,hexNutSizeMinimumDistance]) cylinder(d=hexNutSizeDiameter,h=hexNutSizeThickness,$fn=6);
-            echo("Insert nut just before z=",hexNutSizeMinimumDistance+hexNutSizeThickness);
+            translate([0,0,hexNutMinimumDistance]) cylinder(d=hexNutSizeDiameter,h=hexNutThickness,$fn=6);
+            echo("Insert nut just before z=",hexNutMinimumDistance+hexNutThickness);
         }
     }
         
@@ -96,6 +97,7 @@ difference() {
     mirror([1,0,0])
     linear_extrude(height=2)
         text(labels[angleNumber],halign="center",size=20,font="Arial:style=Bold");
+    if(angleLabel)
     translate([0,-15,-nudge])
     mirror([1,0,0])
     linear_extrude(height=2)
