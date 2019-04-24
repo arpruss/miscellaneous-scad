@@ -52,6 +52,7 @@ function letterSum(n,soFar="") =
     n == 0 ? str(labels[n],soFar) :
     letterSum(n-1,soFar=str("+",labels[n],soFar));
     
+rotate([angleNumber==0 || alignmentHoles ? 0 : 180,0,0])
 difference() {
     if (angleNumber == 0) {
         difference() {
