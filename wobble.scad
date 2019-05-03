@@ -4,7 +4,7 @@ angleNumber = 0;
 sphereRadius = 105;
 boardDiameter = 450;
 trimSize = 100;
-knobSize = 20;
+knurlingSize = 20;
 // measured across flats; 11.11 for 1/4" and 12.7 for 5/16
 hexNutSize = 12.7; 
 // 5.6 for 1/4"; 6.75 for 5/16
@@ -43,6 +43,7 @@ echo(20,getHeight(getOffset(18)),getWidth(getOffset(18)),getContactHeight(18));*
 currentAngle = angles[angleNumber];
 currentOffset = getOffset(currentAngle);
 heightDifference = getOffset(angles[0])-getOffset(angles[len(angles)-1]);
+echo("wooden extension diameter ", trimSize+knurlingSize);
 echo("heightDifference", heightDifference);
 
 nudge = 0.01;
@@ -59,7 +60,7 @@ difference() {
                 intersection() {
                 translate([0,0,-currentOffset]) sphere(r=sphereRadius,$fn=128);
                 translate([-sphereRadius-1,-sphereRadius-1,0]) cube([2*sphereRadius+2,2*sphereRadius+2,sphereRadius+1]);
-                cylinder(d=trimSize+knobSize,h=sphereRadius);
+                cylinder(d=trimSize+knurlingSize,h=sphereRadius);
                 echo("Thickness", getHeight(currentOffset));
                 echo("Spare size", trimSize-2*getContactRadius(currentAngle));
             }
@@ -86,14 +87,14 @@ difference() {
         for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,h-nudge]) cylinder(d=jointDiameter,h=jointThickness);
         difference() {
             echo("Thickness", h);
-            cylinder(d=min(getWidth(getOffset(angles[0])),trimSize+knobSize),h=h);
+            cylinder(d=min(getWidth(getOffset(angles[0])),trimSize+knurlingSize),h=h);
             translate([0,0,-nudge]) cylinder(d=boltDiameter+2*tolerance,h=sphereRadius*2);
         }
     }
     if (alignmentHoles) { 
         for (angle=[45,45+180]) rotate([0,0,angle]) translate([trimSize/2*0.75,0,-nudge]) cylinder(d=jointDiameter+2*jointHorizontalTolerance,h=jointThickness+jointVerticalTolerance);
         }
-        for (angle=[0:60:360-45]) rotate([0,0,angle]) translate([trimSize/2+knobSize/2,0,-1]) cylinder(d=knobSize,h=sphereRadius+10);
+        for (angle=[0:60:360-45]) rotate([0,0,angle]) translate([trimSize/2+knurlingSize/2,0,-1]) cylinder(d=knurlingSize,h=sphereRadius+10);
     translate([0,10,-nudge])
     mirror([1,0,0])
     linear_extrude(height=2)
