@@ -18,7 +18,6 @@ module dummy(){}
 
 $fn = 72;
 d = innerDiameter+2*threadTolerance;
-
 render(convexity=2)
 difference() {
     cylinder(d=d+2*sideThickness, h=innerHeight+bottomThickness);
@@ -27,6 +26,6 @@ difference() {
     cylinder(d=d-2*lip, h=innerHeight+bottomThickness+2);
     translate([0,0,bottomThickness]) {
         isoThread(d=d, pitch=threadPitch, h=innerHeight+1, lead=threadLead, angle=40, starts=2, internal=true);
-    cylinder(d=innerDiameter+2*cylinderTolerance, h=innerHeight+1);
+        cylinder(d=innerDiameter+2*cylinderTolerance, h=innerHeight+1);
     }
 }

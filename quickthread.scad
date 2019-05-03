@@ -2,15 +2,20 @@ function _numSections(numTurns) = 1+numTurns*$fn;
 
 extrusionNudge = 0.001;
 
-function threadPoints(section,radius,numTurns,lead) =
+function threadPoints(section,radius,numTurns,lead,bottomShrinkAngle=0,topShrinkAngle=0) =
     let (n=len(section),
-        m=_numSections(numTurns)
+        m=_numSections(numTurns),
+        v0min = min([for(v=section) v[0]])
         ) 
         [ for (i=[0:m-1]) for (j=[0:n-1]) 
             let (z=i/$fn*lead,
                 angle=(i%$fn)/$fn*360,
-                v=section[j])
-            [ (radius+v[0])*cos(angle), (radius+v[0])*sin(angle),z+v[1]] ];
+                angleFromStart=i/$fn*360+0.001,
+                angleToEnd=(m-1-i)/$fn*360+0.001,
+                adjust=angleFromStart<bottomShrinkAngle?angleFromStart/bottomShrinkAngle:angleToEnd<topShrinkAngle?angleToEnd/topShrinkAngle:1,
+                v=section[j],
+                r=radius+(v[0]-v0min)*adjust+v0min)
+            [ r*cos(angle), r*sin(angle),z+v[1]] ];
         
 function mod(m,n) = let(mm = m%n) mm<0 ? n+mm : mm;
         
@@ -32,7 +37,7 @@ function extrusionTubeFaces(pointsPerSection, numSections) =
 function extrusionFaces(pointsPerSection, numSections) = concat([_extrusionStartFace(pointsPerSection),_extrusionEndFace(pointsPerSection,numSections)],extrusionTubeFaces(pointsPerSection, numSections));
 
                     
-module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false, clip=true, includeCylinder=true) {
+module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false, clipBottom=true, clipTop=true, includeCylinder=true, bottomShrinkAngle=0, topShrinkAngle=0) {
     radius = d/2;
     vSize = max([for(v1=profile) for(v2=profile) v2[1]-v1[1]]);
     vMin = min([for(v=profile) v[0]]);
@@ -46,10 +51,14 @@ module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false,
     render(convexity=10)
     union() {
         intersection() {
-            if (clip)
+            if (clipBottom && clipTop)
                 translate([-hSize/2,-hSize/2,0]) cube([hSize,hSize,h]);
+            else if (clipBottom) 
+                translate([-hSize/2,-hSize/2,0]) cube([hSize,hSize,h+lead]);                
+            else if (clipTop) 
+                translate([-hSize/2,-hSize/2,-lead]) cube([hSize,hSize,h+lead]);                
             translate([0,0,-_lead]) polyhedron(faces=extrusionFaces(len(adjProfile), _numSections(numTurns)), points=threadPoints(
-            adjProfile,adjRadius,numTurns,_lead));
+            adjProfile,adjRadius,numTurns,_lead,bottomShrinkAngle=bottomShrinkAngle,topShrinkAngle=topShrinkAngle));
         }
         if (includeCylinder) 
             cylinder(r=adjRadius+extrusionNudge,$fn=$fn,h=h);
@@ -59,17 +68,19 @@ module rawThread(profile, d=undef, h=10, lead=undef, $fn=72, adjustRadius=false,
 function inch_to_mm(x) = x * 25.4;
 
 // internal = female
-module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lead=undef, leadInch=undef, angle=30, internal=false, starts=1, $fn=72) {
+module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lead=undef, leadInch=undef, angle=30, internal=false, minorD=false, starts=1, $fn=72, clipBottom=true, clipTop=true, bottomShrinkAngle=0, topShrinkAngle=0) {
 
     P = (tpi==undef) ? pitch : inch_to_mm(1/tpi);
+    H = P * cos(angle);
 
     radius = dInch != undef ? inch_to_mm(dInch)/2 : d/2;    
     height = hInch != undef ? inch_to_mm(hInch) : h;
      
-    Dmaj = 2*radius;
-    H = P * cos(angle);
+    delta = 2*5*H/8;
+    Dmaj = minorD ? 2*radius + delta : 2 *radius;
+    Dmin = Dmaj-delta;
     
-    _lead = leadInch != undef ? inch_to_mm(leadInch) : lead != undef ? lead : P;
+    _lead = leadInch != undef ? inch_to_mm(leadInch) : lead != undef ? lead : P * starts;
     
     externalExtra=0.03;
     internalExtra=0.057;
@@ -80,10 +91,9 @@ module isoThread(d=undef, dInch=undef, pitch=1, tpi=undef, h=1, hInch=undef, lea
         [ [0,-(3/8)*P], 
         [(5/8)*H,-P/16],[(5/8+internalExtra)*H,0],
         [(5/8)*H,P/16],[0,(3/8)*P] ];
-    Dmin = Dmaj-2*5*H/8;
     myFN=$fn;
     for (i=[0:starts-1]) {
-        rotate([0,0,360/starts*i]) rawThread(profile,d=Dmin,h=height,lead=_lead,$fn=myFN,adjustRadius=true);        
+        rotate([0,0,360/starts*i]) rawThread(profile,d=Dmin,h=height,lead=_lead,$fn=myFN,adjustRadius=true,clipBottom=clipBottom,clipTop=clipTop,bottomShrinkAngle=bottomShrinkAngle,topShrinkAngle=topShrinkAngle);        
     }
 }
 
