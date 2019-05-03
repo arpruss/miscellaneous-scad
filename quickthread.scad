@@ -10,9 +10,13 @@ function threadPoints(section,radius,numTurns,lead,bottomShrinkAngle=0,topShrink
         [ for (i=[0:m-1]) for (j=[0:n-1]) 
             let (z=i/$fn*lead,
                 angle=(i%$fn)/$fn*360,
-                angleFromStart=i/$fn*360+0.001,
-                angleToEnd=(m-1-i)/$fn*360+0.001,
-                adjust=angleFromStart<bottomShrinkAngle?angleFromStart/bottomShrinkAngle:angleToEnd<topShrinkAngle?angleToEnd/topShrinkAngle:1,
+                angleFromStart=i/$fn*360+0.001-180,
+                angleToEnd=(m-1-i)/$fn*360+0.001-180,
+                adjust=(bottomShrinkAngle==0 && topShrinkAngle==0) ? 1 : 
+        
+                    angleFromStart<=0 || angleToEnd<=0 ? 0.001 : 
+        
+        angleFromStart<bottomShrinkAngle?angleFromStart/bottomShrinkAngle:angleToEnd<topShrinkAngle?angleToEnd/topShrinkAngle:1,
                 v=section[j],
                 r=radius+(v[0]-v0min)*adjust+v0min)
             [ r*cos(angle), r*sin(angle),z+v[1]] ];

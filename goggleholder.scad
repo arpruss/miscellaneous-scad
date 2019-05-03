@@ -15,7 +15,7 @@ $fn =64;
 nudge = 0.001;
 
 module thread(internal=false) {
-isoThread(d=diameter+(internal?cylinderTolerance*2:0)+2*wall-nudge*2, h=lidHeight-wall, pitch=threadPitch, angle=50, starts=2, internal=internal, minorD = true, clipBottom=false, bottomShrinkAngle=90);
+isoThread(d=diameter+(internal?cylinderTolerance*2:0)+2*wall-nudge*2, h=lidHeight-wall, pitch=threadPitch, angle=50, starts=2, internal=internal, minorD = true, clipBottom=internal, bottomShrinkAngle=internal?0:180);
 }
 
 module lid() {
