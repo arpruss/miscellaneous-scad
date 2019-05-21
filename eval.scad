@@ -357,8 +357,8 @@ function _lookupVariable(var, table) =
 function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
         
-function _safeNorm(v) =
-    ! is_list(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
+//function _safeNorm(v) =
+//    ! is_list(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
         
 function _sqrt(x) = is_undef(x) ? undef : sqrt(x);
 function _pow(x,y) = is_undef(x) || is_undef(y) ? undef : pow(x,y);
@@ -384,8 +384,89 @@ function _rands(x,y,z,w) = is_undef(x) || is_undef(y) || is_undef(z) || is_undef
 function _round(x) = is_undef(x) ? undef : round(x);
 function _sign(x) = is_undef(x) ? undef : sign(x);
 
+function _haveUndef(v,n=0) =
+    n >= len(v) ? false :
+    is_undef(v[n]) ? true :
+    _haveUndef(v,n=n+1);
+
 function eval(c,v=[]) = 
-    ""<=c ? _lookupVariable(c,v) :
+    is_string(c) ? _lookupVariable(c,v) :
+    let(op=c[0]) (
+    op == undef ? c :
+    op == "'" ? c[1] : 
+    op == "&&" ? (!$careful ? eval(c[1],v)&&eval(c[2],v) :
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        !c1 ? false : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 && c2) ) :
+    op == "||" ? (!$careful ? eval(c[1],v)||eval(c[2],v) :
+        (let(c1=eval(c[1],v))
+        c1==undef ? undef : 
+        c1 ? true : 
+        let(c2=eval(c[2],v))
+        c2==undef ? undef :
+        c1 || c2) ) :
+    op == "let" ? (!$careful ? eval(c[3],concat([[eval(c[1],v),eval(c[2],v)]], v)) :
+            let(c1=eval(c[1],v),c2=eval(c[2],v)) 
+                c1==undef || c2==undef ? undef :
+                    eval(c[3],concat([[c1,c2]], v)) ) :
+    op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
+    let(args = [for(i=[1:1:len(c)-1]) eval(c[i],v)])
+        $careful && _haveUndef(args) ? undef :
+    op == "+" ? (len(args)==1 ? args[0] : args[0]+args[1]) :
+    op == "-" ? (len(args)==1 ? -args[0] : args[0]-args[1]) :
+    op == "*" ? args[0]*args[1] :
+    op == "/" ? args[0]/args[1] :
+    op == "%" ? args[0]%args[1] :
+    op == "sqrt" ? sqrt(args[0]) :
+    op == "^" || op == "pow" ? pow(args[0],args[1]) :
+    op == "cos" ? cos(args[0]) :
+    op == "sin" ? sin(args[0]) :
+    op == "tan" ? tan(args[0]) :
+    op == "acos" ? acos(args[0]) :
+    op == "asin" ? asin(args[0]) :
+    op == "atan" ? atan(args[0]) :
+    op == "atan2" ? atan2(args[0],args[1]) :
+    op == "COS" ? cos(args[0]*180/PI) :
+    op == "SIN" ? sin(args[0]*180/PI) :
+    op == "TAN" ? tan(args[0]*180/PI) :
+    op == "ACOS" ? acos(args[0])*PI/180 :
+    op == "ASIN" ? asin(args[0])*PI/180 :
+    op == "ATAN" ? atan(args[0])*PI/180 :
+    op == "ATAN2" ? atan2(args[0],args[1])*PI/180 :
+    op == "abs" ? abs(args[0]) :
+    op == "ceil" ? ceil(args[0]) :
+    op == "cross" ? cross(args[0],args[1]) :
+    op == "exp" ? exp(args[0]) :
+    op == "floor" ? floor(args[0]) :
+    op == "ln" ? ln(args[0]) :
+    op == "len" ? len(args[0]) :
+    op == "log" ? log(args[0]) :
+    op == "max" ? (len(args) == 1 ? max(args[0]) : max(args)) :
+    op == "min" ? (len(args) == 1 ? min(args[1]) : min(args)) :
+    op == "norm" ? norm(args[0]) :
+    op == "rands" ? rands(args[0],args[1],args[2],args[3]) :
+    op == "round" ? round(args[0]) :
+    op == "sign" ? sign(args[0]) :
+    op == "[" ? args :
+    op == "#" ? args[0][args[1]] :
+    op == "<" ? args[0]<args[1] :
+    op == "<=" ? args[0]<=args[1] :
+    op == ">=" ? args[0]>=args[1] :
+    op == ">" ? args[0]>args[1] :
+    op == "==" ? args[0]==args[1] :
+    op == "!=" ? args[0]!=args[1] :
+    op == "!" ? !args[0] :
+    op == "?" ? (args[0]?args[1]:args[2]) :    
+    op == "concat" ? [for (a=args) for(v=a) v] : 
+    op == "range" ? (len(args)==2 ? [args[0]:args[1]] : [args[0]:args[1]:args[2]]) :
+    undef
+    );
+    
+function evalCareful(c,v=[]) = 
+    is_string(c) ? _lookupVariable(c,v) :
     let(op=c[0]) (
     op == undef ? c :
     op == "'" ? c[1] : 
