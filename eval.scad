@@ -324,11 +324,11 @@ function _fixArguments(expression) =
                     : expression;
                 
 function _optimizedLiteral(x) = 
-    is_num(x) || is_undef(x) ? x : ["'", x];
+    is_num(x) || is_bool(x) || is_undef(x) ? x : ["'", x];
                 
 function _wellDefined(x) =                
     is_undef(x) ? false :
-    is_num(x) ? true :
+    is_num(x) || is_bool(x) ? true :
     x[0] == "'" ? true :
     len(x)==1 ? x[0]!=undef :
     len([for (a=x) if(!_wellDefined(a)) true])==0;
