@@ -1,7 +1,8 @@
 use <quickthread.scad>;
 
-diameter = 40;
-height = 100;
+diameter = 47;
+innerHole = 20;
+height = 190;
 lidHeight = 15;
 wall = 1.5;
 threadPitch = 5;
@@ -22,6 +23,7 @@ module lid() {
     difference() {
         cylinder(d=diameter+cylinderTolerance*2+6*wall,h=lidHeight);
         translate([0,0,wall+nudge]) thread(internal=true);
+    translate([0,0,-5])cylinder(d=innerHole,h=lidHeight+10); translate([0,0,wall]) cylinder(d=diameter,h=height);
 
     }
 }
@@ -32,7 +34,8 @@ module box() {
             cylinder(d=diameter+2*wall,h=height-(lidHeight-wall));
             translate([0,0,height-(lidHeight-wall)]) thread(internal=false);
         }
-        translate([0,0,wall]) cylinder(d=diameter,h=height);
+    translate([0,0,-5])cylinder(d=innerHole,h=height+10);
+    translate([0,0,wall]) cylinder(d=diameter,h=height);
     }
 }
 

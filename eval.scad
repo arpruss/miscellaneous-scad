@@ -1,7 +1,7 @@
-function _isString(v) = v >= "";
-function _isVector(v) = !(v>="") && len(v) != undef;
-function _isFloat(v) = v+0 != undef;
-function _isRange(v) = len(v)==undef && v[0] != undef;
+function _isString(v) = is_string(v); // v >= "";
+function _isVector(v) = is_list(v); // !(v>="") && len(v) != undef;
+function _isFloat(v) = is_num(v); // v+0 != undef;
+function _isRange(v) = !is_list(v) && !is_string(v) && v[0] != undef;
 
 function _substr(s, start=0, stop=undef, soFar = "") =
     start >= (stop==undef ? len(s) : stop) ? soFar :
@@ -319,16 +319,16 @@ function _fixArguments(expression) =
             i >=0 && _operators[i][_ARGUMENTS_FROM_VECTOR] && expression[1][0] == "[[" ? concat([expression[0]], [for (i=[1:len(expression[1])-1]) _fixArguments(expression[1][i])]) : 
 /*            expression[0] == "?" ?
                 concat([expression[0],expression[1]],[for (i=[1:len(expression[2])-1]) _fixArguments(expression[2][i])]) : */
-            len(expression)>1 && !_isString(expression) ? 
+            is_list(expression) && len(expression)>1 ? 
                 concat([expression[0]], [for (i=[1:len(expression)-1]) _fixArguments(expression[i])])
                     : expression;
                 
 function _optimizedLiteral(x) = 
-    len(x)==undef ? x : ["'", x];
+    is_num(x) || is_undef(x) ? x : ["'", x];
                 
 function _wellDefined(x) =                
-    x==undef ? false :
-    len(x)==undef ? true :
+    is_undef(x) ? false :
+    is_num(x) ? true :
     x[0] == "'" ? true :
     len(x)==1 ? x[0]!=undef :
     len([for (a=x) if(!_wellDefined(a)) true])==0;
@@ -360,6 +360,30 @@ function _generate(var, range, expr, v) =
         
 function _safeNorm(v) =
     ! _isVector(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
+        
+function _sqrt(x) = is_undef(x) ? undef : sqrt(x);
+function _pow(x,y) = is_undef(x) || is_undef(y) ? undef : pow(x,y);
+function _cos(x) = is_undef(x) ? undef : cos(x);
+function _sin(x) = is_undef(x) ? undef : sin(x);
+function _tan(x) = is_undef(x) ? undef : tan(x);
+function _acos(x) = is_undef(x) ? undef : acos(x);
+function _asin(x) = is_undef(x) ? undef : asin(x);
+function _atan(x) = is_undef(x) ? undef : atan(x);
+function _atan2(x,y) = is_undef(x) || is_undef(y) ? undef : atan2(x,y);
+function _abs(x) = is_undef(x) ? undef : abs(x);
+function _ceil(x) = is_undef(x) ? undef : ceil(x);
+function _cross(x,y) = is_undef(x) || is_undef(y) ? undef : cross(x,y);
+function _exp(x) = is_undef(x) ? undef : exp(x);
+function _floor(x) = is_undef(x) ? undef : floor(x);
+function _ln(x) = is_undef(x) ? undef : ln(x);
+function _len(x) = is_string(x) || is_list(x) ? len(x) : undef;
+function _log(x) = is_undef(x) ? undef : log(x);
+function _max(x) = is_undef(x) ? undef : max(x); // one arg
+function _min(x) = is_undef(x) ? undef : min(x); // one arg
+function _norm(x) = is_undef(x) ? undef : norm(x);
+function _rands(x,y,z,w) = is_undef(x) || is_undef(y) || is_undef(z) || is_undef(w) ? undef : rands(x,y,z,w);
+function _round(x) = is_undef(x) ? undef : round(x);
+function _sign(x) = is_undef(x) ? undef : sign(x);
 
 function eval(c,v=[]) = 
     ""<=c ? _lookupVariable(c,v) :
@@ -371,37 +395,37 @@ function eval(c,v=[]) =
     op == "*" ? eval(c[1],v)*eval(c[2],v) :
     op == "/" ? eval(c[1],v)/eval(c[2],v) :
     op == "%" ? eval(c[1],v)%eval(c[2],v) :
-    op == "sqrt" ? sqrt(eval(c[1],v)) :
-    op == "^" || op == "pow" ? pow(eval(c[1],v),eval(c[2],v)) :
-    op == "cos" ? cos(eval(c[1],v)) :
-    op == "sin" ? sin(eval(c[1],v)) :
-    op == "tan" ? tan(eval(c[1],v)) :
-    op == "acos" ? acos(eval(c[1],v)) :
-    op == "asin" ? asin(eval(c[1],v)) :
-    op == "atan" ? atan(eval(c[1],v)) :
-    op == "atan2" ? atan2(eval(c[1],v),eval(c[2],v)) :
-    op == "COS" ? cos(eval(c[1],v)*180/PI) :
-    op == "SIN" ? sin(eval(c[1],v)*180/PI) :
-    op == "TAN" ? tan(eval(c[1],v)*180/PI) :
-    op == "ACOS" ? acos(eval(c[1],v))*PI/180 :
-    op == "ASIN" ? asin(eval(c[1],v))*PI/180 :
-    op == "ATAN" ? atan(eval(c[1],v))*PI/180 :
-    op == "ATAN2" ? atan2(eval(c[1],v),eval(c[2],v))*PI/180 :
-    op == "abs" ? abs(eval(c[1],v)) :
-    op == "ceil" ? ceil(eval(c[1],v)) :
-    op == "cross" ? cross(eval(c[1],v),eval(c[2],v)) :
-    op == "exp" ? exp(eval(c[1],v)) :
-    op == "floor" ? floor(eval(c[1],v)) :
-    op == "ln" ? ln(eval(c[1],v)) :
-    op == "len" ? len(eval(c[1],v)) :
-    op == "log" ? log(eval(c[1],v)) :
-    op == "max" ? (len(c) == 2 ? max(eval(c[1],v)) : max([for(i=[1:len(c)-1]) eval(c[i],v)])) :
-    op == "min" ? (len(c) == 2 ? min(eval(c[1],v)) : min([for(i=[1:len(c)-1]) eval(c[i],v)])) :
+    op == "sqrt" ? _sqrt(eval(c[1],v)) :
+    op == "^" || op == "pow" ? _pow(eval(c[1],v),eval(c[2],v)) :
+    op == "cos" ? _cos(eval(c[1],v)) :
+    op == "sin" ? _sin(eval(c[1],v)) :
+    op == "tan" ? _tan(eval(c[1],v)) :
+    op == "acos" ? _acos(eval(c[1],v)) :
+    op == "asin" ? _asin(eval(c[1],v)) :
+    op == "atan" ? _atan(eval(c[1],v)) :
+    op == "atan2" ? _atan2(eval(c[1],v),eval(c[2],v)) :
+    op == "COS" ? _cos(eval(c[1],v)*180/PI) :
+    op == "SIN" ? _sin(eval(c[1],v)*180/PI) :
+    op == "TAN" ? _tan(eval(c[1],v)*180/PI) :
+    op == "ACOS" ? _acos(eval(c[1],v))*PI/180 :
+    op == "ASIN" ? _asin(eval(c[1],v))*PI/180 :
+    op == "ATAN" ? _atan(eval(c[1],v))*PI/180 :
+    op == "ATAN2" ? _atan2(eval(c[1],v),eval(c[2],v))*PI/180 :
+    op == "abs" ? _abs(eval(c[1],v)) :
+    op == "ceil" ? _ceil(eval(c[1],v)) :
+    op == "cross" ? _cross(eval(c[1],v),eval(c[2],v)) :
+    op == "exp" ? _exp(eval(c[1],v)) :
+    op == "floor" ? _floor(eval(c[1],v)) :
+    op == "ln" ? _ln(eval(c[1],v)) :
+    op == "len" ? _len(eval(c[1],v)) :
+    op == "log" ? _log(eval(c[1],v)) :
+    op == "max" ? (_len(c) == 2 ? _max(eval(c[1],v)) : _max([for(i=[1:len(c)-1]) eval(c[i],v)])) :
+    op == "min" ? (_len(c) == 2 ? _min(eval(c[1],v)) : _min([for(i=[1:len(c)-1]) eval(c[i],v)])) :
     op == "norm" ? 
-        (!$careful ? norm(eval(c[1],v)) : _safeNorm(eval(c[1],v))) :
-    op == "rands" ? rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
-    op == "round" ? round(eval(c[1],v)) :
-    op == "sign" ? sign(eval(c[1],v)) :
+        (!$careful ? _norm(eval(c[1],v)) : _safeNorm(eval(c[1],v))) :
+    op == "rands" ? _rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
+    op == "round" ? _round(eval(c[1],v)) :
+    op == "sign" ? _sign(eval(c[1],v)) :
     op == "[" ? [for (i=[1:1:len(c)-1]) eval(c[i],v)] :
     op == "#" ? eval(c[1],v)[eval(c[2],v)] :
     op == "<" ? eval(c[1],v)<eval(c[2],v) :
