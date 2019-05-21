@@ -1,7 +1,6 @@
-function _isString(v) = is_string(v); // v >= "";
-function _isVector(v) = is_list(v); // !(v>="") && len(v) != undef;
-function _isFloat(v) = is_num(v); // v+0 != undef;
 function _isRange(v) = !is_list(v) && !is_string(v) && v[0] != undef;
+
+$careful = false;
 
 function _substr(s, start=0, stop=undef, soFar = "") =
     start >= (stop==undef ? len(s) : stop) ? soFar :
@@ -308,7 +307,7 @@ function _fixCommas(expression) =
                 concat(["[["],concat(_tail(a), [b])) :
                 ["[[",a,b]
         : 
-    _isVector(expression) ?
+    is_list(expression) ?
             (expression[1] == [] ? [expression[0]] :
             concat([expression[0]], [for (i=[1:1:len(expression)-1]) _fixCommas(expression[i])]) ) :
             expression;
@@ -337,13 +336,13 @@ function _optimize(expression) =
     let(x=eval(expression,$careful=true))
         _wellDefined(x) ? _optimizedLiteral(x) :
         expression[0] == "'" ? _optimizedLiteral(x) :
-        ! _isString(expression) ? 
+        ! is_string(expression) ? 
             concat([expression[0]], [for(i=[1:len(expression)-1]) (i>1 || expression[0] != "let") ?  _optimize(expression[i]) : expression[i]]) :
         expression;
         
 function compileFunction(expression,optimize=true) = 
-            _isVector(expression) ? expression :
-            _isFloat(expression) ? expression :
+            is_list(expression) ? expression :
+            is_num(expression) ? expression :
             let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 
@@ -359,7 +358,7 @@ function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
         
 function _safeNorm(v) =
-    ! _isVector(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
+    ! is_list(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
         
 function _sqrt(x) = is_undef(x) ? undef : sqrt(x);
 function _pow(x,y) = is_undef(x) || is_undef(y) ? undef : pow(x,y);
