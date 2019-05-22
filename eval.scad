@@ -253,12 +253,6 @@ function _firstOccurrence(c,opName,start=0) =
     c[start][0][0] == opName ? c[start] :
         _firstOccurrence(c,opName,start=start+1);
     
-// We know the main operator is a ? or a :. We now need to find out which.
-function _mainQuestionOperator(c) =
-    let(fq = _firstOccurrence(c,"?"), 
-        fc = _firstOccurrence(c,":"))
-        fq[1] != undef && (fc[1] == undef || fq[1] < fc[1]) ? fq : fc;
-    
 function _mainOperator(tok,start,stop) = 
     let(c=_getCandidatesForMainOperator(tok,start,stop),
         pos=_findMainOperatorPos(c),
@@ -357,33 +351,6 @@ function _lookupVariable(var, table) =
 function _generate(var, range, expr, v) =
     [ for(i=range) eval(expr, _let(v, var, i)) ];
         
-//function _safeNorm(v) =
-//    ! is_list(v) || len([for (x=v) x+0==undef]) ? undef : norm(v);
-        
-function _sqrt(x) = is_undef(x) ? undef : sqrt(x);
-function _pow(x,y) = is_undef(x) || is_undef(y) ? undef : pow(x,y);
-function _cos(x) = is_undef(x) ? undef : cos(x);
-function _sin(x) = is_undef(x) ? undef : sin(x);
-function _tan(x) = is_undef(x) ? undef : tan(x);
-function _acos(x) = is_undef(x) ? undef : acos(x);
-function _asin(x) = is_undef(x) ? undef : asin(x);
-function _atan(x) = is_undef(x) ? undef : atan(x);
-function _atan2(x,y) = is_undef(x) || is_undef(y) ? undef : atan2(x,y);
-function _abs(x) = is_undef(x) ? undef : abs(x);
-function _ceil(x) = is_undef(x) ? undef : ceil(x);
-function _cross(x,y) = is_undef(x) || is_undef(y) ? undef : cross(x,y);
-function _exp(x) = is_undef(x) ? undef : exp(x);
-function _floor(x) = is_undef(x) ? undef : floor(x);
-function _ln(x) = is_undef(x) ? undef : ln(x);
-function _len(x) = is_string(x) || is_list(x) ? len(x) : undef;
-function _log(x) = is_undef(x) ? undef : log(x);
-function _max(x) = is_undef(x) ? undef : max(x); // one arg
-function _min(x) = is_undef(x) ? undef : min(x); // one arg
-function _norm(x) = is_undef(x) ? undef : norm(x);
-function _rands(x,y,z,w) = is_undef(x) || is_undef(y) || is_undef(z) || is_undef(w) ? undef : rands(x,y,z,w);
-function _round(x) = is_undef(x) ? undef : round(x);
-function _sign(x) = is_undef(x) ? undef : sign(x);
-
 function _haveUndef(v,n=0) =
     n >= len(v) ? false :
     is_undef(v[n]) ? true :
@@ -462,98 +429,6 @@ function eval(c,v=[]) =
     op == "?" ? (args[0]?args[1]:args[2]) :    
     op == "concat" ? [for (a=args) for(v=a) v] : 
     op == "range" ? (len(args)==2 ? [args[0]:args[1]] : [args[0]:args[1]:args[2]]) :
-    undef
-    );
-    
-function evalCareful(c,v=[]) = 
-    is_string(c) ? _lookupVariable(c,v) :
-    let(op=c[0]) (
-    op == undef ? c :
-    op == "'" ? c[1] : 
-    op == "+" ? (len(c)==2 ? eval(c[1],v) : eval(c[1],v)+eval(c[2],v)) :
-    op == "-" ? (len(c)==2 ? -eval(c[1],v) : eval(c[1],v)-eval(c[2],v)) :
-    op == "*" ? eval(c[1],v)*eval(c[2],v) :
-    op == "/" ? eval(c[1],v)/eval(c[2],v) :
-    op == "%" ? eval(c[1],v)%eval(c[2],v) :
-    op == "sqrt" ? _sqrt(eval(c[1],v)) :
-    op == "^" || op == "pow" ? _pow(eval(c[1],v),eval(c[2],v)) :
-    op == "cos" ? _cos(eval(c[1],v)) :
-    op == "sin" ? _sin(eval(c[1],v)) :
-    op == "tan" ? _tan(eval(c[1],v)) :
-    op == "acos" ? _acos(eval(c[1],v)) :
-    op == "asin" ? _asin(eval(c[1],v)) :
-    op == "atan" ? _atan(eval(c[1],v)) :
-    op == "atan2" ? _atan2(eval(c[1],v),eval(c[2],v)) :
-    op == "COS" ? _cos(eval(c[1],v)*180/PI) :
-    op == "SIN" ? _sin(eval(c[1],v)*180/PI) :
-    op == "TAN" ? _tan(eval(c[1],v)*180/PI) :
-    op == "ACOS" ? _acos(eval(c[1],v))*PI/180 :
-    op == "ASIN" ? _asin(eval(c[1],v))*PI/180 :
-    op == "ATAN" ? _atan(eval(c[1],v))*PI/180 :
-    op == "ATAN2" ? _atan2(eval(c[1],v),eval(c[2],v))*PI/180 :
-    op == "abs" ? _abs(eval(c[1],v)) :
-    op == "ceil" ? _ceil(eval(c[1],v)) :
-    op == "cross" ? _cross(eval(c[1],v),eval(c[2],v)) :
-    op == "exp" ? _exp(eval(c[1],v)) :
-    op == "floor" ? _floor(eval(c[1],v)) :
-    op == "ln" ? _ln(eval(c[1],v)) :
-    op == "len" ? _len(eval(c[1],v)) :
-    op == "log" ? _log(eval(c[1],v)) :
-    op == "max" ? (_len(c) == 2 ? _max(eval(c[1],v)) : _max([for(i=[1:len(c)-1]) eval(c[i],v)])) :
-    op == "min" ? (_len(c) == 2 ? _min(eval(c[1],v)) : _min([for(i=[1:len(c)-1]) eval(c[i],v)])) :
-    op == "norm" ? 
-        (!$careful ? _norm(eval(c[1],v)) : _safeNorm(eval(c[1],v))) :
-    op == "rands" ? _rands(eval(c[1],v),eval(c[2],v),eval(c[3],v),eval(c[4],v)) :
-    op == "round" ? _round(eval(c[1],v)) :
-    op == "sign" ? _sign(eval(c[1],v)) :
-    op == "[" ? [for (i=[1:1:len(c)-1]) eval(c[i],v)] :
-    op == "#" ? eval(c[1],v)[eval(c[2],v)] :
-    op == "<" ? eval(c[1],v)<eval(c[2],v) :
-    op == "<=" ? eval(c[1],v)<=eval(c[2],v) :
-    op == ">=" ? eval(c[1],v)>=eval(c[2],v) :
-    op == ">" ? eval(c[1],v)>=eval(c[2],v) :
-    op == "==" ? (!$careful ? eval(c[1],v)==eval(c[2],v) :
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef : 
-        let(c2=eval(c[2],v))
-        c2==undef ? undef :
-        c1 == c2) ) :
-    op == "!=" ? (!$careful ? eval(c[1],v)!=eval(c[2],v) :
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef : 
-        let(c2=eval(c[2],v))
-        c2==undef ? undef :
-        c1 != c2) ) :
-    op == "&&" ? (!$careful ? eval(c[1],v)&&eval(c[2],v) :
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef : 
-        !c1 ? false : 
-        let(c2=eval(c[2],v))
-        c2==undef ? undef :
-        c1 && c2) ) :
-    op == "||" ? (!$careful ? eval(c[1],v)||eval(c[2],v) :
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef : 
-        c1 ? true : 
-        let(c2=eval(c[2],v))
-        c2==undef ? undef :
-        c1 || c2) ) :
-    op == "!" ? (!$careful ? !eval(c[1],v) :
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef :
-        !c1) ) :
-    op == "?" ? (!$careful ? (eval(c[1],v)?eval(c[2],v):eval(c[3],v)) :  
-        (let(c1=eval(c[1],v))
-        c1==undef ? undef :
-        c1 ? eval(c[2],v):eval(c[3],v)) ):
-    
-    op == "concat" ? [for (i=[1:len(c)-1]) let(vect=eval(c[i],v)) for(j=[0:len(vect)-1]) vect[j]] : 
-    op == "range" ? (len(c)==3 ? [eval(c[1],v):eval(c[2],v)] : [eval(c[1],v):eval(c[2],v):eval(c[3],v)]) :
-    op == "let" ? (!$careful ? eval(c[3],concat([[eval(c[1],v),eval(c[2],v)]], v)) :
-            let(c1=eval(c[1],v),c2=eval(c[2],v)) 
-                c1==undef || c2==undef ? undef :
-                    eval(c[3],concat([[c1,c2]], v)) ) :
-    op == "gen" ? _generate(eval(c[1],v),eval(c[2],v),c[3],v) :
     undef
     );
     
