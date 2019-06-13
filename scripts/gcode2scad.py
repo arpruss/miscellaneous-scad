@@ -111,7 +111,21 @@ for line in fileinput.input():
 
             path.append(endp)
             xyz = endp
-            
+
+print("""workWidth = 1000; // x dimension of work, set to 0 to see the cuts only
+workDepth = 1000; // y
+workHeight = 6; // z
+startX = 0;
+startY = 0;
+startZ = 0;
+
+bitDiameter = 3.175;
+bitHeight = 15;
+bitAngle = 180; // 180=flat bottom
+bitSides = 10; // more looks better but is slower
+
+nudge = 0.001;
+""")
 print('gcodepath = [' + ',\n'.join(('[%.4f,%.4f,%.4f]' % tuple(p) for p in path)) + '];')
 print("""
 module trace(path) {
@@ -124,8 +138,19 @@ module trace(path) {
             }
 }
 
+module bit() {
+    if (bitAngle == 180) {
+        cylinder($fn=bitSides,d=bitDiameter,h=bitHeight);
+    }
+    else {
+        coneHeight = (bitDiameter/2) * tan(90-bitAngle/2);
+        cylinder($fn=bitSides,d1=0, d2=bitDiameter, h=coneHeight);
+        translate([0,0,coneHeight-nudge]) cylinder($fn=bitSides,d=bitDiameter, h=bitHeight-coneHeight);
+    }
+}
+
 difference() {
-    translate([0,0,-6]) cube([1000,1000,6]);
-    trace(gcodepath) cylinder(d=3.175,h=20);
+    if (workWidth > 0 && workDepth >0 && workHeight > 0) translate([0,0,workHeight-nudge]) cube([workWidth,workDepth,workHeight]);
+    trace(gcodepath) bit();
 }
 """)
