@@ -3,10 +3,12 @@ import re
 from collections import OrderedDict
 from math import *
 
+minXYZ = (100000,100000,100000)
+maxXYZ = (-100000,-100000,-100000)
 xyz = (0.,0.,0.)
 absolute = True
 plane = (0, 1)
-maxAngle = 0.1/180*pi
+maxAngle = 1./180.*pi
 
 path = [(0.,0.,0.)]
 
@@ -33,6 +35,7 @@ def newXYZ(parsed):
         x = xyz[0] + parsed.get('x',0)
         y = xyz[1] + parsed.get('y',0)
         z = xyz[2] + parsed.get('z',0)
+    #print((x,y,z),parsed)
     return (x,y,z)
 
 def getCenterFromRadius(r,endX,endY,ccw):
@@ -68,7 +71,7 @@ for line in fileinput.input():
             plane = (0,2)
         elif cmd == 19:
             plane = (1,2)
-        elif cmd == 2 or cmd == 2:
+        elif cmd == 2 or cmd == 3:
             ccw = cmd == 3
             endp = newXYZ(parsed)
             delta = tuple( endp[plane[i]]-xyz[plane[i]] for i in (0,1) )
@@ -78,39 +81,51 @@ for line in fileinput.input():
             else:
                 center = (parsed.get('ijk'[plane[0]], 0),parsed.get('ijk'[plane[1]], 0))
                 r = distance2(center,delta)
-            angle2 = atan2(delta[1]-center[0],delta[1]-center[1])
-            angle1 = atan2(-center[0],-center[1])            
+            angle2 = atan2(delta[1]-center[1],delta[0]-center[0])
+            angle1 = atan2(-center[1],-center[0])            
 
+            centerXYZ = list(xyz)
+            centerXYZ[plane[0]] += center[0]
+            centerXYZ[plane[1]] += center[1]
+                
             def pointAtAngle(theta):
                 p = list(xyz)
-                p[plane[0]] = center[plane[0]] + cos(theta)*r
-                p[plane[1]] = center[plane[1]] + sin(theta)*r
+                p[plane[0]] = centerXYZ[plane[0]] + cos(theta)*r
+                p[plane[1]] = centerXYZ[plane[1]] + sin(theta)*r
                 return p
                 
             if ccw:
+                #print(angle1,angle2)
                 if angle2 < angle1:
                     angle2 += 2*pi
                 while angle1 < angle2:
                     path.append( pointAtAngle(angle1) )
                     angle1 += maxAngle
-                path.append( pointAtAngle(angle2) )
             else:
                 if angle1 < angle2:
                     angle1 += 2*pi
+                
                 while angle1 > angle2:
                     path.append( pointAtAngle(angle1) )
                     angle1 -= maxAngle
-                path.append( pointAtAngle(angle2) )
+
+            path.append(endp)
+            xyz = endp
             
-print('gcodepath = [' + ','.join(('[%.4f,%.4f,%.4f]' % tuple(p) for p in path)) + '];')
-print("""module trace(path) {
-    for (i=[0:1:len(path)-2]) {
-        hull() {
-            translate(path[i]) children();
-            translate(path[i+1]) children();
-        }
-    }
+print('gcodepath = [' + ',\n'.join(('[%.4f,%.4f,%.4f]' % tuple(p) for p in path)) + '];')
+print("""
+module trace(path) {
+    l = len(path)-2;
+    for (i=[0:100:l]) 
+        for (j=[0:min(99,l-i)])
+            hull() {
+                translate(path[i+j]) children();
+                translate(path[i+j+1]) children();
+            }
 }
 
-trace(gcodepath) cylinder(d=3.175,h=20);
+difference() {
+    translate([0,0,-6]) cube([1000,1000,6]);
+    trace(gcodepath) cylinder(d=3.175,h=20);
+}
 """)
