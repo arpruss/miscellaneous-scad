@@ -8,7 +8,7 @@ maxXYZ = (-100000,-100000,-100000)
 xyz = (0.,0.,0.)
 absolute = True
 plane = (0, 1)
-maxAngle = 1./180.*pi
+maxAngle = 5./180.*pi
 
 path = [(0.,0.,0.)]
 
@@ -122,7 +122,7 @@ startZ = 0;
 bitDiameter = 3.175;
 bitHeight = 15;
 bitAngle = 180; // 180=flat bottom
-bitSides = 10; // more looks better but is slower
+bitSides = 6; // more looks better but is slower
 
 nudge = 0.001;
 """)
