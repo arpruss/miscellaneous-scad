@@ -49,7 +49,7 @@ def getCenterFromRadius(r,endX,endY,ccw):
     d = sqrt(endX*endX+endY*endY)
     nX = endX / d
     nY = endY / d
-    raise Exception("radius-based arc is not supported")
+    raise Exception("radius-based arc is not yet supported")
     
 def distance2(a,b):
     return sqrt(pow(a[0]-b[0],2)+pow(a[1]-b[1],2))
@@ -78,6 +78,7 @@ for line in fileinput.input():
             if 'r' in parsed:
                 r = parsed['r']
                 center = getCenterFromRadius(r,delta,ccw)
+                r = abs(r)
             else:
                 center = (parsed.get('ijk'[plane[0]], 0),parsed.get('ijk'[plane[1]], 0))
                 r = distance2(center,delta)
@@ -150,7 +151,7 @@ module bit() {
 }
 
 difference() {
-    if (workWidth > 0 && workDepth >0 && workHeight > 0) translate([0,0,workHeight-nudge]) cube([workWidth,workDepth,workHeight]);
+    if (workWidth > 0 && workDepth >0 && workHeight > 0) translate([0,0,-workHeight+nudge]) cube([workWidth,workDepth,workHeight]);
     trace(gcodepath) bit();
 }
 """)
