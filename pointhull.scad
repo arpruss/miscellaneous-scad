@@ -24,7 +24,6 @@ function _findNoncoplanar(list,point1,point2,point3,pos=0) =
         _findNoncoplanar(list,point1,point2,point3,pos=pos+1);
         
 function _isBoundedBy(a,face,strict=false) =
-    len(a) == 2 ? !strict :
     let(c = cross(face[1]-face[0],face[2]-face[0])*(a-face[0]))
     strict ? c > 0 : c >= 0;   
         
@@ -113,46 +112,45 @@ function _expandHull(h, points, pos=0) =
     !_insidePoly(points[pos],h) ?  _expandHull(_addToHull(h,points[pos]),points,pos=pos+1) :
     _expandHull(h, points, pos=pos+1);
             
-function _pointHull3D(points) =
+function pointHull3D(points) =
     let(ft=_findTet(points))
         _expandHull(ft[0], ft[1]);
         
-function _pointHull2D(points) =
-    let(ft=_findTri(points))
-        _expandHull([ft[0]], ft[1]);
-        
 function _findEdge(edges,point,pos=0) =
     pos >= len(edges) ? undef :
-    edges[pos][0] == pos ? pos :
+    edges[pos][0] == point ? pos :
     _findEdge(edges,point,pos=pos+1);
         
 function _add1Edge(edgesAndSoFar) =
     let(edges=edgesAndSoFar[0],
         soFar=edgesAndSoFar[1],
         index=_findEdge(edges,soFar[len(soFar)-1]))
+        assert(index!=undef)
         [_delete(edgesAndSoFar[0],index),concat(edgesAndSoFar[1],[edgesAndSoFar[0][index][1]])];
         
 function _traceEdges(edgesAndSoFar) =
     len(edgesAndSoFar[0]) == 0 ? edgesAndSoFar[1] :
     _traceEdges(_add1Edge(edgesAndSoFar));
         
-function _mergeTriangles(triangles) =
-    let(oe=_outerEdges(triangles))
-    _traceEdges([oe,[oe[0][0]]]);
+function pointHull2D(points) = 
+    let(
+        p3d = concat([[0,0,1]], [for(p=points) [p[0],p[1],0]]),
+        h = pointHull3D(p3d),
+        edges = [for(t=h) if(t[0][2]==1 || t[1][2]==1 || t[2][2]==1)
+                t[0][2]==1 ? [t[1],t[2]] : 
+                t[1][2]==1 ? [t[2],t[0]] :
+                [t[0],t[1]]],
+        trace = _traceEdges([edges,[edges[0][0]]])) [for(v=trace) [v[0],v[1]]];
         
 module pointHull(points) {
     if (len(points[0])==2) {
-        //**BROKEN**//
-        //polygon(_mergeTriangles(ph));
-        for(t=_pointHull2D(points))
-            polygon(t);
+        polygon(pointHull2D(points));
     }
     else {
-        paf = _makePointsAndFaces(_pointHull3D(points));
+        paf = _makePointsAndFaces(pointHull3D(points));
         polyhedron(points=paf[0],faces=paf[1]);
     }
 }
             
-//points = [for(i=[0:9]) rands(0,100,2)];
-points = concat([for(i=[0:9]) let(r=rands(0,100,2)) [r[0],r[1],0]],[[0,0,10]]);
+points = [for(i=[0:99]) rands(0,100,3)];
 pointHull(points);
