@@ -93,10 +93,10 @@ function _haveEdge(triangles, e, pos=0) =
         _haveEdge(triangles, e, pos=pos+1);
         
 function _outerEdges(triangles) =
-        [for(t=triangles) for(e=[[t[0],t[1]],
+        let(edges=[for(t=triangles) for(e=[[t[0],t[1]],
                 [t[1],t[2]],
-                [t[2],t[0]]])
-            if ( !_haveEdge(triangles,[e[1],e[0]])) e];
+                [t[2],t[0]]]) e])
+        [for(e=edges) if(undef == _find(edges,[e[1],e[0]])) e];
                 
 function _unlit(triangles, p) = [for(t=triangles) if(_isBoundedBy(p, t) >= 0) t];
         
@@ -114,31 +114,26 @@ function pointHull3D(points) =
     let(ft=_findTet(points))
         _expandHull(ft[0], ft[1]);
         
-function _findEdge(edges,point,pos=0) =
-    pos >= len(edges) ? undef :
-    edges[pos][0] == point ? pos :
-    _findEdge(edges,point,pos=pos+1);
+function _traceEdges(edgeStarts,edgeEnds,soFar=[]) =
+    assert(soFar[len(soFar)-1] != undef)
+    len(soFar)>1 && soFar[len(soFar)-1] == soFar[0] ? _slice(soFar,1) :
+    _traceEdges(edgeStarts,edgeEnds,soFar=concat(soFar,[edgeEnds[_find(edgeStarts,soFar[len(soFar)-1])]]));
         
-function _add1Edge(edgesAndSoFar) =
-    let(edges=edgesAndSoFar[0],
-        soFar=edgesAndSoFar[1],
-        index=_findEdge(edges,soFar[len(soFar)-1]))
-        assert(index!=undef)
-        [_delete(edgesAndSoFar[0],index),concat(edgesAndSoFar[1],[edgesAndSoFar[0][index][1]])];
-        
-function _traceEdges(edgesAndSoFar) =
-    len(edgesAndSoFar[0]) == 0 ? edgesAndSoFar[1] :
-    _traceEdges(_add1Edge(edgesAndSoFar));
+function _project(v) = [v[0],v[1]];
         
 function pointHull2D(points) = 
     let(
         p3d = concat([[0,0,1]], [for(p=points) [p[0],p[1],0]]),
         h = pointHull3D(p3d),
-        edges = [for(t=h) if(t[0][2]==1 || t[1][2]==1 || t[2][2]==1)
-                t[0][2]==1 ? [t[1],t[2]] : 
-                t[1][2]==1 ? [t[2],t[0]] :
-                [t[0],t[1]]],
-        trace = _traceEdges([edges,[edges[0][0]]])) [for(v=trace) [v[0],v[1]]];
+        edgeStarts = [for(t=h) if(t[0][2]==1 || t[1][2]==1 || t[2][2]==1)
+                t[0][2]==1 ? _project(t[1]) : 
+                t[1][2]==1 ? _project(t[2]) :
+                _project(t[0]) ],
+        edgeEnds = [for(t=h) if(t[0][2]==1 || t[1][2]==1 || t[2][2]==1)
+                t[0][2]==1 ? _project(t[2]) : 
+                t[1][2]==1 ? _project(t[0]) :
+                _project(t[1]) ])
+        _traceEdges(edgeStarts,edgeEnds,soFar=[edgeStarts[0]]);
         
 module pointHull(points) {
     if (len(points[0])==2) {

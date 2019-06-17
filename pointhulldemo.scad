@@ -2,7 +2,7 @@ use <pointhull.scad>;
 
 //<params>
 dimension = 3;
-maxNumberOfPoints = 100;
+maxNumberOfPoints = 500;
 seed = 1;
 radius = 50;
 //</params>
