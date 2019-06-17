@@ -24,6 +24,7 @@ function _findNoncoplanar(list,point1,point2,point3,pos=0) =
         _findNoncoplanar(list,point1,point2,point3,pos=pos+1);
         
 function _isBoundedBy(a,face,strict=false) =
+    len(a) == 2 ? !strict :
     let(c = cross(face[1]-face[0],face[2]-face[0])*(a-face[0]))
     strict ? c > 0 : c >= 0;   
         
@@ -31,20 +32,26 @@ function _makeTet(a,b,c,d) =
     _isBoundedBy(d,[a,b,c]) ? 
         [[a,b,c],[b,a,d],[c,b,d],[a,c,d]] :
         [[c,b,a],[d,a,b],[d,b,c],[d,c,a]];
-        
-function _findTet(list) =
+
+function _findTri(list) = 
     let(l2=_unique(list))
-    assert(len(list)>=4)
+    assert(len(list)>=3)
     let(a=list[0],
         b=list[1],
         l3=_slice(list,2),
         ci=_findNoncollinear(l3,a,b),        
         c=assert(ci != undef) l3[ci],
-        l4=_delete(l3,ci),
-        di=_findNoncoplanar(l4,a,b,c),
+        l4=_delete(l3,ci))
+        [[a,b,c],l4];
+        
+function _findTet(list) =    
+    let(ft=_findTri(list),
+        tri=ft[0],
+        l4=ft[1],
+        di=assert(len(l4)>0) _findNoncoplanar(l4,tri[0],tri[1],tri[2]),
         d=assert(di != undef) l4[di],
         l5=_delete(l4,di))
-        [_makeTet(a,b,c,d),l5];
+        [_makeTet(tri[0],tri[1],tri[2],d),l5];
     
 function find(list,value) =
     let(m=search([value],list,1)[0]) 
@@ -58,11 +65,28 @@ function _unique(list,soFar=[],pos=0) =
 function _makePointsAndFaces(triangles) =
     let(points=_unique([for(t=triangles) for(v=t) v]))
         [points, [for(t=triangles) [for(v=t) find(points,v)]]];
+
+function _sameSide(p1,p2, a,b) = 
+    let(cp1 = cross(b-a, p1-a),
+        cp2 = cross(b-a, p2-a)) 
+        cp1*cp2 >= 0;
+
+function _insideTriangle(p, t) = 
+    _sameSide(p,t[0],t[1],t[2]) &&
+    _sameSide(p,t[1],t[0],t[2]) &&
+    _sameSide(p,t[2],t[0],t[1]);
             
-function _insidePoly(p, triangles, pos=0, strict=false) = 
+            
+// TODO: optimize _isBoundedBy() calls
+function _satisfiesConstraint(p, triangle) =
+    _isBoundedBy(p, triangle, strict=true) ? true : 
+    _isBoundedBy(p, triangle, strict=false) && _insideTriangle(p, triangle);
+    
+            
+function _insidePoly(p, triangles, pos=0) = 
     pos >= len(triangles) ? true :
-    !_isBoundedBy(p, triangles[pos], strict) ? false :
-    _insidePoly(p, triangles, pos=pos+1, strict=strict);
+    !_satisfiesConstraint(p, triangles[pos]) ? false :
+    _insidePoly(p, triangles, pos=pos+1);
         
 function _haveEdge(triangles, e, pos=0) =
     pos >= len(triangles) ? false :
@@ -71,13 +95,11 @@ function _haveEdge(triangles, e, pos=0) =
         e==[triangles[pos][2],triangles[pos][0]] ? true :
         _haveEdge(triangles, e, pos=pos+1);
         
-function _outerEdges(triangles, pos=0, soFar=[]) =
-    pos >= len(triangles) ? soFar :
-    _outerEdges(triangles, pos=pos+1, soFar=concat(soFar, 
-        [for(e=[[triangles[pos][0],triangles[pos][1]],
-                [triangles[pos][1],triangles[pos][2]],
-                [triangles[pos][2],triangles[pos][0]]])
-            if (!_haveEdge(triangles,[e[1],e[0]])) e]));
+function _outerEdges(triangles) =
+        [for(t=triangles) for(e=[[t[0],t[1]],
+                [t[1],t[2]],
+                [t[2],t[0]]])
+            if ( !_haveEdge(triangles,[e[1],e[0]])) e];
                 
 function _unlit(triangles, p) = [for(t=triangles) if(_isBoundedBy(p, t)) t];
         
@@ -89,17 +111,48 @@ function _addToHull(h, p) =
 function _expandHull(h, points, pos=0) =
     pos >= len(points) ? h :
     !_insidePoly(points[pos],h) ?  _expandHull(_addToHull(h,points[pos]),points,pos=pos+1) :
-_expandHull(h, points, pos=pos+1);
+    _expandHull(h, points, pos=pos+1);
             
-function _pointHull(points) =
+function _pointHull3D(points) =
     let(ft=_findTet(points))
         _expandHull(ft[0], ft[1]);
         
+function _pointHull2D(points) =
+    let(ft=_findTri(points))
+        _expandHull([ft[0]], ft[1]);
+        
+function _findEdge(edges,point,pos=0) =
+    pos >= len(edges) ? undef :
+    edges[pos][0] == pos ? pos :
+    _findEdge(edges,point,pos=pos+1);
+        
+function _add1Edge(edgesAndSoFar) =
+    let(edges=edgesAndSoFar[0],
+        soFar=edgesAndSoFar[1],
+        index=_findEdge(edges,soFar[len(soFar)-1]))
+        [_delete(edgesAndSoFar[0],index),concat(edgesAndSoFar[1],[edgesAndSoFar[0][index][1]])];
+        
+function _traceEdges(edgesAndSoFar) =
+    len(edgesAndSoFar[0]) == 0 ? edgesAndSoFar[1] :
+    _traceEdges(_add1Edge(edgesAndSoFar));
+        
+function _mergeTriangles(triangles) =
+    let(oe=_outerEdges(triangles))
+    _traceEdges([oe,[oe[0][0]]]);
+        
 module pointHull(points) {
-    ph = _pointHull(points);
-    paf = _makePointsAndFaces(_pointHull(points));
-    polyhedron(points=paf[0],faces=paf[1]);
+    if (len(points[0])==2) {
+        //**BROKEN**//
+        //polygon(_mergeTriangles(ph));
+        for(t=_pointHull2D(points))
+            polygon(t);
+    }
+    else {
+        paf = _makePointsAndFaces(_pointHull3D(points));
+        polyhedron(points=paf[0],faces=paf[1]);
+    }
 }
             
-//points = [for(i=[0:99]) rands(0,100,3)];
-//pointHull(points);
+//points = [for(i=[0:9]) rands(0,100,2)];
+points = concat([for(i=[0:9]) let(r=rands(0,100,2)) [r[0],r[1],0]],[[0,0,10]]);
+pointHull(points);
