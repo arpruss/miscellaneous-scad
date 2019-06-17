@@ -152,5 +152,5 @@ module pointHull(points) {
     }
 }
             
-points = [for(i=[0:99]) rands(0,100,3)];
-pointHull(points);
+//points = [for(i=[0:99]) rands(0,100,3)];
+//pointHull(points);
