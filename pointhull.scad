@@ -33,16 +33,16 @@ function _makeTet(a,b,c,d) =
 
 function _findTri(list) = 
     let(l2=_unique(list))
-    assert(len(list)>=3)
-    let(a=list[0],
-        b=list[1],
-        l3=_slice(list,2),
+    assert(len(l2)>=3)
+    let(a=l2[0],
+        b=l2[1],
+        l3=_slice(l2,2),
         ci=_findNoncollinear(l3,a,b),        
         c=assert(ci != undef) l3[ci],
         l4=_delete(l3,ci))
         [[a,b,c],l4];
         
-function _findTet(list) =    
+function _findTet(list) = 
     let(ft=_findTri(list),
         tri=ft[0],
         l4=ft[1],
@@ -123,7 +123,8 @@ function _project(v) = [v[0],v[1]];
         
 function pointHull2D(points) = 
     let(
-        p3d = concat([[0,0,1]], [for(p=points) [p[0],p[1],0]]),
+        p3d = concat([[0,0,1]], 
+            [for(p=points) [p[0],p[1],0]]),
         h = pointHull3D(p3d),
         edgeStarts = [for(t=h) if(t[0][2]==1 || t[1][2]==1 || t[2][2]==1)
                 t[0][2]==1 ? _project(t[1]) : 
@@ -134,7 +135,11 @@ function pointHull2D(points) =
                 t[1][2]==1 ? _project(t[0]) :
                 _project(t[1]) ])
         _traceEdges(edgeStarts,edgeEnds,soFar=[edgeStarts[0]]);
-        
+
+function pointHull(points) =
+    len(points[0]) == 2 ? pointHull2D(points) :
+        pointHull3D(points);
+
 module pointHull(points) {
     if (len(points[0])==2) {
         polygon(pointHull2D(points));
@@ -145,42 +150,76 @@ module pointHull(points) {
     }
 }
 
+function extractPointsFromHull(h) =
+    _unique(
+        is_num(h[0][0]) ? h : [for(t=h) for(v=t) v] );
+
 function _d22(a00,a01,a10,a11) = a00*a11-a01*a10;
 
 function _determinant3x3(m) = m[0][0]*_d22(m[1][1],m[1][2],m[2][1],m[2][2])
     -m[0][1]*_d22(m[1][0],m[1][2],m[2][0],m[2][2])
     +m[0][2]*_d22(m[1][0],m[1][1],m[2][0],m[2][1]);
+        
+function _determinant2x2(m) = _d22(m[0][0],m[0][1],m[1][0],m[1][1]);
 
 // Cramer's rule
 // n.b. Determinant of matrix is the same as of its transpose
 function _solve3(a,b,c) = 
-    let(det=_determinant3x3([a,b,c]))
+    let(det=_determinant3x3([a[0],b[0],c[0]]))
     det == 0 ? undef :
-    let(rhs=[a[3],b[3],c[3]],
-        col0=[a[0],b[0],c[0]],
-        col1=[a[1],b[1],c[1]],
-        col2=[a[2],b[2],c[2]])
+    let(rhs=[a[1],b[1],c[1]],
+        col0=[a[0][0],b[0][0],c[0][0]],
+        col1=[a[0][1],b[0][1],c[0][1]],
+        col2=[a[0][2],b[0][2],c[0][2]])
     [_determinant3x3([rhs,col1,col2]),
     _determinant3x3([col0,rhs,col2]),
-    _determinant3x3([col0,col1,rhs])];
-  
+    _determinant3x3([col0,col1,rhs])]/det;
+        
+function _solve2(a,b) =
+    let(det=_determinant2x2([a[0],b[0]]))
+    det == 0 ? undef :
+    let(rhs=[a[1],b[1]],
+        col0=[a[0][0],b[0][0]],
+        col1=[a[0][1],b[0][1]])
+    [_determinant2x2([rhs,col1]),
+    _determinant2x2([col0,rhs])]/det;
+        
 function _satisfies(p,constraint) =
-    p[0]*constraint[0]+p[1]*constraint[1]+p[2]*constraint[2] <= constraint[3];
+    p*constraint[0] <= constraint[1];
 
 function _linearConstraintExtrema(constraints) =
-        let(n=len(constraints))
+        let(c=_unique(constraints),
+            n=len(c))
+        len(c[0][0]) == 3 ?
         [
-        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) for(k=[j+1:1:n-1]) let(p=_solve3(constraints[i],constraints[j],constraints[k])) if(p!=undef) for(l=[0:n-1]) if (l==i || l==j || l==k || _satisfies(p,constaints[l])) p
+        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) for(k=[j+1:1:n-1]) let(p=_solve3(c[i],c[j],c[k])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j,except3=k)) p
+        ] :
+        [
+        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) let(p=_solve2(c[i],c[j])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j)) p
         ];
         
-module linearConstraintBody(constraints) {
+function _satisfiesAll(p,c,except1=undef,except2=undef,except3=undef,pos=0) = 
+        pos >= len(c) ? true :
+        except1 == pos || except2 == pos || except3 == pos || _satisfies(p,c[pos]) ? _satisfiesAll(p,c,except1,except2,except3,pos=pos+1) : 
+        false;
+       
+
+module linearConstraintShape(constraints) {
     pointHull(_linearConstraintExtrema(constraints));
 }
 
-//<skip>            
-points = [for(i=[0:99]) rands(0,100,3)];
-pointHull(points);
+function hullPoints(points) =
+    extractPointsFromHull(pointHull(points));
 
-cubeConstraints = 
+module dualHull(points) {
+    p = hullPoints(points);
+    constraints = [for(v=p) [v,v*v]];
+    linearConstraintShape(constraints);
+}
+
+//<skip>
+cubePoints = [for(i=[-10,10]) for(j=[-10,10]) for(k=[-10,10]) [i,j,k]];    
+pointHull(cubePoints);
+translate([45,0,0]) dualHull(cubePoints);
+dualHull([[0,1],[1,0],[-1,-1]]);
 //</skip>
-
