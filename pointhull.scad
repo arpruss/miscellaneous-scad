@@ -145,7 +145,42 @@ module pointHull(points) {
     }
 }
 
+function _d22(a00,a01,a10,a11) = a00*a11-a01*a10;
+
+function _determinant3x3(m) = m[0][0]*_d22(m[1][1],m[1][2],m[2][1],m[2][2])
+    -m[0][1]*_d22(m[1][0],m[1][2],m[2][0],m[2][2])
+    +m[0][2]*_d22(m[1][0],m[1][1],m[2][0],m[2][1]);
+
+// Cramer's rule
+// n.b. Determinant of matrix is the same as of its transpose
+function _solve3(a,b,c) = 
+    let(det=_determinant3x3([a,b,c]))
+    det == 0 ? undef :
+    let(rhs=[a[3],b[3],c[3]],
+        col0=[a[0],b[0],c[0]],
+        col1=[a[1],b[1],c[1]],
+        col2=[a[2],b[2],c[2]])
+    [_determinant3x3([rhs,col1,col2]),
+    _determinant3x3([col0,rhs,col2]),
+    _determinant3x3([col0,col1,rhs])];
+  
+function _satisfies(p,constraint) =
+    p[0]*constraint[0]+p[1]*constraint[1]+p[2]*constraint[2] <= constraint[3];
+
+function _linearConstraintExtrema(constraints) =
+        let(n=len(constraints))
+        [
+        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) for(k=[j+1:1:n-1]) let(p=_solve3(constraints[i],constraints[j],constraints[k])) if(p!=undef) for(l=[0:n-1]) if (l==i || l==j || l==k || _satisfies(p,constaints[l])) p
+        ];
+        
+module linearConstraintBody(constraints) {
+    pointHull(_linearConstraintExtrema(constraints));
+}
+
 //<skip>            
 points = [for(i=[0:99]) rands(0,100,3)];
 pointHull(points);
+
+cubeConstraints = 
 //</skip>
+
