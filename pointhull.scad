@@ -85,13 +85,6 @@ function _insidePoly(p, triangles, pos=0) =
     !_satisfiesConstraint(p, triangles[pos]) ? false :
     _insidePoly(p, triangles, pos=pos+1);
         
-function _haveEdge(triangles, e, pos=0) =
-    pos >= len(triangles) ? false :
-    e==[triangles[pos][0],triangles[pos][1]] ||
-        e==[triangles[pos][1],triangles[pos][2]] ||
-        e==[triangles[pos][2],triangles[pos][0]] ? true :
-        _haveEdge(triangles, e, pos=pos+1);
-        
 function _outerEdges(triangles) =
         let(edges=[for(t=triangles) for(e=[[t[0],t[1]],
                 [t[1],t[2]],
@@ -221,5 +214,4 @@ module dualHull(points) {
 cubePoints = [for(i=[-10,10]) for(j=[-10,10]) for(k=[-10,10]) [i,j,k]];    
 pointHull(cubePoints);
 translate([45,0,0]) dualHull(cubePoints);
-dualHull([[0,1],[1,0],[-1,-1]]);
 //</skip>
