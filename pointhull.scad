@@ -107,7 +107,8 @@ function pointHull3D(points) =
     let(ft=_findTet(points))
         _expandHull(ft[0], ft[1]);
         
-function _traceEdges(edgeStarts,edgeEnds,soFar=[]) =
+function _traceEdges(edgeStarts,edgeEnds,soFar=undef) =
+    soFar==undef ? _traceEdges(edgeStarts,edgeEnds,[edgeStarts[0]]) :
     assert(soFar[len(soFar)-1] != undef)
     len(soFar)>1 && soFar[len(soFar)-1] == soFar[0] ? _slice(soFar,1) :
     _traceEdges(edgeStarts,edgeEnds,soFar=concat(soFar,[edgeEnds[_find(edgeStarts,soFar[len(soFar)-1])]]));
@@ -180,15 +181,15 @@ function _solve2(a,b) =
 function _satisfies(p,constraint) =
     p*constraint[0] <= constraint[1];
 
-function _linearConstraintExtrema(constraints) =
+function _linearConstraintExtrema(constraints,constraintsMarked=false) =
         let(c=_unique(constraints),
             n=len(c))
         len(c[0][0]) == 3 ?
         [
-        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) for(k=[j+1:1:n-1]) let(p=_solve3(c[i],c[j],c[k])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j,except3=k)) p
+        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) for(k=[j+1:1:n-1]) let(p=_solve3(c[i],c[j],c[k])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j,except3=k)) constraintsMarked?[p,[i,j,k]]:p
         ] :
         [
-        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) let(p=_solve2(c[i],c[j])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j)) p
+        for(i=[0:1:n-1]) for(j=[i+1:1:n-1]) let(p=_solve2(c[i],c[j])) if(p!=undef && _satisfiesAll(p,c,except1=i,except2=j)) constraintsMarked?[p,[i,j,-1]]:p
         ];
         
 function _satisfiesAll(p,c,except1=undef,except2=undef,except3=undef,pos=0) = 
@@ -201,6 +202,33 @@ module linearConstraintShape(constraints) {
     pointHull(_linearConstraintExtrema(constraints));
 }
 
+// 3D inly
+function _onPlane(v,planeIndex,data,pos=0) = 
+    pos >= len(data) ? false :
+    data[pos][0] == v && (data[pos][1][0] == planeIndex || data[pos][1][1] == planeIndex || data[pos][1][2] == planeIndex) ? true :
+    _onPlane(v,planeIndex,data,pos=pos+1);
+
+// 3D only
+function _getFaceOnPlane(planeIndex,triangles,data) =
+    let(trianglesOnPlane = [for(t=triangles) if (_onPlane(t[0],planeIndex,data) &&
+        _onPlane(t[1],planeIndex,data) &&
+        _onPlane(t[2],planeIndex,data)) t],
+        outer = _outerEdges(trianglesOnPlane),
+        edgeStarts = [for(e=outer) e[0]],
+        edgeEnds = [for(e=outer) e[1]]
+    ) len(outer) == 0 ? undef : echo("se",edgeStarts,edgeEnds) _traceEdges(edgeStarts,edgeEnds);
+
+// 3D only, does not work if there are multiple planes defined by the same constraint
+function linearConstraintPointsAndFaces(constraints) =
+    let(data=_linearConstraintExtrema(constraints,constraintsMarked=true),
+    extremePoints=[for(d=data) d[0]],
+        
+    triangles=pointHull(extremePoints),
+    hullPoints=extractPointsFromHull(triangles),
+    faces=[for (i=[0:len(constraints)-1]) [for(v=_getFaceOnPlane(i,triangles,data)) if(v != undef) _find(hullPoints,v)]]
+    )
+    [hullPoints,faces];
+
 function hullPoints(points) =
     extractPointsFromHull(pointHull(points));
 
@@ -211,7 +239,10 @@ module dualHull(points) {
 }
 
 //<skip>
-cubePoints = [for(i=[-10,10]) for(j=[-10,10]) for(k=[-10,10]) [i,j,k]];    
+cubePoints = [for(i=[-10,10]) for(j=[-10,10]) for(k=[-10,10]) [i,j,k]];        
 pointHull(cubePoints);
 translate([45,0,0]) dualHull(cubePoints);
+octaPoints = [for(i=[-10,10]) for(j=[0:2]) [for(k=[0:2]) k==j?i:0]];
+echo(octaPoints);
+translate([90,0,0]) dualHull(octaPoints);
 //</skip>
