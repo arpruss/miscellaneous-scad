@@ -3,15 +3,15 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-rounding = .025;
+taper = .015;
 diameter = 15;
 height = 100;
-twists = 1;
+twists = 1.75;
 lobes = 3;
 lobeOffset = 5;
-slices = 50;
+slices = 80;
 bottomTension = 20;
-topTension = 20;
+topTension = 30;
 topOffset = 30;
 topAngle = 40;
 //</params>
@@ -24,7 +24,7 @@ precision = 1/slices;
 function base(twistAngle) = lobes == 1 ? [ for(i=[0:5:360]) r*[cos(i),sin(i)]] : [ for(i=[0:5:360]) (r+lobeOffset*abs(cos((i)*lobes/2)))*[cos(i-twistAngle),sin(i-twistAngle)]];
     
 edge = [ [r,0],SHARP(),SHARP(),
-         [height*rounding,height-1.5*height*rounding],SMOOTH_ABS(.25*rounding*height),OFFSET([height*rounding,0]),
+         [height*taper,height-1.5*height*taper],SMOOTH_ABS(.25*taper*height),OFFSET([height*taper,0]),
         [0,height] ];
 core = [ [0,0],POLAR(bottomTension,90),POLAR(topTension,-90-topAngle),[topOffset,height] ];
 
