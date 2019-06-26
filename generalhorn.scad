@@ -10,10 +10,10 @@ twists = 1.75;
 lobes = 3;
 lobeOffset = 5;
 slices = 80;
-bottomTension = 20;
-topTension = 30;
+bottomTension = 40;
+topTension = 40;
 topOffset = 30;
-topAngle = 40;
+topAngle = -20;
 //</params>
 
 module dummy() {}
