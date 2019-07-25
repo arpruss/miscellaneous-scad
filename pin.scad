@@ -1,32 +1,32 @@
 use <tubemesh.scad>;
 
 //<params>
-diameter = 5;
-height = 15;
+diameter = 10;
+height = 40;
 baseLipThickness = 4;
 baseLip = 3;
 topLip = 1;
 topLipExtraThickness = 2;
-topLipHoldingAngle = 45;
-topLipSlippingAngle = 30;
-slippingReduction = 0.5;
+holdingAngle = 45;
+slippingAngle = 30;
+slippingRadiusReduction = 0.5;
 incutBelowTopLip = 3;
-incutFractionOfDiameter = 0.5;
+incutFractionOfDiameter = 0.4;
 //</params>
 
 module dummy(){}
 
 nudge = 0.001;
 
-module topLip(diameter,lip,extraThickness,holdingAngle,slippingReduction,slippingAngle,incutFraction,$fn=20) {
+module pin(diameter=10,height=40,baseLip=3,baseLipThickness=4,lip=1,extraThickness=2,holdingAngle=45,slippingRadiusReduction=1,slippingAngle=30,incutFraction=0.4,$fn=30) {
     r = diameter/2;
-    r2 = diameter/2-slippingReduction;
+    r2 = diameter/2-slippingRadiusReduction;
     x1 = incutFraction * r;
     vSteps = 2*$fn;
     function lipX(lip,y,r) =
         lip+sqrt(r*r-y*y);
     holdingHeight = tan(90-holdingAngle) * lip;
-    slippingHeight = tan(90-slippingAngle) * (lip+slippingReduction);
+    slippingHeight = tan(90-slippingAngle) * (lip+slippingRadiusReduction);
     echo(slippingHeight);
     function getLipZR(j) =
         j < vSteps/2 ?
@@ -43,13 +43,26 @@ module topLip(diameter,lip,extraThickness,holdingAngle,slippingReduction,slippin
         concat([for(i=[0:$fn-1]) let(t=i/($fn-1), y=-y1*(1-t)+y1*t, x=lipX(lip,y,r)) [x,y,z]], [for(i=[0:$fn-1]) let(t=i/($fn-1), y=y1*(1-t)-y1*t, x=-lipX(lip,y,r)) [x,y,z]]);
             
     y1 = sqrt(r*r-x1*x1);
+    translate([0,0,height+baseLipThickness])
     difference() {
         tubeMesh([for(j=[0:vSteps-1]) lipSection(j)]);
         cube([x1*2,y1*2+2*nudge,2*(holdingHeight+extraThickness+slippingHeight+nudge)],center=true);
     }
+    cylinder(h=height+baseLipThickness,d=diameter);
+    cylinder(h=baseLipThickness,d=diameter+baseLip);
         
 }
 
+module pinHole(diameter=10,height=40,lip=1,holdingAngle=45,tolerance=0.2,$fn=30) {
+    holdingHeight = tan(90-holdingAngle) * lip;
+    cylinder(d=diameter+tolerance*2,h=nudge+height+holdingHeight);
+    translate([0,0,height])
+    cylinder(d1=diameter+tolerance*2,d2=diameter+lip*2+tolerance*2,h=holdingHeight+nudge);
+}
+
 //<skip>
-topLip(diameter,topLip,topLipExtraThickness,topLipHoldingAngle,slippingReduction,topLipSlippingAngle,incutFractionOfDiameter);
+pin(diameter,height,baseLip=baseLip,baseLipThickness=baseLipThickness,lip=topLip,extraThickness=topLipExtraThickness,holdingAngle=holdingAngle,slippingRadiusReduction=slippingRadiusReduction,slippingAngle=slippingAngle,incutFraction=incutFractionOfDiameter);
+
+translate([diameter*2,0,0])
+pinHole(diameter,height,topLip,holdingAngle);
 //</skip>
