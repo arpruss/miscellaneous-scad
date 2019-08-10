@@ -57,6 +57,7 @@ def parseFig(files):
     curSegments = []
     
     for f in files:
+        haveNumber = False
         header = 8
         while True:
             line = f.readline()
@@ -73,7 +74,8 @@ def parseFig(files):
                 label = d[13].split("\\")[0]
                 if label[0].isdigit():
                     charNumbers.append(int(label))
-            elif charNumbers and d[0] == "2" and (d[1] == "1" or d[1] == "3"):
+                    haveNumber = True
+            elif haveNumber and d[0] == "2" and (d[1] == "1" or d[1] == "3"):
                 n = int(d[15])
                 segments = getSegments(n, d[1] == "3")
                 if d[1] == "1" and d[2] == "2" and n == 2:
