@@ -1,4 +1,5 @@
 from os import popen
+from math import floor
 
 map="""HersheySerif-Bold SerifBold timesrb rowmant
 HersheySerif Serif timesr
@@ -18,6 +19,20 @@ fonts = {}
 prefix = "hershey"
 testChar = 'T'
 
+def floatFormat(x,precision=3):
+    s = "%.*f" % (precision,x)
+    if "e" in s or "." not in s:
+        return s
+    s = s.rstrip("0").rstrip(".")
+    if s[:2] == "0.":
+        return s[1:]
+    elif s[:2] == "-0.":
+        return "-"+s[1:]
+    elif s == "-0":
+        return "0"
+    else:
+        return s
+        
 def parseFig(files):
 
     def getNumbers(n):
@@ -99,14 +114,14 @@ def dumpFont(data):
             
     def describeSegments(segments):
         def describeSegment(s):
-            return "[[%.3f,%.3f],[%.3f,%.3f]]" % (tuple(s[0]) + tuple(s[1]))    
+            return "%s,%s,%s,%s" % (floatFormat(s[0][0]),floatFormat(s[0][1]),floatFormat(s[1][0]),floatFormat(s[1][1]))
     
         return ",".join(describeSegment(s) for s in segments)
                             
     out = []
     for c in sorted(data):
         width,segments = data[c]
-        out.append( "[%s,%.3f,[%s]]" % (describeChar(c),width,describeSegments(segments)) )
+        out.append( "[%s,%s,_segmentUnpack([%s])]" % (describeChar(c),floatFormat(width),describeSegments(segments)) )
     print( ",\n". join(out))
 
 for line in map.split("\n"):
@@ -166,6 +181,9 @@ module drawHersheyGlyph(glyph,size=10) {
         }
     }
 }
+
+function _segmentUnpack(data) =
+    [for(i=[0:4:len(data)-1]) [[data[i],data[i+1]],[data[i+2],data[i+3]]]];
 
 function cross2D(a,b) = a[0]*b[1]-a[1]*b[0];
 
