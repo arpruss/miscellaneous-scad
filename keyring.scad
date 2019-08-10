@@ -1,7 +1,7 @@
 include <hershey.scad>;
 
 //<params>
-name = "CLÉS";
+name = "NAME";
 font=3; // [0:GothicEnglish, 1:GothicGerman, 2:GothicItalian, 3:Sans, 4:SansBold, 5:SansBoldOblique, 6:Script, 7:ScriptBold, 8:Serif, 9:SerifBold, 10:SerifBoldItalic, 11:SerifItalic]
 textSize = 30;
 // how thick the letters are
