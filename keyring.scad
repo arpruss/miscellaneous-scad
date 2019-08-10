@@ -1,8 +1,8 @@
-use <hershey.scad>;
+include <hershey.scad>;
 
 //<params>
-name = "NAME";
-font = 10; // [0:cursive, 1:futural, 2:futuram, 3:gothgbt, 4:gothgrt, 5:gothiceng, 6:gothicger, 7:gothicita, 8:gothitt, 9:rowmand, 10:rowmans, 11:rowmant, 12:scriptc, 13:scripts, 14:timesi, 15:timesib, 16:timesr, 17:timesrb]
+name = "CLÉS";
+font=3; // [0:GothicEnglish, 1:GothicGerman, 2:GothicItalian, 3:Sans, 4:SansBold, 5:SansBoldOblique, 6:Script, 7:ScriptBold, 8:Serif, 9:SerifBold, 10:SerifBoldItalic, 11:SerifItalic]
 textSize = 30;
 // how thick the letters are
 lineHeight = 8; 
@@ -21,8 +21,6 @@ ringHeight = 5;
 // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
 ringPosition = 0.5; 
 //</params>
-
-fonts=["cursive","futural","futuram","gothgbt","gothgrt","gothiceng","gothicger","gothicita","gothitt","rowmand","rowmans","rowmant","scriptc","scripts","timesi","timesib","timesr","timesrb"];
 
 // for rounded top variant
 module chamferedCylinder(d=10,r=undef,h=10,chamfer=1) {
@@ -44,7 +42,7 @@ module chamferedCylinder(d=10,r=undef,h=10,chamfer=1) {
 }
 
 module doText() {
-    drawHersheyText(name, font=fonts[font], size=textSize, extraSpacing=smartOverlap ? 0 : -letterSquish, forceMinimumDistance=smartOverlap ? max(0,lineWidth-letterSquish) : undef) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
+    drawHersheyText(name, font=hersheyFontNames[font], size=textSize, extraSpacing=smartOverlap ? 0 : -letterSquish, forceMinimumDistance=smartOverlap ? max(0,lineWidth-letterSquish) : undef) chamferedCylinder(d=lineWidth,h=lineHeight,chamfer=lineChamfer, $fn=24);
 }
 
 ringInnerDiameter = ringOuterDiameter - 2*ringLineWidth;
@@ -60,13 +58,13 @@ module ring() {
 
 module doRing() {
     $fn = 24;
-    f = findHersheyFont(fonts[font]);
+    f = findHersheyFont(hersheyFontNames[font]);
     firstGlyph = findHersheyGlyph(name[0],f);
     if (firstGlyph == undef || len(firstGlyph[2])==0) {
         translate([-ringInnerDiameter/2,textSize*ringPosition,0]) ring();
     }
     else {
-        center = [[[ringOuterDiameter/2,textSize*ringPosition-textSize*0.5],[ringOuterDiameter/2,textSize*ringPosition-textSize*0.5]]];
+        center = [[[ringOuterDiameter/2,textSize*ringPosition],[ringOuterDiameter/2,textSize*ringPosition]]];
         desiredDistance = ringInnerDiameter/2+max(lineWidth/2,ringLineWidth);
         shift = iterateToAutoDistance(center, textSize*firstGlyph[2], desiredDistance+0.02, ringOuterDiameter, precision=0.02);
         d = shiftDrawing([14,0],textSize*firstGlyph[2]);
