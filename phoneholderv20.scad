@@ -16,11 +16,11 @@ leftNubSlitThickness = 2.2;
 leftNubSlitLength = 15;
 leftNubSlitDepth = 1.5;
 fromNubsToPhone = 3.5+3;
-phoneWidth = 77.5+6.5;
+phoneWidth = 77.5+7;
 snapHeight = 10;
 snapInset = 1.5;
 snapThickness = 1.5;
-holderWidth = 4; // 26;
+holderWidth = 26;
 rounding = 0.8;
 //</params>
 

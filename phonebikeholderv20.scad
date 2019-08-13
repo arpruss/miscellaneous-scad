@@ -8,8 +8,8 @@ b1a = 85.0+6.5;
 b2 = 87+6.5;
 h1a = 1;
 bumpHeight = 3;
-extraThickness = 3; //3.5;
-phoneWidth = 77.5+6.5;
+extraThickness = 3.1; //3.5;
+phoneWidth = 77.5+7.25;
 snapHeight = 10;
 snapInset = 1.5;
 snapThickness = 1.5;
@@ -53,11 +53,10 @@ module holes(extra=0) {
 
 module attachment() {
     difference() {
-       // hull()
+       hull()
     for(i=[0:1]) translate(-[0,attachmentWidth/2+i*(holderWidth-attachmentWidth),0]) 
         union()
         {
-            translate([-holeSpacing/2,0,0]) cylinder(d=attachmentWidth, h=attachmentThickness);
             translate([holeSpacing/2,0,0]) cylinder(d=attachmentWidth, h=attachmentThickness);
         }
     holes(extra=1.5);
@@ -69,5 +68,6 @@ render(convexity=2) {
         mainHolder();
         rotate([-90,0,0]) holes();
     }
-//    translate([0,-10,0]) attachment();
+    translate([0,-10,0]) attachment();
+    translate([-30,-10,0]) attachment();
 }
