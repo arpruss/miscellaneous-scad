@@ -55,17 +55,15 @@ function calculateDistances(f,variableVar,variableValue,fixedVar,fixedValue,maxD
     distance+norm(nextPosition-prevPosition) >= maxDistance ? concat(soFar,[distance+norm(nextPosition-prevPosition)]) :
     calculateDistances(f,variableVar,variableValue+delta,fixedVar,fixedValue,maxDistance,nextPosition,eval(f,concat(extras,[[variableVar,variableValue+delta],[fixedVar,fixedValue]])),distance=distance+norm(nextPosition-prevPosition),delta=delta,extras=extras,soFar=concat(soFar,[distance+norm(nextPosition-prevPosition)] ));
     
-cf = compileFunction("[u,v,u+v]");    
-    
 function findValue(list,value,pos=0) =
     pos >= len(list) ? pos-1 :
     list[pos] == value ? pos :
     pos > 0 && (list[pos-1]-value)*(list[pos]-value)<0 ? pos-1+(value-list[pos-1])/(list[pos]-list[pos-1]) :
     findValue(list,value,pos=pos+1);    
     
-module mapHershey(text,f="[u,v,0]",font="timesr",halign="left",valign="baseline",normalize=true,size=1,extraParameters=[]) {
+module mapHershey(text,f="[u,v,0]",font="timesr",halign="left",valign="baseline",normalize=true,size=1,subdivisions=4,extraParameters=[]) {
     cf = compileFunction(f);
-    lines = getHersheyTextLines(text,size=size,font=font,halign=halign,valign=valign);
+    lines = getHersheyTextLines(text,size=size,font=font,halign=halign,valign=valign,subdivisions=subdivisions);
     for (line=lines) {
         hull() {
             multmatrix(getTransform(cf,line[0],normalize=normalize,extraParameters=extraParameters)) children();
@@ -74,8 +72,3 @@ module mapHershey(text,f="[u,v,0]",font="timesr",halign="left",valign="baseline"
     }
 }
 
-//module demo() {
-//    mapHershey(text,f=uv,font=fonts[font]) cylinder(d=1,h=3,$fn=8);
-//}
-
-//demo();

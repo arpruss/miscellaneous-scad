@@ -2350,18 +2350,18 @@ function widthHersheyText(text,font=font,size=10,extraSpacing=0,start=0,soFar=0)
     _isString(font) ? widthHersheyText(text,font=findHersheyFont(font),size=size,extraSpacing=extraSpacing) :
     start<len(text) ? widthHersheyText(text,font=font,size=size,extraSpacing=extraSpacing, start=start+1,soFar=soFar+extraSpacing+size*findHersheyGlyph(text[start],font=font)[1]) : soFar;
     
-function subdivideLine(line) =
+function subdivideLine(line,subdivisions=0) =
     let(delta=line[1]-line[0],
         l=norm(delta))
-    l*$fn <= 1 ? [line] :
-    let(n=ceil(l*$fn)) 
+    l*subdivisions <= 1 ? [line] :
+    let(n=ceil(l*subdivisions)) 
     [for(i=[1:n]) 
         let(t0=(i-1)/n, t=i/n)
         [(1-t0)*line[0]+t0*line[1],(1-t)*line[0]+t*line[1]]];
     
-function getHersheyGlyphLines(glyph,size=10) =
+function getHersheyGlyphLines(glyph,size=10,subdivisions=0) =
     size*[for(line=glyph[2]) 
-        for(sub=subdivideLine(line))
+        for(sub=subdivideLine(line,subdivisions=subdivisions))
             [sub[0],sub[1]]];      
         
 module drawHersheyGlyph(glyph,size=10) {
@@ -2437,7 +2437,7 @@ function translateLines(delta,list) = [for (a=list) [delta+a[0],delta+a[1]]];
 function getLinesBounds(lines,coordinate) = 
     let(yy=[for(line=lines) for(i=[0:1]) line[i][coordinate]]) [min(yy),max(yy)];
         
-function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) =
+function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1,subdivisions=0) =
     let(f = findHersheyFont(font),
     glyphs=[for (i=[0:len(text)-1]) findHersheyGlyph(text[i],f)],
     widths=
@@ -2453,7 +2453,7 @@ function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",
         halign=="center" ? -0.5*width :
         halign=="right" ? -width :
         0,
-    glyphLines = [for(i=[0:len(text)-1]) for(line=translateLines([offsetX+cWidths[i],0],getHersheyGlyphLines(glyphs[i],size=size))) line],
+    glyphLines = [for(i=[0:len(text)-1]) for(line=translateLines([offsetX+cWidths[i],0],getHersheyGlyphLines(glyphs[i],size=size,subdivisions=subdivisions))) line],
     vertBounds = getLinesBounds(glyphLines,1),
     offsetY =
         valign=="bottom" ? -vertBounds[0] :
@@ -2462,8 +2462,8 @@ function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",
                 0 // baseline
     ) translateLines([0,offsetY],glyphLines);
     
-module drawHersheyText(text,font="Serif",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
-    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,$fn=4);
+module drawHersheyText(text,font="Serif",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1,subdivisions=0) {
+    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,subdivisions=subdivisions);
     for (line=lines) 
         hull() {
             translate(line[0]) children();
