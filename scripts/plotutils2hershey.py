@@ -18,6 +18,7 @@ synonyms = {}
 fonts = {}
 prefix = "hershey"
 testChar = 'T'
+scale = 1000
 
 def floatFormat(x,precision=3):
     s = "%.*f" % (precision,x)
@@ -32,6 +33,9 @@ def floatFormat(x,precision=3):
         return "0"
     else:
         return s
+
+def scaleFormat(x):
+    return "%.0f" % (scale*x)
         
 def parseFig(files):
 
@@ -124,8 +128,8 @@ def dumpFont(data):
                 if curSeg:
                     ss.append("["+(",".join(curSeg))+"]")
                     curSeg = []
-                curSeg.append("%s,%s" % (floatFormat(s[0][0]),floatFormat(s[0][1])))
-            curSeg.append("%s,%s" % (floatFormat(s[1][0]),floatFormat(s[1][1])))
+                curSeg.append("%s,%s" % (scaleFormat(s[0][0]),scaleFormat(s[0][1])))
+            curSeg.append("%s,%s" % (scaleFormat(s[1][0]),scaleFormat(s[1][1])))
             lastPoint = tuple(s[1])
         if curSeg:
             ss.append("["+(",".join(curSeg))+"]")
@@ -196,7 +200,7 @@ module drawHersheyGlyph(glyph,size=10) {
 }
 
 function _segmentUnpack(data) =
-    [for(seg=data) let(i=0)for(i=[0:2:len(seg)-3]) [[seg[i],seg[i+1]],[seg[i+2],seg[i+3]]]];
+    [for(seg=data) let(i=0)for(i=[0:2:len(seg)-3]) [[seg[i],seg[i+1]],[seg[i+2],seg[i+3]]]]/%.0f;
 
 function cross2D(a,b) = a[0]*b[1]-a[1]*b[0];
 
@@ -302,4 +306,4 @@ module demo() {
 }
 
 //demo();
-""")
+""" % scale)
