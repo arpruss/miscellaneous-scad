@@ -72,6 +72,6 @@ module doRing() {
     }
 }
 
-doText();
-if (ringOuterDiameter>0) doRing();
+//doText();
+//if (ringOuterDiameter>0) doRing();
  

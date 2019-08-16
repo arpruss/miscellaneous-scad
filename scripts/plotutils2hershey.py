@@ -273,8 +273,8 @@ function getHersheyTextLines(text,font="timesr",halign="left",valign="baseline",
                 0 // baseline
     ) translateLines([0,offsetY],glyphLines);
     
-module drawHersheyText(text,font="Serif",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1,subdivisions=0) {
-    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,subdivisions=subdivisions);
+module drawHersheyText(text,font="Serif",halign="left",valign="baseline",size=10,extraSpacing=0,forceMinimumDistance=undef,minimumDistancePrecision=0.1) {
+    lines=getHersheyTextLines(text,font=font,halign=halign,valign=valign,size=size,extraSpacing=extraSpacing,forceMinimumDistance=forceMinimumDistance,minimumDistancePrecision=minimumDistancePrecision,subdivisions=0);
     for (line=lines) 
         hull() {
             translate(line[0]) children();
