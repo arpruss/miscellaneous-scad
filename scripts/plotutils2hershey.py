@@ -115,10 +115,21 @@ def dumpFont(data):
             return '"\\u%04x"' % c
             
     def describeSegments(segments):
-        def describeSegment(s):
-            return "%s,%s,%s,%s" % (floatFormat(s[0][0]),floatFormat(s[0][1]),floatFormat(s[1][0]),floatFormat(s[1][1]))
-    
-        return ",".join(describeSegment(s) for s in segments)
+        out = ""
+        lastPoint = None
+        ss = []
+        curSeg = []
+        for s in segments:
+            if tuple(s[0]) != lastPoint:
+                if curSeg:
+                    ss.append("["+(",".join(curSeg))+"]")
+                    curSeg = []
+                curSeg.append("%s,%s" % (floatFormat(s[0][0]),floatFormat(s[0][1])))
+            curSeg.append("%s,%s" % (floatFormat(s[1][0]),floatFormat(s[1][1])))
+            lastPoint = tuple(s[1])
+        if curSeg:
+            ss.append("["+(",".join(curSeg))+"]")
+        return ",".join(ss)
                             
     out = []
     for c in sorted(data):
@@ -185,7 +196,7 @@ module drawHersheyGlyph(glyph,size=10) {
 }
 
 function _segmentUnpack(data) =
-    [for(i=[0:4:len(data)-1]) [[data[i],data[i+1]],[data[i+2],data[i+3]]]];
+    [for(seg=data) let(i=0)for(i=[0:2:len(seg)-3]) [[seg[i],seg[i+1]],[seg[i+2],seg[i+3]]]];
 
 function cross2D(a,b) = a[0]*b[1]-a[1]*b[0];
 
