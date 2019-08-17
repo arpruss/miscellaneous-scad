@@ -18,6 +18,7 @@ letterSquish = 3.5;
 ringOuterDiameter = 14; 
 ringLineWidth = 3.5;
 ringHeight = 5;
+ringCrossSection=0; // [0:rectangular, 1:one-sided round, 2:two-sided round]
 // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
 ringPosition = 0.5; 
 //</params>
@@ -48,11 +49,28 @@ module doText() {
 ringInnerDiameter = ringOuterDiameter - 2*ringLineWidth;
 
 module ring() {
+    $fn = 36;
     render(convexity=2)
-    difference() {
-        cylinder(d=ringOuterDiameter,h=ringHeight);
-        translate([0,0,-1])
-        cylinder(d=ringInnerDiameter,h=ringHeight+2);
+    if (ringCrossSection>0) {
+        rotate_extrude() {
+            translate([0.5*(ringInnerDiameter+ringLineWidth),0,0])
+            if (ringCrossSection==1) {
+                scale([1,2*ringHeight/ringLineWidth]) intersection() {
+                   circle(d=ringLineWidth);
+                   translate([-1-ringLineWidth/2,0]) square(1+ringLineWidth);
+                }
+            }
+            else {
+                scale([1,ringHeight/ringLineWidth]) translate([0,ringLineWidth/2]) circle(d=ringLineWidth);
+            }
+        }
+    }
+    else {
+        difference() {
+            cylinder(d=ringOuterDiameter,h=ringHeight);
+            translate([0,0,-1])
+            cylinder(d=ringInnerDiameter,h=ringHeight+2);
+        }
     }
 }
 
@@ -72,6 +90,5 @@ module doRing() {
     }
 }
 
-//doText();
-//if (ringOuterDiameter>0) doRing();
- 
+doText();
+if (ringOuterDiameter>0) doRing();
