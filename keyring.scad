@@ -14,11 +14,10 @@ roundedTop = 0; // [1:yes, 0:no]
 smartOverlap = 1; // [1:yes, 0:no]
 // increase to make letters be more squashed together; in smart overlap mode, this is the number of millimeters letters overlap by
 letterSquish = 3.5;
-// set to 0 not to include ring
+ringCrossSection=0; // [0:rectangular, 1:one-sided round, 2:two-sided round, 3:no ring]
 ringOuterDiameter = 14; 
 ringLineWidth = 3.5;
 ringHeight = 5;
-ringCrossSection=0; // [0:rectangular, 1:one-sided round, 2:two-sided round]
 // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
 ringPosition = 0.5; 
 //</params>
@@ -91,4 +90,4 @@ module doRing() {
 }
 
 doText();
-if (ringOuterDiameter>0) doRing();
+if (ringOuterDiameter>0 && ringCrossSection != 3) doRing();
