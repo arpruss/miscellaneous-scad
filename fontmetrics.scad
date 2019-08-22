@@ -181,7 +181,7 @@ module drawText(text="", size=10, font="Liberation Sans", halign="left", valign=
         adjSize = size < 20 ? 20 : size;
         f = findFont(fonts, font);
         offsetScale = spacing * adjSize * fontScale(f);
-        offsets = getOffsets(text, f, size=adjSize);
+        offsets = getOffsets(text, f);
         w = offsets[l];
         dx = halign=="right" ? -w :
              halign=="center" ? -w / 2 : 0;
@@ -262,10 +262,10 @@ function formatParagraphText(s,f,indent,width,size,spacing,b2b,halign) =
         formatParaLines(lines,indent,measureText(" ",size=size,spacing=spacing,font=f),width,b2b,halign); 
 
 function wrapText(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) =
-    let(paras = splitstring("\n"),
+    let(paras = splitstring(s,delimiter="\n"),
         f = findFont(FONTS,font),
         b2b = verticalAdvance(f,size=size)*linespacing,
-        formattedParas = [ for(p=paras) formatParagraphText(s,f,indent,width,size,spacing,b2b,halign) ])
+        formattedParas = [ for(p=paras) formatParagraphText(p,f,indent,width,size,spacing,b2b,halign) ])
     joinFormattedParas(formattedParas,b2b);
         
 function measureWrappedTextBounds(s,font="Liberation Sans",size=10,spacing=1,linespacing=1,indent=0,width=800,halign="left",fonts=FONTS) =

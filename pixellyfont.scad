@@ -164,13 +164,13 @@ module renderString(string,font=font_8x8,halign="left",valign="bottom",invert=fa
     } 
 }
 
-/*
+$fn=24;
+thickness=0.25;
 pixel = 10/getFontHeight(font_8x8);
-render(convexity=2) renderString("abc") {
-    circle(d=1*pixel, $fn=10);
+linear_extrude(height=1) renderString("abc") {
+    circle(d=pixel*(1+thickness/2));
     difference() {
-        circle(d=1*pixel, $fn=10);
-        circle(d=0.9*pixel, $fn=10);
+        circle(d=pixel*(1+thickness/2));
+        circle(d=pixel*(1-thickness/2));
     }
 }
-*/
