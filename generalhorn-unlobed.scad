@@ -3,18 +3,18 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-taper = 3;
-diameter = 30;
-height = 100;
+taper = 5;
+diameter = 38;
+height = 180;
 twists = 1.75;
 lobes = 1;
 lobeOffset = 5;
 slices = 40;
-bottomAngle = 40;
+bottomAngle = 20;
 bottomTension = 40;
-topTension = 30;
-topOffset = 30;
-topAngle = 40;
+topTension = 50;
+topOffset = 60;
+topAngle = 20;
 bottomAngleFeatheringParameter = 0.5;
 rotation = 0;
 flipHorizontally = 0; // [0:no, 1:yes]
@@ -22,7 +22,7 @@ flipHorizontally = 0; // [0:no, 1:yes]
 holderSlitThickness = 4; 
 holderSlitDepth = 10;
 holderSlitHeight = 20;
-holderSlitXOffset = -5;
+holderSlitXOffset = 0;
 holderSlitYOffset = 0;
 tolerance = 0.25;
 //</params>

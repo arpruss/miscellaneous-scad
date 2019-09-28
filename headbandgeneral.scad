@@ -1,9 +1,7 @@
 use <bezier.scad>;
 use <paths.scad>;
 
-includeHeadband = 1; // [0:no, 1:yes]
-
-headbandWidth = 123;
+headbandWidth = 140;
 headbandHeightRatio = 1.1;
 headbandStripWidth = 10;
 headbandStripThickness = 2.5;
@@ -16,7 +14,7 @@ headbandBottomFlare = 1; // [0:no, 1:yes]
 
 spikeThickness = 4;
 spikeLength = 20;
-spikePosition = 0.35;
+spikePosition = 0.25;
 spikeAngle = 90;
 
 /*stalkHolderPosition = 0.25;
@@ -79,14 +77,12 @@ module rightSide() {
 
     spikeCenter = interpolateByDistance(interp,spikePosition*length);
     tangent0 = interpolateByDistance(interp,spikePosition*length+0.01)-spikeCenter;
-    echo(tangent0);
     tangent = tangent0 / norm(tangent0);
     tangentAngle = atan2(tangent[1],tangent[0]);
     spikeAngle1 = tangentAngle + spikeAngle;
     lengthAlongTangent = spikeThickness / cos(spikeAngle1+90-tangentAngle);
     spikeVector = [cos(spikeAngle1),sin(spikeAngle1)];
     spikeVectorPlus90 = [cos(spikeAngle1+90),sin(spikeAngle1+90)];
-    echo(spikeVectorPlus90);
     p0 = spikeCenter-tangent/2*lengthAlongTangent;
     p1 = spikeCenter+tangent/2*lengthAlongTangent;
     linear_extrude(height=headbandStripWidth)
