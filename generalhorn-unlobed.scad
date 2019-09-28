@@ -3,7 +3,7 @@ use <bezier.scad>;
 use <paths.scad>;
 
 //<params>
-taper = 5;
+taper = 7;//5
 diameter = 38;
 height = 180;
 twists = 1.75;
@@ -18,10 +18,11 @@ topAngle = 20;
 bottomAngleFeatheringParameter = 0.5;
 rotation = 0;
 flipHorizontally = 0; // [0:no, 1:yes]
+rescale = 0.5;//1
 // set to zero for no slit
 holderSlitThickness = 4; 
 holderSlitDepth = 10;
-holderSlitHeight = 20;
+holderSlitHeight = 14;
 holderSlitXOffset = 0;
 holderSlitYOffset = 0;
 tolerance = 0.25;
@@ -78,8 +79,9 @@ module holderSlit() {
 }
 
 difference() {
-    rotate([0,0,rotation]) 
+    scale(rescale)
     mirror([flipHorizontally?1:0,0,0])
+    rotate([0,0,rotation]) 
     tubeMesh(sections); 
     holderSlit();
 }

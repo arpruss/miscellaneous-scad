@@ -13,28 +13,14 @@ toothWidthRatio = 0.5;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
 spikeThickness = 4;
-spikeLength = 20;
+spikeLength = 14;
 spikePosition = 0.25;
 spikeAngle = 90;
-
-/*stalkHolderPosition = 0.25;
-stalkThickness = 5;
-stalkHolderBackingThickness = 1;
-stalkHolderSize = 30;
-stalkWidth = 4;
-stalkSocketDiameter = 6;
-stalkTolerance = 0.5;
-stalkAngle = 75;
-
-stalkBallDiameter = 20;
-stalkLength = 126;
-stalkBallFlat = 1; // [0:no, 1:yes] */
-
-spacing = 5; /* spacing between parts */
+secondarySpike = 1; //[0:no, 1:yes]
+secondarySpikePosition = 0.42;
+secondarySpikeAngle = 90;
 
 module dummy() {}
-
-
 
 nudge = 0.01;
 
@@ -75,18 +61,25 @@ module rightSide() {
         }
     }
 
-    spikeCenter = interpolateByDistance(interp,spikePosition*length);
-    tangent0 = interpolateByDistance(interp,spikePosition*length+0.01)-spikeCenter;
-    tangent = tangent0 / norm(tangent0);
-    tangentAngle = atan2(tangent[1],tangent[0]);
-    spikeAngle1 = tangentAngle + spikeAngle;
-    lengthAlongTangent = spikeThickness / cos(spikeAngle1+90-tangentAngle);
-    spikeVector = [cos(spikeAngle1),sin(spikeAngle1)];
-    spikeVectorPlus90 = [cos(spikeAngle1+90),sin(spikeAngle1+90)];
-    p0 = spikeCenter-tangent/2*lengthAlongTangent;
-    p1 = spikeCenter+tangent/2*lengthAlongTangent;
-    linear_extrude(height=headbandStripWidth)
-    polygon([p1,p0,p0+spikeVector*spikeLength,p0+spikeVector*spikeLength+spikeVectorPlus90*spikeThickness]);
+    spikes = secondarySpike ? [ [spikePosition,spikeAngle], [secondarySpikePosition,secondarySpikeAngle]] : [ [spikePosition,spikeAngle]];
+    
+    for (s=spikes) {
+        spikePosition = s[0];
+        spikeAngle = s[1];
+        spikeCenter = interpolateByDistance(interp,spikePosition*length);
+        tangent0 = interpolateByDistance(interp,spikePosition*length+0.01)-spikeCenter;
+        tangent = tangent0 / norm(tangent0);
+        tangentAngle = atan2(tangent[1],tangent[0]);
+        spikeAngle1 = tangentAngle + spikeAngle;
+        lengthAlongTangent = spikeThickness / cos(spikeAngle1+90-tangentAngle);
+        spikeVector = [cos(spikeAngle1),sin(spikeAngle1)];
+        spikeVectorPlus90 = [cos(spikeAngle1+90),sin(spikeAngle1+90)];
+        p0 = spikeCenter-tangent/2*lengthAlongTangent;
+        p1 = spikeCenter+tangent/2*lengthAlongTangent;
+        delta = min(spikeThickness,headbandStripWidth)/2;
+        linear_extrude(height=headbandStripWidth)
+        polygon([p1,p0,p0+spikeVector*(spikeLength-delta),p0+spikeVector*spikeLength+spikeVectorPlus90*spikeThickness*0.5,p0+spikeVector*(spikeLength-delta)+spikeVectorPlus90*spikeThickness]);
+    }
 }
 
 module headband() {
