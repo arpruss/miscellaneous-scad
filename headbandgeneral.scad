@@ -1,23 +1,25 @@
 use <bezier.scad>;
 use <paths.scad>;
 
-headbandWidth = 140;
+headbandWidth = 130;
 headbandHeightRatio = 1.1;
-headbandStripWidth = 10;
-headbandStripThickness = 2.5;
+headbandStripWidth = 13;
+headbandStripThickness = 3.75; // 2.5;
 toothedRatio = .7;
 toothSpacing = 3;
 toothThickness = 1;
 toothLength = 1;
 toothWidthRatio = 0.5;
+bottomNarrowing = 0.3;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
-spikeThickness = 4;
+spikeThickness = 3.95;
+spikeWidth = 10;
 spikeLength = 14;
 spikePosition = 0.25;
 spikeAngle = 90;
 secondarySpike = 1; //[0:no, 1:yes]
-secondarySpikePosition = 0.42;
+secondarySpikePosition = 0.45;
 secondarySpikeAngle = 90;
 
 module dummy() {}
@@ -28,7 +30,7 @@ headbandHeight = headbandWidth * headbandHeightRatio;
 
 pointsRight = Bezier([
 [0,headbandHeight], /*C*/POLAR(headbandWidth/4,0), /*C*/POLAR(headbandWidth/4,90), [headbandWidth/2,headbandHeight/2],
-/*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/(headbandBottomFlare?6:4),headbandBottomFlare?90:60),[headbandWidth/4,0]]);
+/*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/(headbandBottomFlare?6:4),headbandBottomFlare?90:60),[headbandWidth*bottomNarrowing,0]]);
 
 interp = interpolationData(pointsRight);
 length = totalLength(interp);
@@ -63,6 +65,8 @@ module rightSide() {
 
     spikes = secondarySpike ? [ [spikePosition,spikeAngle], [secondarySpikePosition,secondarySpikeAngle]] : [ [spikePosition,spikeAngle]];
     
+    echo("Length", length);
+    
     for (s=spikes) {
         spikePosition = s[0];
         spikeAngle = s[1];
@@ -77,7 +81,7 @@ module rightSide() {
         p0 = spikeCenter-tangent/2*lengthAlongTangent;
         p1 = spikeCenter+tangent/2*lengthAlongTangent;
         delta = min(spikeThickness,headbandStripWidth)/2;
-        linear_extrude(height=headbandStripWidth)
+        linear_extrude(height=spikeWidth)
         polygon([p1,p0,p0+spikeVector*(spikeLength-delta),p0+spikeVector*spikeLength+spikeVectorPlus90*spikeThickness*0.5,p0+spikeVector*(spikeLength-delta)+spikeVectorPlus90*spikeThickness]);
     }
 }
