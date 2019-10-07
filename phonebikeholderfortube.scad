@@ -6,13 +6,14 @@ snapHeight = 10.6;
 thickness = 4;
 holderWidth = 52;
 
+tubeDiameterBottom = 35;
+tubeDiameterTop = 25;
 tubeGrabberStalkThickness = 15;
-tubeGrabberStalkLengthBottom = 0;
+tubeGrabberStalkLengthBottom = 5;
 tubeGrabberStalkLengthTop = 20;
 tubeGrabberWall = 3;
 tubeGrabberScrewAreaWall = 4;
 tubeGrabberScrewAreaWidth = 15;
-tubeDiameter = 20;
 tubeExtraDepthBottom = 0;
 tubeExtraDepthTop = 20;
 tubeTolerance = 1;
@@ -66,17 +67,18 @@ module tube(outset=0) {
     nudgez = outset==0 ? nudge : 0;
     hull() {
         for (dy=[0,-tubeExtraDepthBottom]) 
-        translate([0,-tubeGrabberStalkLengthBottom-tubeGrabberWall-tubeTolerance-tubeDiameter/2+dy,-nudgez])
-        cylinder(d=tubeDiameter+2*tubeTolerance+2*outset,h=nudge);
+        translate([0,-tubeGrabberStalkLengthBottom-tubeGrabberWall-tubeTolerance-tubeDiameterBottom/2+dy,-nudgez])
+        cylinder(d=tubeDiameterBottom+2*tubeTolerance+2*outset,h=nudge);
         for (dy=[0,-tubeExtraDepthTop]) 
-        translate([0,-tubeGrabberStalkLengthTop-tubeGrabberWall-tubeTolerance-tubeDiameter/2+dy,holderWidth-nudge+nudgez])
-        cylinder(d=tubeDiameter+2*tubeTolerance+2*outset,h=nudge);        
+        translate([0,-tubeGrabberStalkLengthTop-tubeGrabberWall-tubeTolerance-tubeDiameterTop/2+dy,holderWidth-nudge+nudgez])
+        cylinder(d=tubeDiameterTop+2*tubeTolerance+2*outset,h=nudge);        
     }
     if(outset>0) {
-        hull() for (dydz=[[tubeGrabberStalkLengthBottom,0],[tubeGrabberStalkLengthTop,holderWidth-nudge]]) {
+        hull() for (dydz=[[tubeGrabberStalkLengthBottom,0,tubeDiameterBottom],[tubeGrabberStalkLengthTop,holderWidth-nudge,tubeDiameterTop]]) {
             {
                 dy = dydz[0];
                 dz = dydz[1];
+                tubeDiameter = dydz[2];
                 translate([-tubeGrabberStalkThickness/2,-dy-tubeDiameter/2-nudge,dz])
               cube([tubeGrabberStalkThickness,dy+tubeDiameter/2+2*nudge,nudge]);
             }
@@ -86,17 +88,18 @@ module tube(outset=0) {
 
     w = outset>0 ? (tubeGrabberScrewAreaWall*2+cinch) : cinch;
     nudgey = outset>0 ? 0 : nudge;
-        hull() for (dydz=[[tubeGrabberStalkLengthBottom+tubeExtraDepthBottom+nudgey,-nudgez],[tubeGrabberStalkLengthTop+tubeExtraDepthTop+nudgey,holderWidth-nudge+nudgez]]) {
+        hull() for (dydz=[[tubeGrabberStalkLengthBottom+tubeExtraDepthBottom+nudgey,-nudgez,tubeDiameterBottom],[tubeGrabberStalkLengthTop+tubeExtraDepthTop+nudgey,holderWidth-nudge+nudgez,tubeDiameterTop]]) {
             dy = dydz[0];
             dz = dydz[1];
+            tubeDiameter = dydz[2];
             translate([-w/2,-tubeGrabberScrewAreaWidth-dy-tubeDiameter-tubeTolerance/2-tubeGrabberWall*2,dz]) cube([w,tubeGrabberScrewAreaWidth+tubeDiameter/2,nudge]);
         }
 
 }
 
 module screwStuff() {
-    syBottom = -tubeGrabberStalkLengthBottom-tubeExtraDepthBottom-tubeGrabberScrewAreaWidth/2-tubeDiameter-tubeTolerance/2-tubeGrabberWall*2;
-    syTop = -tubeGrabberStalkLengthTop-tubeExtraDepthTop-tubeGrabberScrewAreaWidth/2-tubeDiameter-tubeTolerance/2-tubeGrabberWall*2;
+    syBottom = -tubeGrabberStalkLengthBottom-tubeExtraDepthBottom-tubeGrabberScrewAreaWidth/2-tubeDiameterBottom-tubeTolerance/2-tubeGrabberWall*2;
+    syTop = -tubeGrabberStalkLengthTop-tubeExtraDepthTop-tubeGrabberScrewAreaWidth/2-tubeDiameterTop-tubeTolerance/2-tubeGrabberWall*2;
     sy1 = syBottom * (1-screwPosition1) + syTop * screwPosition1;
     sy2 = syBottom * (1-screwPosition2) + syTop * screwPosition2;
     sz1 = screwPosition1 * holderWidth;
