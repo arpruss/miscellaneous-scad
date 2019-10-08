@@ -4,10 +4,11 @@ use <paths.scad>;
 phoneWidth = 77.5;
 snapHeight = 10.6;
 thickness = 4;
-holderWidth = 52;
+holderHeight = 52;
 
 tubeDiameterBottom = 35;
 tubeDiameterTop = 25;
+tubeGrabberHeight = 40;
 tubeGrabberStalkThickness = 15;
 tubeGrabberStalkLengthBottom = 5;
 tubeGrabberStalkLengthTop = 20;
@@ -59,7 +60,7 @@ rightPath =
 path = stitchPaths(rightPath,reverseArray(transformPath(mirrorMatrix([1,0]),rightPath)));
 
 module mainHolder() {
-    linear_extrude(height=holderWidth) 
+    linear_extrude(height=holderHeight) 
 offset(r=-rounding) offset(r=rounding) polygon(points=path);
 }
 
@@ -70,11 +71,11 @@ module tube(outset=0) {
         translate([0,-tubeGrabberStalkLengthBottom-tubeGrabberWall-tubeTolerance-tubeDiameterBottom/2+dy,-nudgez])
         cylinder(d=tubeDiameterBottom+2*tubeTolerance+2*outset,h=nudge);
         for (dy=[0,-tubeExtraDepthTop]) 
-        translate([0,-tubeGrabberStalkLengthTop-tubeGrabberWall-tubeTolerance-tubeDiameterTop/2+dy,holderWidth-nudge+nudgez])
+        translate([0,-tubeGrabberStalkLengthTop-tubeGrabberWall-tubeTolerance-tubeDiameterTop/2+dy,tubeGrabberHeight-nudge+nudgez])
         cylinder(d=tubeDiameterTop+2*tubeTolerance+2*outset,h=nudge);        
     }
     if(outset>0) {
-        hull() for (dydz=[[tubeGrabberStalkLengthBottom,0,tubeDiameterBottom],[tubeGrabberStalkLengthTop,holderWidth-nudge,tubeDiameterTop]]) {
+        hull() for (dydz=[[tubeGrabberStalkLengthBottom,0,tubeDiameterBottom],[tubeGrabberStalkLengthTop,tubeGrabberHeight-nudge,tubeDiameterTop]]) {
             {
                 dy = dydz[0];
                 dz = dydz[1];
@@ -88,7 +89,7 @@ module tube(outset=0) {
 
     w = outset>0 ? (tubeGrabberScrewAreaWall*2+cinch) : cinch;
     nudgey = outset>0 ? 0 : nudge;
-        hull() for (dydz=[[tubeGrabberStalkLengthBottom+tubeExtraDepthBottom+nudgey,-nudgez,tubeDiameterBottom],[tubeGrabberStalkLengthTop+tubeExtraDepthTop+nudgey,holderWidth-nudge+nudgez,tubeDiameterTop]]) {
+        hull() for (dydz=[[tubeGrabberStalkLengthBottom+tubeExtraDepthBottom+nudgey,-nudgez,tubeDiameterBottom],[tubeGrabberStalkLengthTop+tubeExtraDepthTop+nudgey,tubeGrabberHeight-nudge+nudgez,tubeDiameterTop]]) {
             dy = dydz[0];
             dz = dydz[1];
             tubeDiameter = dydz[2];
@@ -102,8 +103,8 @@ module screwStuff() {
     syTop = -tubeGrabberStalkLengthTop-tubeExtraDepthTop-tubeGrabberScrewAreaWidth/2-tubeDiameterTop-tubeTolerance/2-tubeGrabberWall*2;
     sy1 = syBottom * (1-screwPosition1) + syTop * screwPosition1;
     sy2 = syBottom * (1-screwPosition2) + syTop * screwPosition2;
-    sz1 = screwPosition1 * holderWidth;
-    sz2 = screwPosition2 * holderWidth;
+    sz1 = screwPosition1 * tubeGrabberHeight;
+    sz2 = screwPosition2 * tubeGrabberHeight;
     for (pos=[[sy1,sz1],[sy2,sz2]]) 
         translate([0,pos[0],pos[1]]) rotate([0,90,0])
     cylinder(d=screwHoleDiameter,h=tubeGrabberScrewAreaWall*2+cinch+2*nudge,center=true,$fn=12);
