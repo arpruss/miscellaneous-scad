@@ -1,16 +1,16 @@
 use <bezier.scad>;
 use <paths.scad>;
 
-headbandWidth = 130;
-headbandHeightRatio = 1.1;
-headbandStripWidth = 13;
-headbandStripThickness = 3.75; // 2.5;
+headbandWidth = 128;
+headbandHeightRatio = 1.05;
+headbandStripWidth = 20;
+headbandStripThickness = 3.9; // 2.5;
 toothedRatio = .7;
 toothSpacing = 3;
 toothThickness = 1;
 toothLength = 1;
 toothWidthRatio = 0.5;
-bottomNarrowing = 0.3;
+bottomNarrowing = 0.35;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
 spikeThickness = 3.95;
@@ -29,7 +29,7 @@ nudge = 0.01;
 headbandHeight = headbandWidth * headbandHeightRatio;
 
 pointsRight = Bezier([
-[0,headbandHeight], /*C*/POLAR(headbandWidth/4,0), /*C*/POLAR(headbandWidth/4,90), [headbandWidth/2,headbandHeight/2],
+[0,headbandHeight], /*C*/POLAR(headbandWidth/3,0), /*C*/POLAR(headbandWidth/4,90), [headbandWidth/2,headbandHeight/2],
 /*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/(headbandBottomFlare?6:4),headbandBottomFlare?90:60),[headbandWidth*bottomNarrowing,0]]);
 
 interp = interpolationData(pointsRight);
@@ -64,8 +64,6 @@ module rightSide() {
     }
 
     spikes = secondarySpike ? [ [spikePosition,spikeAngle], [secondarySpikePosition,secondarySpikeAngle]] : [ [spikePosition,spikeAngle]];
-    
-    echo("Length", length);
     
     for (s=spikes) {
         spikePosition = s[0];
