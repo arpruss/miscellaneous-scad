@@ -137,7 +137,7 @@ function DecodeSpecialBezierPoints(p0) =
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
         p1=DecodeLines(p0),
-        p=echo(p1) DecodeBezierOffsets(p1),
+        p=DecodeBezierOffsets(p1),
         basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4],p[i+2]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4],p[i-2]))])
         doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 
