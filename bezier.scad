@@ -57,15 +57,14 @@ function OFFSET(v) = ["o",v];
 function SHARP() = OFFSET([0,0,0]);
 function LINE() = ["l",0];
 function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
-function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o" || v[0]=="l");
+//function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o" || v[0]=="l");
 
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
 function getControlPoint(cp,node,otherCP,otherNode,nextNode) = 
     let(v=node-otherCP) (          
     cp[0]=="r" ? node+cp[1]*v:
     cp[0]=="a" ? (
-        norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) : 
-    cp[0]=="l" ? (2*node+nextNode)/3 :
+        norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) :
         cp );
 
 function onLine2(a,b,c,eps=1e-4) =
@@ -128,11 +127,17 @@ function DecodeBezierOffsets(p) = [for (i=[0:_correctLength(p)-1]) i%3==0?p[i]:(
 function _mirrorPaths(basePath, control, start) =
     control[start][0] == "m" ? _mirrorPaths(_stitchPaths(basePath,_reverseArray(_transformPath(_mirrorMatrix( control[start][1] ),basePath))), control, start+1) : basePath;
 
+function DecodeLines(p) = [for (i=[0:len(p)-1]) 
+    i%3==0 || p[i][0] != "l" ? p[i] :
+    i%3 == 1 ? (p[i-1]*2+p[i+2])/3 :
+    (p[i-2]+p[i+1]*2)/3 ];
+
 function DecodeSpecialBezierPoints(p0) = 
     let(
         l = _correctLength(p0),
         doMirror = len(p0)>l && p0[l][0] == "m",
-        p=DecodeBezierOffsets(p0),
+        p1=DecodeLines(p0),
+        p=echo(p1) DecodeBezierOffsets(p1),
         basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4],p[i+2]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4],p[i-2]))])
         doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
 

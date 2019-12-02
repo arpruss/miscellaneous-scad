@@ -1,10 +1,10 @@
 use <Bezier.scad>;
 
 //<params>
-additive = true;
-includeSides = 2; //[0:0, 1:1, 2:2]
+additive = false;
+includeSides = 0; //[0:0, 1:1, 2:2]
 includeSupports = true;
-tolerance = 0.15;
+tolerance = -0.15;
 bottomSpacing = 10;
 minWidth = 7;
 lip = 12;
