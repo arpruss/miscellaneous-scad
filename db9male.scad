@@ -2,30 +2,48 @@ use <bezier.scad>;
 use <roundedSquare.scad>;
 
 //<params>
-height = 8.3;
-width2 = 16.92;
-width1 = 15.5;
-offset = 1;
-rounding = 0.75;
-stripsHeight = 2.51;
-stripsTolerance = 0.25;
-pinSpacing = 2.77;
-stripsDepth = 2.77;
+pins = 9;
+stripsTolerance = 0.35;
 socketWall = 1.5;
 socketDepth = 7;
-// official spacing is 25, but I like it wider
-screwSpacing = 27.5;
-// official width is 30.8, but I like it wider
-outerWidth = 35; 
-outerHeight = 12.5;
-mountThickness = 2;
-screwHole = 3;
+mountThickness = 1.75;
+// the jack is the female part that fits inside the socket
+jackHeight = 8.3;
+jackWidthIncrementBeyondNominalPinSpacing = 3.12;
+// official value for db9 is 10.7, but that's not so good for our thicker plastic wall
+mountHeight = 12.5;
+// official value for db9 is 3.04, but I like 3.75
+mountEdgeDistanceBeyondScrews = 3.04;
+// official distance for db9 is 4.04, but I like 5.3
+screwDistanceFromJack = 4.04;
+screwHole = 3.05;
+
+slantAngle = 10;
+offset = 1.34;
+rounding = 0.75;
+stripsHeight = 2.51;
+// this is what it should be
+nominalPinSpacing = 2.76;
+// this is what it is if you use 0.1" header
+headerPinSpacing = 2.54;
+stripsDepth = 2.77;
 //</params>
 
 module dummy(){}
 
-stripsWidth2 = pinSpacing * 5;
-stripsWidth1 = pinSpacing * 3;
+pinsInRow2 = pins%2 ? (pins+1)/2 : pins/2;
+pinsInRow1 = pins%2 ? (pins-1)/2 : pins/2;
+jackWidth = pinsInRow2*nominalPinSpacing+jackWidthIncrementBeyondNominalPinSpacing; 
+
+pinSpacing = headerPinSpacing;
+screwSpacing = jackWidth+ 2 * screwDistanceFromJack;
+mountWidth = screwSpacing + 2*mountEdgeDistanceBeyondScrews;
+height = jackHeight;
+width2 = jackWidth;
+width1 = width2-tan(slantAngle)*(height-2*offset);
+
+stripsWidth2 = pinSpacing * pinsInRow2;
+stripsWidth1 = pinSpacing * pinsInRow1;
 nudge = 0.01;
 
          
@@ -53,7 +71,7 @@ module outerSocket() {
 
 linear_extrude(height=mountThickness)
 difference() {
-    roundedSquare([outerWidth,outerHeight],center=true,radius=1);
+    roundedSquare([mountWidth,mountHeight],center=true,radius=1);
     innerInside();
     for (i=[-1,1]) translate([i*(screwSpacing/2),0]) circle($fn=16,d=screwHole);
 }
