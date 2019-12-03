@@ -26,11 +26,15 @@ stripsHeight = 2.51;
 nominalPinSpacing = 2.76;
 // this is what it is if you use 0.1" header
 headerPinSpacing = 2.54;
-stripsDepth = 2.77;
+stripsSpacerDepth = 2.77;
+// this might be useful to put down an extra layer of plastic at the bottom to help the header pins stick in place
+stripsExtraDepth = 0; 
+pinHoleDiameter = 0.4;
 //</params>
 
 module dummy(){}
 
+stripsDepth = stripsSpacerDepth + stripsExtraDepth;
 pinsInRow2 = pins%2 ? (pins+1)/2 : pins/2;
 pinsInRow1 = pins%2 ? (pins-1)/2 : pins/2;
 jackWidth = pinsInRow2*nominalPinSpacing+jackWidthIncrementBeyondNominalPinSpacing; 
@@ -87,3 +91,16 @@ difference() {
     outerSocket();
     roundedTrapezoid(width1,width2,height);
 }
+
+if (stripsExtraDepth>0) 
+    linear_extrude(height=stripsExtraDepth) difference() {
+        outerSocket();
+        for (i=[0,1]) {
+            pins = [pinsInRow1,pinsInRow2][i];
+            translate([-pins/2*headerPinSpacing+0.5*headerPinSpacing,stripsHeight*(i-0.5)]) {
+                for(j=[0:pins-1]) {
+                    translate([headerPinSpacing*j,0]) circle(d=pinHoleDiameter,$fn=18);
+                }
+            }
+        }
+    }
