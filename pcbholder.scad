@@ -1,21 +1,21 @@
 use <pointhull.scad>;
 use <roundedSquare.scad>;
 
-pcbThickness = 2;
-pcbWidth = 30;
-pcbLength = 60;
-pcbOffsetFromBase = 5;
+pcbThickness = 1.55;
+pcbWidth = 22.7;
+pcbLength = 52.8;
+pcbOffsetFromBase = 2.6;
 tolerance = 0.5;
-wall = 2;
+wall = 1.5;
 ridge = 1.5;
-screwSize = 5;
-screwHoleWall = 3;
+screwSize = 3.5;
+screwHoleWall = 2;
 screwButtressWall = 3;
 screw1DistanceFromFront = 5;
 screw2DistanceFromFront = 50;
-screwDistanceFromPCB = 15;
-rearHole = 20;
-holeDistanceFromWall = 5;
+screwDistanceFromPCB = 6;
+rearHole = 10;
+holeDistanceFromWall = 4;
 
 module dummy() {}
 
@@ -23,7 +23,7 @@ $fn = 32;
 
 nudge = 0.001;
 
-h = pcbOffsetFromBase+pcbThickness+ridge;
+h = wall+pcbOffsetFromBase+pcbThickness+ridge;
 
 module screw() {
     d = screwSize + screwHoleWall*2;
