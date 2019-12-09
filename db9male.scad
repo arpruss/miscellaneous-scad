@@ -50,15 +50,17 @@ stripsWidth2 = pinSpacing * pinsInRow2;
 stripsWidth1 = pinSpacing * pinsInRow1;
 nudge = 0.01;
 
-         
-module roundedTrapezoid(width1,width2,height) {
-path = [ [0,0], LINE(), LINE(), 
+function roundedTrapezoidPath(width1,width2,height) = 
+    let(path = [ [0,0], LINE(), LINE(), 
          [width1/2-offset,0], SMOOTH_ABS(offset*rounding), SMOOTH_ABS(offset*rounding), 
          [width1/2,offset], LINE(), LINE(), 
          [width2/2,height-offset], SMOOTH_ABS(offset*rounding), SMOOTH_ABS(offset*rounding), 
-         [width2/2-offset,height], LINE(), LINE(), [0,height], REPEAT_MIRRORED([10,0])];
+         [width2/2-offset,height], LINE(), LINE(), [0,height], REPEAT_MIRRORED([10,0])])
+    Bezier(path);
+    
+module roundedTrapezoid(width1,width2,height) {
     translate([0,-height/2])
-    polygon(Bezier(path));         
+    polygon(roundedTrapezoidPath(width1,width2,height));         
 }
 
 module innerInside() {
@@ -72,6 +74,10 @@ module innerInside() {
 module outerSocket() {
     offset(r=socketWall) roundedTrapezoid(width1,width2,height);
 }
+
+function outerSocketHeight() =
+    let(path=roundedTrapezoidPath(width1,width2,height))    
+    2*socketWall + max([for(p=path) p[1]])-min([for(p=path) p[1]]);
 
 linear_extrude(height=mountThickness)
 difference() {

@@ -5,7 +5,7 @@ pcbThickness = 1.55;
 pcbWidth = 22.7;
 pcbLength = 52.8;
 pcbOffsetFromBase = 2.6;
-tolerance = 0.5;
+tolerance = 0.05;
 wall = 1.5;
 ridge = 1.5;
 screwSize = 3.5;
@@ -24,6 +24,9 @@ $fn = 32;
 nudge = 0.001;
 
 h = wall+pcbOffsetFromBase+pcbThickness+ridge;
+
+echo("height", h);
+echo("screwSpacing", screwDistanceFromPCB*2 + pcbWidth);
 
 module screw() {
     d = screwSize + screwHoleWall*2;
