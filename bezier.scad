@@ -127,6 +127,11 @@ function DecodeBezierOffsets(p) = [for (i=[0:_correctLength(p)-1]) i%3==0?p[i]:(
 function _mirrorPaths(basePath, control, start) =
     control[start][0] == "m" ? _mirrorPaths(_stitchPaths(basePath,_reverseArray(_transformPath(_mirrorMatrix( control[start][1] ),basePath))), control, start+1) : basePath;
 
+function DecodeMirrored(path,start=0) =
+    start >= len(path) ? path :
+    path[start][0] == "m" ? _mirrorPaths([for(i=[0:1:start-1]) path[i]], path, start) : 
+        DecodeMirrored(path,start=start+1);
+
 function DecodeLines(p) = [for (i=[0:len(p)-1]) 
     i%3==0 || p[i][0] != "l" ? p[i] :
     i%3 == 1 ? (p[i-1]*2+p[i+2])/3 :
@@ -168,7 +173,32 @@ function SplineAroundPoint(a,b,c,tension=0.5,includeLeftCP=true,includeRightCP=t
     includeRightCP ?
         [b,POLAR(tension*norm(c-b),GetSplineAngle(a,b,c))] :
         [b];
+        
+function mod(n,m) = let(q=n%m) q>=0 ? q : m+q;
 
+function _unit(v) = norm(v)==0 ? [for(x=v) 0] : v/norm(v);
+
+function _corner(p0,p1,p2,offset=2,tension=0.448084975506) =
+    [p1-_unit(p1-p0)*offset,    
+    p1-_unit(p1-p0)*offset*(1-tension),
+    p1-_unit(p1-p2)*offset*(1-tension),
+    p1-_unit(p1-p2)*offset,
+    LINE(),LINE()];
+
+function _roundPathRaw(path,start,end,offset=2,tension=0.551915024494) =
+    let(n=len(path),
+        p2=_mirrorPaths(path))
+        [for(p=[for(i=[start:1:end-1]) _corner(p2[mod(i-1,n)],p2[i],path[mod(i+1,n)],offset=offset,tension=tension)]) for(q=p) q];
+
+function PathToBezier(path,offset=2,tension=0.551915024494,closed=false) =
+    let(p1=DecodeMirrored(path),
+        n=len(p1))
+        offset==0 && tension==0 ?
+        p1 :
+        !closed ? concat([p1[0],LINE(),LINE()], _roundPathRaw(p1,1,n-1,offset=offset,tension=tension), [p1[n-1]]) :
+        let(p2 = _roundPathRaw(p1,0,n,offset=offset,tension=tension),
+            n2 = len(p2))
+        [for(i=[0:1:n2-3]) p2[mod(i,n2)]];        
 function BezierSmoothPoints(points,tension=0.5,closed=false)
     = let (n=len(points))
         flatten(
