@@ -2,16 +2,13 @@ use <roundedSquare.scad>;
 use <pointHull.scad>;
 use <db9male.scad>;
 
-width = 44;
+width = 50;
 length = 56;
 corner = 3;
 wall = 1.75;
+socketScrewSpacing = 27.46;
 socketMountHeight = 13.34;
-socketMountWidth = 35.3;
-socketMountWall = 1.88;
-socketWing = 5;
 socketMountBottomOffsetFromBase = 11.5;
-socketWingTolerance = 0.2;
 socketCutoutTolerance = 0.2;
 usbHoleWidth = 11.3;
 usbHoleHeight = 5.65;
@@ -27,7 +24,7 @@ pcbScrewHorizontalSpacing = 34.7;
 pcbScrew1DistanceFromFront = 5;
 pcbScrew2DistanceFromFront = 50;
 pcbScrewHole = 4;
-pcbScrewHeadDiameter = 8;
+pcbScrewHeadDiameter = 7;
 pcbScrewHeadInset = 2;
 lidTolerance = 0.2;
 
@@ -126,9 +123,11 @@ module usbCutout() {
 }
 
 module db9Cutout() {
-    translate([0,length+wall,bottomHeight-outerSocketHeight()/2]) rotate([90,0,0]) translate([0,0,-wall]) linear_extrude(height=3*wall) hull() {
-        outerSocket();
-        translate([0,3*wall]) outerSocket();
+    z = bottomHeight-outerSocketHeight()/2-socketCutoutTolerance;
+    translate([0,length+wall,z]) rotate([90,0,0]) translate([0,0,-wall]) linear_extrude(height=3*wall) {
+        for(i=[-1,1]) translate([socketScrewSpacing/2*i,0])
+            circle(d=screwBiggerHole);
+        offset(r=socketCutoutTolerance) outerSocket();
     }
 }
 

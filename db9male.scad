@@ -41,6 +41,7 @@ jackWidth = pinsInRow2*nominalPinSpacing+jackWidthIncrementBeyondNominalPinSpaci
 
 pinSpacing = headerPinSpacing;
 screwSpacing = jackWidth+ 2 * screwDistanceFromJack;
+
 mountWidth = screwSpacing + 2*mountEdgeDistanceBeyondScrews;
 height = jackHeight;
 width2 = jackWidth;
@@ -85,6 +86,8 @@ difference() {
     innerInside();
     for (i=[-1,1]) translate([i*(screwSpacing/2),0]) circle($fn=16,d=screwHole);
 }
+
+function getMountHeight() = mountHeight;
 
 linear_extrude(height=stripsDepth)
 difference() {
