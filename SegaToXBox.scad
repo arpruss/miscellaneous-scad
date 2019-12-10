@@ -2,7 +2,7 @@ use <roundedSquare.scad>;
 use <pointHull.scad>;
 use <db9male.scad>;
 
-width = 44+3;
+width = 44;
 length = 56;
 corner = 3;
 wall = 1.75;
@@ -65,7 +65,7 @@ module lid() {
                 translate([0,length/2,0]) base(-lidTolerance);
             }
         }
-        for(s=lidScrews) translate(s) translate([0,0,-nudge]) cylinder(d=screwBiggerHole,h=max(screwBearingWallMinimum,wall)+nudge);
+        for(s=lidScrews) translate(s) translate([0,0,-nudge]) cylinder(d=screwBiggerHole,h=max(screwBearingWallMinimum,wall)+2*nudge);
     }
 }
 
@@ -123,13 +123,20 @@ module screwHolder() {
 module usbCutout() {
     h0 = pcbScrewHeadInset+max(wall,screwBearingWallMinimum);
     translate([0,0,h0+usbHoleCenterOffsetFromBase]) cube([usbHoleWidth,usbHoleHeight,wall*3],center=true);
+}
 
+module db9Cutout() {
+    translate([0,length+wall,bottomHeight-outerSocketHeight()/2]) rotate([90,0,0]) translate([0,0,-wall]) linear_extrude(height=3*wall) hull() {
+        outerSocket();
+        translate([0,3*wall]) outerSocket();
+    }
 }
 
 //screwHolder();
 difference() {
     bottom();
     usbCutout();
+    db9Cutout();
 }
 
 translate([width+wall+5,0,0]) lid();
