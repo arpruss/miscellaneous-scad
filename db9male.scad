@@ -89,6 +89,7 @@ difference() {
 
 function getMountHeight() = mountHeight;
 
+//<skip>
 linear_extrude(height=stripsDepth)
 difference() {
     outerSocket();
@@ -113,3 +114,4 @@ if (stripsExtraDepth>0)
             }
         }
     }
+//</skip>

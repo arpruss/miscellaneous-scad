@@ -1,6 +1,6 @@
 use <roundedSquare.scad>;
 use <pointHull.scad>;
-use <db9male.scad>;
+use <db9male-for-genesis.scad>;
 
 //<params>
 width = 50;

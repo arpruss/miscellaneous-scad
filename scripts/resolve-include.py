@@ -26,7 +26,8 @@ def process(name):
                     current = stack.pop()
                 elif lineStripped == "//<skip>":
                     stack.append(current)
-                    current = skip
+                    if stack:
+                        current = skip
                 elif lineStripped == "//</skip>":
                     current = stack.pop()
                 else:
