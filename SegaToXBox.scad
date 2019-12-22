@@ -6,6 +6,7 @@ width = 50;
 length = 56;
 corner = 3;
 wall = 1.75;
+socketCount = 2;
 socketScrewSpacing = 27.46;
 socketMountHeight = 13.34;
 socketMountBottomOffsetFromBase = 11.5;
@@ -122,12 +123,23 @@ module usbCutout() {
     translate([0,0,h0+usbHoleCenterOffsetFromBase]) cube([usbHoleWidth,usbHoleHeight,wall*3],center=true);
 }
 
-module db9Cutout() {
+module db9Cutout2D() {
+    for(i=[-1,1]) translate([socketScrewSpacing/2*i,0])
+        circle(d=screwBiggerHole);
+    offset(r=socketCutoutTolerance) outerSocket();
+}
+
+module db9CutoutFront() {
     z = bottomHeight-outerSocketHeight()/2-socketCutoutTolerance;
     translate([0,length+wall,z]) rotate([90,0,0]) translate([0,0,-wall]) linear_extrude(height=3*wall) {
-        for(i=[-1,1]) translate([socketScrewSpacing/2*i,0])
-            circle(d=screwBiggerHole);
-        offset(r=socketCutoutTolerance) outerSocket();
+        db9Cutout2D();
+    }
+}
+
+module db9CutoutRight() {
+    z = bottomHeight-outerSocketHeight()/2-socketCutoutTolerance;
+    translate([-width/2-wall,length/2+wall,z]) rotate([0,0,90]) rotate([90,0,0]) translate([0,0,-wall]) linear_extrude(height=3*wall) {
+        db9Cutout2D();
     }
 }
 
@@ -135,7 +147,10 @@ module db9Cutout() {
 difference() {
     bottom();
     usbCutout();
-    db9Cutout();
+    if (socketCount > 0)
+        db9CutoutFront();
+    if (socketCount > 1)
+        db9CutoutRight();
 }
 
 translate([width+wall+5,0,0]) lid();
