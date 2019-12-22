@@ -2,6 +2,7 @@ use <roundedSquare.scad>;
 use <pointHull.scad>;
 use <db9male.scad>;
 
+//<params>
 width = 50;
 length = 56;
 corner = 3;
@@ -28,6 +29,7 @@ pcbScrewHole = 4;
 pcbScrewHeadDiameter = 7;
 pcbScrewHeadInset = 2;
 lidTolerance = 0.2;
+//</params>
 
 module dummy() {}
 

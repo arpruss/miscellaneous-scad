@@ -1,6 +1,7 @@
 use <pointhull.scad>;
 use <roundedSquare.scad>;
 
+// <params>
 pcbThickness = 1.55;
 pcbWidth = 22.7;
 pcbLength = 52.8;
@@ -16,6 +17,7 @@ screw2DistanceFromFront = 50;
 screwDistanceFromPCB = 6;
 rearHole = 10;
 holeDistanceFromWall = 4;
+// </params>
 
 module dummy() {}
 

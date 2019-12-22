@@ -16,7 +16,7 @@ mountHeight = 12.5;
 mountEdgeDistanceBeyondScrews = 3.04;
 // official distance for db9 is 4.04, but I like 5.3
 screwDistanceFromJack = 4.04;
-screwHole = 3.05;
+socketScrewHole = 3.05;
 
 slantAngle = 10;
 offset = 1.34;
@@ -84,7 +84,7 @@ linear_extrude(height=mountThickness)
 difference() {
     roundedSquare([mountWidth,mountHeight],center=true,radius=1);
     innerInside();
-    for (i=[-1,1]) translate([i*(screwSpacing/2),0]) circle($fn=16,d=screwHole);
+    for (i=[-1,1]) translate([i*(screwSpacing/2),0]) circle($fn=16,d=socketScrewHole);
 }
 
 function getMountHeight() = mountHeight;
