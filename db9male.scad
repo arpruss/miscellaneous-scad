@@ -80,6 +80,7 @@ function outerSocketHeight() =
     let(path=roundedTrapezoidPath(width1,width2,height))    
     2*socketWall + max([for(p=path) p[1]])-min([for(p=path) p[1]]);
 
+//<skip>
 linear_extrude(height=mountThickness)
 difference() {
     roundedSquare([mountWidth,mountHeight],center=true,radius=1);
@@ -89,7 +90,6 @@ difference() {
 
 function getMountHeight() = mountHeight;
 
-//<skip>
 linear_extrude(height=stripsDepth)
 difference() {
     outerSocket();

@@ -8,14 +8,14 @@ current = output
 
 stack = []
 
-def process(name):
+def process(name,level=0):
     global current
     with open(name) as f:
         for line in f:
             m = re.match(r'(include|use)\s+<([^>]+)>', line)
             if m:
                 current.append("\n//BEGIN: "+line.strip())
-                process(m.group(2))
+                process(m.group(2),level=level+1)
                 current.append("\n//END: "+line.strip()+"\n")
             else:
                 lineStripped = line.strip()
@@ -26,7 +26,7 @@ def process(name):
                     current = stack.pop()
                 elif lineStripped == "//<skip>":
                     stack.append(current)
-                    if stack:
+                    if level:                        
                         current = skip
                 elif lineStripped == "//</skip>":
                     current = stack.pop()
