@@ -13,9 +13,9 @@ jackWidthIncrementBeyondNominalPinSpacing = 3.12;
 // official value for db9 is 10.7, but that's not so good for our thicker plastic wall
 mountHeight = 12.5;
 // official value for db9 is 3.04, but I like 3.75
-mountEdgeDistanceBeyondScrews = 3.04;
+mountEdgeDistanceBeyondScrews = 3.75;
 // official distance for db9 is 4.04, but I like 5.3
-screwDistanceFromJack = 4.04;
+screwDistanceFromJack = 5.3;
 screwHole = 3.05;
 
 slantAngle = 10;
