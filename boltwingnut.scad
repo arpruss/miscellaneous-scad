@@ -2,16 +2,16 @@ use <Bezier.scad>;
 use <tubemesh.scad>;
 
 //<params>
-screwDiameter = 6.35;
-nutAcrossFlats = 11.1125;
-nutThickness = 5.55625;
+screwDiameter = 12.49;
+nutAcrossFlats = 18.78;
+nutThickness = 7.91;
 nutTolerance = 0.1;
-screwTolerance = 0.4;
+screwTolerance = 0.2;
 minWallVertical = 2.5;
-minWallHorizontal = 3;
-outerDiameter = 45;
-neckLength = 4;
-wingTipSize = 6;
+minWallHorizontal = 5;
+outerDiameter = 70;
+neckLength = 0;
+wingTipSize = 8;
 wingThickness = 10;
 wings = 3; // [3:3, 4:4, 5:5, 6:6, 7:7, 8:8]
 captive = 0; // [0:No, 1:Yes]
@@ -27,7 +27,7 @@ module dummy() {
 nudge = 0.01;
 R = outerDiameter / 2;
 nutDiameter = nutAcrossFlats / cos(180/6) + 2 * nutTolerance;
-r = nutDiameter/2 + minWallHorizontal;
+r = nutAcrossFlats/2 + minWallHorizontal;
 w = wingTipSize;
 angle = 360/wings;
 
@@ -69,6 +69,7 @@ z0 = neckLength+wingThickness-(captive?minWallVertical:-nudge)-nt;
 difference() {
     solid();
     translate([0,0,z0])
+    rotate([0,0,360/12])
     cylinder(d=nutDiameter,h=nt,$fn=6);
     translate([0,0,throughHole?-nudge:minWallVertical]) cylinder(d=screwDiameter+2*screwTolerance,h=neckLength+wingThickness+2*nudge,$fn=16);
 
