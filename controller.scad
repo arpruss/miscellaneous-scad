@@ -7,26 +7,30 @@ baseCurveHeight = 5;
 height=10;
 wallThickness=2;
 
+buttonSideTolerance=0.2;
+buttonFlange=2;
+
 $fn = 36;
+nudge = 0.01;
 
 function outline(sep, rectHeight, radius, $fn=36) = 
     let(
         angle0=asin((radius-rectHeight)/radius),
         angle1=180-asin((radius-rectHeight)/radius)) 
     concat( 
-        [for(i=[1:$fn-1]) let(t=i/$fn,
+        [for(i=[1:$fn]) let(t=i/$fn,
             angle=angle1*(1-t)+(360+90)*t)
         [sep/2,0]+radius*[cos(angle),sin(angle)]],
-        [for(i=[1:$fn-1]) let(t=i/$fn,
+        [for(i=[1:$fn]) let(t=i/$fn,
             angle=90*(1-t)+(360+angle0)*t)
         [-sep/2,0]+radius*[cos(angle),sin(angle)]]);
 
-function delta0(z,startAngle=90) =         
+function delta0(z,baseCurveHeight=baseCurveHeight,startAngle=45) =         
     let(baseCurveRadius=baseCurveHeight/sin(startAngle),
         angle=asin((baseCurveHeight-z)/baseCurveRadius))
         baseCurveRadius*cos(angle);
 
-function delta(h,startAngle=90) = delta0(h,startAngle=startAngle)-delta0(baseCurveHeight,startAngle=startAngle);     
+function delta(h,baseCurveHeight=baseCurveHeight,startAngle=45) = delta0(h,baseCurveHeight=baseCurveHeight,startAngle=startAngle)-delta0(baseCurveHeight,baseCurveHeight=baseCurveHeight,startAngle=startAngle);     
         
         
 module solidBowl(height=height,startAngle=45,delta=0) {
@@ -47,4 +51,43 @@ module hollowBowl(height=height,startAngle=45) {
     }
 }
 
-hollowBowl();
+module button(radius=10, separation=5, roundingHeight=2, flangeSize=buttonFlange, flangeToTop=8, bumpSize=0) {
+    
+    function o(delta,z)=sectionZ(outline(separation,2*radius+2*delta,radius+delta),z);
+    
+    sections1 = roundingHeight ? [for(i=[0:$fn])
+    let(t=i/$fn,
+    delta = delta(t*roundingHeight,baseCurveHeight=roundingHeight,startAngle=45))
+    o(delta,t*roundingHeight)] : [o(0,0)];
+    sections2 = [o(0,flangeToTop),
+    o(flangeSize,flangeToTop+flangeSize)];
+    tubeMesh(concat(sections1,sections2));
+    if(bumpSize)
+    translate([0,0,flangeToTop-nudge])
+    intersection() {
+        translate([-bumpSize*2,-bumpSize*2,0]) cube([bumpSize*4,bumpSize*4,bumpSize*2]);
+        sphere(r=bumpSize);
+    }
+
+}
+
+module buttonWell(radius=10, separation=5,wellDepth=6,flangeSize=buttonFlange,positive=true) {
+    
+    function flat(delta)=outline(separation,2*radius+2*delta,radius+delta);
+    function o(delta,z)=sectionZ(flat(delta),z);
+
+    if (positive) {
+        linear_extrude(height=wellDepth)
+        polygon(flat(buttonSideTolerance+buttonFlange));
+    }
+    else {
+        translate([0,0,-nudge]) button(flangeToTop=wellDepth+2*nudge-flangeSize, radius=radius+buttonSideTolerance,separation=separation,roundingHeight=0,flangeSize=flangeSize);
+    }
+}
+
+//hollowBowl();
+//button();
+difference() {
+    buttonWell(positive=true);
+    buttonWell(positive=false);
+}
