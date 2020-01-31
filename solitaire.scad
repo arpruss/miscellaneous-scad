@@ -1,8 +1,8 @@
 use <Bezier.scad>;
 
 mode=1; //[0:triangle,1:plus]
-output=1; //[0:pegs,1:board]
-threeD = 0; //[0:no, 1:yes]
+output=2; //[0:pegs,1:board,2:spare peg]
+threeD = 1; //[0:no, 1:yes]
 holeTolerance = 0.6;
 holeDepth = 8;
 pegHeight = 16;
@@ -84,5 +84,7 @@ module pegs(n) {
 
 if (output==0)
     pegs(len(points)-1);
+else if (output==2)
+    pegs(1);
 else
     board(board,points,threeD=threeD);
