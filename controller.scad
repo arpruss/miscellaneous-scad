@@ -1,5 +1,7 @@
 use <tubemesh.scad>;
 
+makeJoyMount = 1;
+
 circleSeparation = 150;
 radius = 40;
 rectHeight = 50;
@@ -10,8 +12,24 @@ wallThickness=2;
 buttonSideTolerance=0.2;
 buttonFlange=2;
 
+tactWidth = 5.91;
+tactHeight = 5.91;
+tactThickness = 4.93;
+
+joyMountPinSpacingX = 9.8;
+joyMountPinSpacingY = 12.5;
+joyMountPinLength = 3;
+joyMountPinHoleDiameter = 1.5;
+joyMountWidth = 30;
+joyMountHeight = 27.5;
+joyMountScrewHole = 3.5;
+joyMountScrewOffset = 4;
+
 $fn = 36;
 nudge = 0.01;
+
+joyMountScrewSpacingX = joyMountWidth-joyMountScrewOffset*2;
+joyMountScrewSpacingY = joyMountHeight-joyMountScrewOffset*2;
 
 function outline(sep, rectHeight, radius, $fn=36) = 
     let(
@@ -85,9 +103,29 @@ module buttonWell(radius=10, separation=5,wellDepth=6,flangeSize=buttonFlange,po
     }
 }
 
-//hollowBowl();
-//button();
-difference() {
+/*difference() {
     buttonWell(positive=true);
     buttonWell(positive=false);
+}
+*/
+
+module four(xs,ys) {
+            for (i=[-1,1]) for(j=[-1,1]) translate([i*xs/2,j*ys/2]) children();;
+}
+
+module joyMount()
+{
+    linear_extrude(height=joyMountPinLength) 
+    translate([joyMountWidth/2,joyMountHeight/2]) 
+    difference() 
+    {
+        hull() union() four(joyMountWidth-joyMountScrewOffset*2,joyMountHeight-joyMountScrewOffset*2) circle(r=joyMountScrewOffset);
+                four(joyMountPinSpacingX,joyMountPinSpacingY) circle(d=joyMountPinHoleDiameter);
+            four(joyMountScrewSpacingX,joyMountScrewSpacingY) circle(d=joyMountScrewHole);
+    }
+}
+
+if (makeJoyMount) {
+    joyMount();
+    
 }
