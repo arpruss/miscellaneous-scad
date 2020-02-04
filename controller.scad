@@ -15,6 +15,12 @@ buttonFlange=2;
 tactWidth = 5.91;
 tactHeight = 5.91;
 tactThickness = 4.93;
+tactPillarHeight = 3.5;
+tactPillarRatio = 0.87;
+tactPillarTopWallThickness = 1.5;
+tactPillarTopWallHeight = 2.5;
+
+pressFitTolerance = 0.150;
 
 joyMountPinSpacingX = 9.8;
 joyMountPinSpacingY = 12.5;
@@ -125,7 +131,25 @@ module joyMount()
     }
 }
 
-if (makeJoyMount) {
-    joyMount();
-    
+function rect(w,h) = [for(ij=[[1,1],[-1,1],[-1,-1],[1,-1]]) [ij[0]*w/2,ij[1]*h/2]];
+
+module tactPillar() {
+    topWidth = tactWidth + 2 * tactPillarTopWallThickness + 2 * pressFitTolerance;
+    topHeight = tactHeight + 2 * tactPillarTopWallThickness + 2 * pressFitTolerance;
+
+    difference() {
+        morphExtrude(rect(topWidth/tactPillarRatio,topHeight/tactPillarRatio),rect(topWidth,topHeight),height=tactPillarHeight+tactPillarTopWallHeight);
+        translate([0,0,tactPillarTopWallHeight+tactPillarHeight]) cube([tactWidth+2*pressFitTolerance,tactWidth+2*pressFitTolerance,2*tactPillarTopWallHeight],center=true);
+        translate([-topWidth/2,-topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([topWidth,topWidth,3*tactPillarTopWallHeight],center=true);
+        translate([topWidth/2,topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([topWidth,topWidth,3*tactPillarTopWallHeight],center=true);
+    }
 }
+
+/*
+if (makeJoyMount) {
+    joyMount();    
+}
+*/
+
+tactPillar();
+translate([50,0,0]) tactPillar();
