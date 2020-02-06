@@ -56,23 +56,29 @@ joyMountHeight = 27.5;
 joyMountScrewHole = 3.5;
 joyMountScrewOffset = 4;
 
-$fn = 36;
+$fn = 32;
 nudge = 0.01;
 
 joyMountScrewSpacingX = joyMountWidth-joyMountScrewOffset*2;
 joyMountScrewSpacingY = joyMountHeight-joyMountScrewOffset*2;
 
-function outline(sep, rectHeight, radius, $fn=36) = 
-    let(
+function uniqueLoop(v, soFar=[], pos=0) =
+    pos >= len(v) ? soFar :
+    v[pos] == v[(pos+1)%len(v)] ? uniqueLoop(v, soFar=soFar, pos=pos+1) :
+    uniqueLoop(v, soFar=concat(soFar,[v[pos]]), pos=pos+1);
+    
+
+function outline(sep, rectHeight, radius) = 
+    uniqueLoop(let(
         angle0=asin((radius-rectHeight)/radius),
         angle1=180-asin((radius-rectHeight)/radius)) 
     concat( 
-        [for(i=[1:$fn]) let(t=i/$fn,
+        [for(i=[0:$fn]) let(t=i/$fn,
             angle=angle1*(1-t)+(360+90)*t)
         [sep/2,0]+radius*[cos(angle),sin(angle)]],
-        [for(i=[1:$fn]) let(t=i/$fn,
+        [for(i=[0:$fn]) let(t=i/$fn,
             angle=90*(1-t)+(360+angle0)*t)
-        [-sep/2,0]+radius*[cos(angle),sin(angle)]]);
+        [-sep/2,0]+radius*[cos(angle),sin(angle)]]));
 
 function delta0(z,baseCurveHeight=baseCurveHeight,startAngle=45) =         
     let(baseCurveRadius=baseCurveHeight/sin(startAngle),
@@ -107,7 +113,7 @@ module bowlRim(height=bottomStickoutDistance,thickness=bottomStickoutThickness) 
     
     function o(delta)=outline(circleSeparation,rectHeight+2*delta,radius+delta);
     
-    inset = wallThickness+looserTolerance+thickness;
+    inset = wallThickness+looserTolerance*5+thickness;
 
     h = 1.5*(looserTolerance+thickness);
 
@@ -123,6 +129,26 @@ module bowlRim(height=bottomStickoutDistance,thickness=bottomStickoutThickness) 
             polygon(o(-inset));
         }
     }
+}
+
+module bottom() {
+    hollowBowl(rim=true);
+}
+
+module top_unflipped() {
+    cx = circleSeparation/2;
+    difference() {
+        union() {
+            hollowBowl();
+        }
+        translate([0,0,-nudge]) {
+            translate([-cx,0,0]) cylinder($fn=8,d=stickCutout,h=wallThickness+2*nudge);
+        }
+    }
+}
+
+module top() {
+    mirror([1,0,0]) top_unflipped();
 }
 
 module button(radius=10, separation=5, roundingHeight=2, flangeSize=buttonFlange, flangeToTop=8, bumpSize=0,startAngle=45) {
@@ -248,4 +274,4 @@ cylinder(d=stickNeckDiameter,h=stickNeckLength+nudge+stickBallRadius);
     }
 }
 
-hollowBowl(rim=true);
+top();
