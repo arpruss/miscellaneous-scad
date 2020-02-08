@@ -7,8 +7,13 @@ circleSeparation = 150;
 radius = 40;
 rectHeight = 50;
 baseCurveHeight = 5;
-height=10;
+totalHeight = 30;
 wallThickness=2;
+
+bottomScrewHole = 5;
+bottomScrewHoleWall = 2;
+bottomScrewHeadDiameter = 10;
+bottomScrewHeadThickness = 3;
 
 topBottomFitTolerance = 0.3;
 bottomStickoutDistance = 3;
@@ -18,7 +23,11 @@ buttonSideTolerance=0.2;
 buttonFlange=2;
 buttonStickout=5;
 bigButtonDiameter = 12;
+bigButtonSeparation = 0;
 smallButtonDiameter = 10;
+smallButtonSeparation = 0;
+tinyButtonDiameter = 8;
+tinyButtonSeparation = 4;
 
 stickCutout = 22;
 
@@ -56,6 +65,14 @@ joyMountHeight = 27.5;
 joyMountScrewHole = 3.5;
 joyMountScrewOffset = 4;
 
+
+
+module dummy() {}
+
+bottomScrewPositions = [ [-circleSeparation/2-radius*0.75,0], [circleSeparation/2+radius*0.75,0] ];
+
+bottomScrewPostHeight = bottomScrewHoleWall+bottomScrewHeadThickness;
+
 $fn = 32;
 nudge = 0.01;
 
@@ -88,7 +105,7 @@ function delta0(z,baseCurveHeight=baseCurveHeight,startAngle=45) =
 function delta(h,baseCurveHeight=baseCurveHeight,startAngle=45) = delta0(h,baseCurveHeight=baseCurveHeight,startAngle=startAngle)-delta0(baseCurveHeight,baseCurveHeight=baseCurveHeight,startAngle=startAngle);     
         
         
-module solidBowl(height=height,radius=radius,startAngle=45,delta=0) {
+module solidBowl(height=totalHeight/2,radius=radius,startAngle=45,delta=0) {
     
     sections = [for(i=[0:$fn])
     let(t=i/$fn,
@@ -98,7 +115,7 @@ module solidBowl(height=height,radius=radius,startAngle=45,delta=0) {
 tubeMesh(concat(sections,[sectionZ(outline(circleSeparation,rectHeight+2*delta,radius+delta),height)]));
 }
 
-module hollowBowl(height=height,startAngle=45, rim=false) {
+module hollowBowl(height=totalHeight/2,startAngle=45, rim=false) {
     difference() {
         solidBowl(height=height,startAngle=90);
         translate([0,0,wallThickness])
@@ -131,8 +148,31 @@ module bowlRim(height=bottomStickoutDistance,thickness=bottomStickoutThickness) 
     }
 }
 
+module bottomScrew(positive=true) {
+    if (positive) {
+        cylinder(d=bottomScrewHoleWall*2+bottomScrewHeadDiameter,h=bottomScrewPostHeight);
+    }
+    else {
+        translate([0,0,-nudge]) {
+            cylinder(d=bottomScrewHole,h=bottomScrewPostHeight+2*nudge);
+            cylinder(d=bottomScrewHeadDiameter,h=bottomScrewHeadThickness+nudge);
+        }
+    }
+}
+
+module bottomScrews(positive=true) {
+    for (p=bottomScrewPositions)
+    translate(p) bottomScrew(positive);
+}
+
 module bottom() {
-    hollowBowl(rim=true);
+    difference() {
+        union() {
+            hollowBowl(rim=true);
+            bottomScrews(positive=true);
+        }
+        bottomScrews(positive=false);
+    }
 }
 
 module top_unflipped() {
@@ -185,11 +225,6 @@ module buttonWell(radius=10, separation=5,wellDepth=6,flangeSize=buttonFlange,po
     }
 }
 
-/*difference() {
-    buttonWell(positive=true);
-    buttonWell(positive=false);
-}
-*/
 
 module four(xs,ys) {
             for (i=[-1,1]) for(j=[-1,1]) translate([i*xs/2,j*ys/2]) children();;
@@ -274,4 +309,4 @@ cylinder(d=stickNeckDiameter,h=stickNeckLength+nudge+stickBallRadius);
     }
 }
 
-top();
+bottom();
