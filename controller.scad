@@ -4,9 +4,8 @@ use <pcbholder.scad>;
 
 makeJoyMount = 1;
 
-circleSeparation = 150;
+circleSeparation = 140;
 radius = 40;
-rectHeight = 50;
 baseCurveHeight = 5;
 totalHeight = 30;
 wallThickness=2;
@@ -20,6 +19,8 @@ screwHeadThickness = 1.8;
 topBottomFitTolerance = 0.3;
 bottomStickoutDistance = 3;
 bottomStickoutThickness = 1.5;
+pcbWidthTolerance = 0;
+pcbLengthTolerance = 0.15;
 
 buttonSideTolerance=0.2;
 buttonFlange=2;
@@ -67,9 +68,16 @@ joyMountHeight = 27.5;
 joyMountScrewHole = 3.5;
 joyMountScrewOffset = 4;
 
-
+pcbWidth = 22.7;
+pcbLength = 52.8;
+pcbSlideLength = 35;
+pcbScrewOffset = 5;
 
 module dummy() {}
+
+rectHeight = pcbLength+pcbLengthTolerance*2+2*wallThickness;
+
+screwDistanceFromPCB = 4;
 
 screwTightHole = screwMinorDiameter + 2 * pressFitTolerance;
 screwLooseHole = screwMajorDiameter + 2 * looserTolerance;
@@ -320,11 +328,12 @@ cylinder(d=stickNeckDiameter,h=stickNeckLength+nudge+stickBallRadius);
 }
 
 module pcbSlide() {
-    pcbHolder(screwDistanceFromPCB=4,
-    screw2DistanceFromFront=30,
-    pcbLength=35,rearHole=100,screwHoleDiameter=screwTightHole);
+    pcbHolder(screwDistanceFromPCB=screwDistanceFromPCB, pcbWidth=pcbWidth,
+    screw1DistanceFromFront=pcbScrewOffset,
+    screw2DistanceFromFront=pcbSlideLength-pcbScrewOffset,
+    pcbLength=pcbSlideLength,rearHole=1000,screwHoleDiameter=screwTightHole,tolerance=pcbWidthTolerance);
     
 }
 
-//bottom();
-pcbSlide();
+bottom();
+//pcbSlide();
