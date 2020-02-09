@@ -1,5 +1,6 @@
 use <tubemesh.scad>;
 use <pointhull.scad>;
+use <pcbholder.scad>;
 
 makeJoyMount = 1;
 
@@ -10,10 +11,11 @@ baseCurveHeight = 5;
 totalHeight = 30;
 wallThickness=2;
 
-bottomScrewHole = 5;
-bottomScrewHoleWall = 2;
-bottomScrewHeadDiameter = 10;
-bottomScrewHeadThickness = 3;
+screwMinorDiameter = 2.2;
+screwMajorDiameter = 3.25;
+screwLength = 11.1;
+screwHeadDiameter = 6.36;
+screwHeadThickness = 1.8;
 
 topBottomFitTolerance = 0.3;
 bottomStickoutDistance = 3;
@@ -68,6 +70,14 @@ joyMountScrewOffset = 4;
 
 
 module dummy() {}
+
+screwTightHole = screwMinorDiameter + 2 * pressFitTolerance;
+screwLooseHole = screwMajorDiameter + 2 * looserTolerance;
+
+bottomScrewHole = screwTightHole;
+bottomScrewHoleWall = 2;
+bottomScrewHeadDiameter = screwHeadDiameter + 2*looserTolerance;
+bottomScrewHeadThickness = screwHeadThickness + looserTolerance;
 
 bottomScrewPositions = [ [-circleSeparation/2-radius*0.75,0], [circleSeparation/2+radius*0.75,0] ];
 
@@ -309,4 +319,12 @@ cylinder(d=stickNeckDiameter,h=stickNeckLength+nudge+stickBallRadius);
     }
 }
 
-bottom();
+module pcbSlide() {
+    pcbHolder(screwDistanceFromPCB=4,
+    screw2DistanceFromFront=30,
+    pcbLength=35,rearHole=100,screwHoleDiameter=screwTightHole);
+    
+}
+
+//bottom();
+pcbSlide();

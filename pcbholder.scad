@@ -19,8 +19,7 @@ rearHole = 10;
 holeDistanceFromWall = 4;
 // </params>
 
-module dummy() {}
-
+module pcbHolder(pcbThickness=pcbThickness, pcbWidth=pcbWidth, pcbLength=pcbLength, pcbOffsetFromBase=pcbOffsetFromBase, tolerance=tolerance, wall=wall, ridge=ridge, screwSize=screwSize, screwHoleWall=screwHoleWall, screwButtressWall=screwButtressWall, screw1DistanceFromFront=screw1DistanceFromFront,screw2DistanceFromFront=screw2DistanceFromFront,screwDistanceFromPCB=screwDistanceFromPCB,rearHole=rearHole,holeDistanceFromWall=holeDistanceFromWall) {
 $fn = 32;
 
 nudge = 0.001;
@@ -71,3 +70,6 @@ module half() {
 
 half();
 translate([nudge,0,0]) mirror([1,0,0]) half();
+}
+
+pcbHolder();
