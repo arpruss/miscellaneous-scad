@@ -27,10 +27,17 @@ buttonFlange=2;
 buttonStickout=5;
 bigButtonDiameter = 12;
 bigButtonSeparation = 0;
+bigButtonAngle = 30;
 smallButtonDiameter = 10;
 smallButtonSeparation = 0;
 tinyButtonDiameter = 8;
 tinyButtonSeparation = 4;
+bigButtonSpacing = 16;
+bigButtonRows = 2;
+bigButtonColumns = 3;
+tinyButtonSpacing = 12;
+tinyButtonRows = 2;
+tinyButtonColumns = 1;
 
 stickCutout = 22;
 
@@ -51,7 +58,7 @@ stickWall = 1;
 tactWidth = 5.91;
 tactHeight = 5.91;
 tactThickness = 4.93;
-tactPillarHeight = 3.5; // calculate
+tactPillarHeight = 15; // calculate
 tactPillarRatio = 0.67;
 tactPillarTopWallThickness = 1.5;
 tactPillarTopWallHeight = 2.5;
@@ -262,15 +269,17 @@ module joyMount()
 
 function rect(w,h) = [for(ij=[[1,1],[-1,1],[-1,-1],[1,-1]]) [ij[0]*w/2,ij[1]*h/2]];
 
-module tactPillar() {
+module tactPillar(truncated=false) {
     topWidth = tactWidth + 2 * tactPillarTopWallThickness + 2 * pressFitTolerance;
     topHeight = tactHeight + 2 * tactPillarTopWallThickness + 2 * pressFitTolerance;
+
+    w = !truncated ? topWidth : topWidth*10;
 
     difference() {
         morphExtrude(rect(topWidth/tactPillarRatio,topHeight/tactPillarRatio),rect(topWidth,topHeight),height=tactPillarHeight+tactPillarTopWallHeight);
         translate([0,0,tactPillarTopWallHeight+tactPillarHeight]) cube([tactWidth+2*pressFitTolerance,tactWidth+2*pressFitTolerance,2*tactPillarTopWallHeight],center=true);
-        translate([-topWidth/2,-topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([topWidth,topWidth,3*tactPillarTopWallHeight],center=true);
-        translate([topWidth/2,topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([topWidth,topWidth,3*tactPillarTopWallHeight],center=true);
+        translate([-topWidth/2,-topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([w,w,3*tactPillarTopWallHeight],center=true);
+        translate([topWidth/2,topHeight/2,tactPillarHeight+1.5*tactPillarTopWallHeight]) cube([w,w,3*tactPillarTopWallHeight],center=true);
     }
 }
 
@@ -335,5 +344,22 @@ module pcbSlide() {
     
 }
 
-bottom();
+module buttonArray(rows=2,columns=3,spacing=20,joinRows=false) {
+    y0 = -spacing * (rows-1) / 2;
+    x0 = -spacing * (columns-1) / 2;
+    
+    module a() {
+        for(i=[0:columns-1]) translate([x0+i*spacing,0,0]) children();
+    }
+
+    for (i=[0:rows-1]) translate([0,i*spacing+y0,0]) if (joinRows) hull() a() children(); else a() children();
+}
+
+module tactPillarArray(rows=2,columns=3,spacing=20,joinRows=true) {
+    buttonArray(rows=rows,columns=columns,spacing=spacing,joinRows=false) tactPillar();
+    if (joinRows) buttonArray(rows=rows,columns=columns,spacing=spacing,joinRows=joinRows) tactPillar(truncated=true);
+}
+
+//bottom();
 //pcbSlide();
+tactPillarArray();
