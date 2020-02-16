@@ -1,4 +1,8 @@
-use <tubemesh.scad>;
+// add screw holes to right of center
+// add holder for pcb to left of center
+// make sure bottom and top button angles match
+
+ use <tubemesh.scad>;
 use <pointhull.scad>;
 use <pcbholder.scad>;
 
@@ -27,7 +31,7 @@ buttonFlange=2;
 buttonStickout=5;
 bigButtonDiameter = 12;
 bigButtonSeparation = 0;
-bigButtonAngle = 30;
+bigButtonArrayAngle = 30;
 smallButtonDiameter = 10;
 smallButtonSeparation = 0;
 tinyButtonDiameter = 8;
@@ -35,7 +39,7 @@ tinyButtonSeparation = 4;
 bigButtonSpacing = 16;
 bigButtonRows = 2;
 bigButtonColumns = 3;
-tinyButtonSpacing = 12;
+tinyButtonSpacing = 16;
 tinyButtonRows = 2;
 tinyButtonColumns = 1;
 
@@ -83,6 +87,8 @@ pcbScrewOffset = 5;
 module dummy() {}
 
 rectHeight = pcbLength+pcbLengthTolerance*2+2*wallThickness;
+
+centerY = radius-rectHeight/2; 
 
 screwDistanceFromPCB = 4;
 
@@ -195,6 +201,8 @@ module bottom() {
         union() {
             hollowBowl(rim=true);
             bottomScrews(positive=true);
+            translate([circleSeparation/2,0,0]) rotate([0,0,bigButtonArrayAngle]) tactPillarArray(rows=bigButtonRows,columns=bigButtonColumns,spacing=bigButtonSpacing);
+            translate([0,centerY,0]) tactPillarArray(rows=tinyButtonRows,columns=tinyButtonColumns,spacing=tinyButtonSpacing,joinAll=true);
         }
         bottomScrews(positive=false);
     }
@@ -355,11 +363,11 @@ module buttonArray(rows=2,columns=3,spacing=20,joinRows=false) {
     for (i=[0:rows-1]) translate([0,i*spacing+y0,0]) if (joinRows) hull() a() children(); else a() children();
 }
 
-module tactPillarArray(rows=2,columns=3,spacing=20,joinRows=true) {
+module tactPillarArray(rows=2,columns=3,spacing=20,joinRows=true, joinAll=false) {
     buttonArray(rows=rows,columns=columns,spacing=spacing,joinRows=false) tactPillar();
     if (joinRows) buttonArray(rows=rows,columns=columns,spacing=spacing,joinRows=joinRows) tactPillar(truncated=true);
+    if (joinAll) hull() buttonArray(rows=rows,columns=columns,spacing=spacing,joinRows=joinRows) tactPillar(truncated=true);
 }
 
-//bottom();
+bottom();
 //pcbSlide();
-tactPillarArray();
