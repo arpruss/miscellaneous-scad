@@ -2,6 +2,7 @@ import fileinput
 import re
 from collections import OrderedDict
 from math import *
+from numbers import Number
 
 minXYZ = (100000,100000,100000)
 maxXYZ = (-100000,-100000,-100000)
@@ -12,6 +13,12 @@ maxAngle = 5./180.*pi
 
 path = [(0.,0.,0.)]
 
+def fmt(v):
+    if isinstance(v, Number):
+        return "%.3f" % v
+    else:
+        return '[' + ','.join((fmt(x) for x in v )) + ']'
+    
 def parse(line):
     line = re.sub(r'\s', '', line.strip().lower())
     out = OrderedDict()
@@ -112,6 +119,21 @@ for line in fileinput.input():
 
             path.append(endp)
             xyz = endp
+        
+pathsHoriz = {}    
+paths3D = []
+
+for i in range(len(path)-1):
+    xyz1 = tuple(path[i])
+    xyz2 = tuple(path[i+1])
+    
+    if xyz1[2] == xyz1[2]:
+        z = xyz1[2]
+        if z not in pathsHoriz:
+            pathsHoriz[z] = []
+        pathsHoriz[z].append( ( xyz1[:2], xyz2[:2] ) )
+    else:
+        paths3D.append( (xyz1,xyz2) )
 
 print("""workWidth = 1000; // x dimension of work, set to 0 to see the cuts only
 workDepth = 1000; // y
@@ -122,20 +144,20 @@ startZ = 0;
 
 bitDiameter = 3.175;
 bitHeight = 15;
-bitAngle = 180; // 180=flat bottom
+bitAngle = 180;
 bitSides = 6; // more looks better but is slower
 
 nudge = 0.001;
 """)
-print('gcodepath = [' + ',\n'.join(('[%.4f,%.4f,%.4f]' % tuple(p) for p in path)) + '];')
+
 print("""
 module trace(path) {
-    l = len(path)-2;
-    for (i=[0:100:l]) 
-        for (j=[0:min(99,l-i)])
+    n = len(path)-1;
+    for (i=[0:100:n]) 
+        for (j=[0:min(99,n-i)])
             hull() {
-                translate(path[i+j]) children();
-                translate(path[i+j+1]) children();
+                translate(path[i+j][0]) children();
+                translate(path[i+j][1]) children();
             }
 }
 
@@ -150,8 +172,31 @@ module bit() {
     }
 }
 
+module bit2d() {
+    circle($fn=bitSides,d=bitDiameter);
+}
+
+module cut2d(z,path) {
+    if (bitAngle == 180)
+        translate([0,0,z]) linear_extrude(height=bitHeight) trace(path) bit2d();
+    else
+        trace(path) bit();
+}
+
+module cut() {
+""")
+
+for z in pathsHoriz:
+    print("    cut2d(%s,%s);" % (fmt(z), fmt(pathsHoriz[z])))
+    
+for path in paths3D:
+    print("    trace(%s) bit();" % fmt(path))
+    
+print("""
+}
+
 difference() {
     if (workWidth > 0 && workDepth >0 && workHeight > 0) translate([0,0,-workHeight+nudge]) cube([workWidth,workDepth,workHeight]);
-    trace(gcodepath) bit();
+    cut();
 }
 """)
