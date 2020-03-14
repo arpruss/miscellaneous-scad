@@ -23,6 +23,7 @@ function interpolateByDistance(interp,distance) = let(
 function get2DNormalBetweenPoints(a,b) = let(
     v = (b-a)/norm(b-a))
         [v[1],-v[0]];
+    
 function getTangentByDistance(interp,distance) = let(
     n=len(interp[1])-1,
     d=interp[0],
