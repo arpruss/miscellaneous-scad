@@ -2,17 +2,17 @@ use <bezier.scad>;
 use <paths.scad>;
 use <tubemesh.scad>;
 
-includeTop = true;
+includeTop = false;
 includeBottom = true;
 buttonWidth = 11.9;
 buttonHeight = 3.1;
-buttonTolerance = 0.3;
+buttonTolerance = 0.2;
 topWall = 2;
 sideWall = 2.5;
 bottomWall = 1.25;
 rimWall = 1.5;
 rimHeight = 9;
-rimTolerance = 0.2;
+rimTolerance = 0.1;
 width = 50;
 length = 80;
 bulgeAngle = 10;
@@ -117,14 +117,14 @@ module top() {
 }
 
 module rimHole(pos,w) {
-    mirror([1,0,0]) onFace(pos,0,0) translate([0,-height,-width/2]) cube([w,2*height,width]);
+    mirror([1,0,0]) onFace(pos,0,0) translate([-w/2,-height,-width/2]) cube([w,2*height,width]);
 }
 
 module rimHoles() {
     rimHole(buttonDistance,contactHorizontalSpacing+2*contactHole);
-    rimHole(width/2,5);
-    rimHole(peri-width/2,5);
-    rimHole(peri/2+width/2,5);
+    rimHole(width/2,2);
+    rimHole(peri-width/2,2);
+    rimHole(peri/2+width/2,2);
 }
 
 module rim() {
