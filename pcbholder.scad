@@ -14,7 +14,7 @@ screwHoleWall = 2;
 screwButtressWall = 3;
 screw1DistanceFromFront = 5;
 screw2DistanceFromFront = 50;
-screwDistanceFromPCB = 6;
+screwDistanceFromPCB = 1;
 rearHole = 10;
 holeDistanceFromWall = 4;
 // </params>

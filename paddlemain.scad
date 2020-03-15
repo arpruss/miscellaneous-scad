@@ -2,11 +2,17 @@ use <bezier.scad>;
 use <paths.scad>;
 use <tubemesh.scad>;
 
+includeTop = true;
+includeBottom = true;
 buttonWidth = 11.9;
 buttonHeight = 3.1;
 buttonTolerance = 0.3;
 topWall = 2;
 sideWall = 2.5;
+bottomWall = 1.25;
+rimWall = 1.5;
+rimHeight = 9;
+rimTolerance = 0.2;
 width = 50;
 length = 80;
 bulgeAngle = 10;
@@ -19,10 +25,13 @@ contactHole = 2.5;
 contactHorizontalSpacing = 5.1;
 contactVerticalSpacing = 12.15;
 potShaftHole = 7.5;
-potIndexHole = 2.6;
+potIndexHole = 3.5;
 potIndexDistance = 8.3;
 
 buttonPosition = 0.2;
+nudge = 0.01;
+
+module dummy() {}
 
 function edges(offset=0) = 
     let(width=width+2*offset,
@@ -90,17 +99,50 @@ module buttonHolder(positive=true) {
     }
 }
 
-difference() {
-    union() {
-        bowl();
-        onFace(peri/2, 0, 0)
-            translate([0,0,-0.1])
-            cylinder(d1=3*cableHole,h=cableHole,d2=cableHole);
-        onFace(buttonDistance,0,0) buttonHolder();
+module top() {
+    difference() {
+        union() {
+            bowl();
+            onFace(peri/2, 0, 0)
+                translate([0,0,-0.1])
+                cylinder(d1=3*cableHole,h=cableHole,d2=cableHole);
+            onFace(buttonDistance,0,0) buttonHolder();
+        }
+        hole(peri/2, 0,0, cableHole);
+        cylinder(h=3*topWall,d=potShaftHole,center=true);
+        translate([-potIndexDistance,0,0])
+        cylinder(h=3*topWall+100,d=potIndexHole,center=true);
+            onFace(buttonDistance,0,0) buttonHolder(positive=false);
     }
-    hole(peri/2, 0,0, cableHole);
-    cylinder(h=3*topWall,d=potShaftHole,center=true);
-    translate([-potIndexDistance,0,0])
-    cylinder(h=3*topWall+100,d=potIndexHole,center=true);
-        onFace(buttonDistance,0,0) buttonHolder(positive=false);
 }
+
+module rimHole(pos,w) {
+    mirror([1,0,0]) onFace(pos,0,0) translate([0,-height,-width/2]) cube([w,2*height,width]);
+}
+
+module rimHoles() {
+    rimHole(buttonDistance,contactHorizontalSpacing+2*contactHole);
+    rimHole(width/2,5);
+    rimHole(peri-width/2,5);
+    rimHole(peri/2+width/2,5);
+}
+
+module rim() {
+    difference() {
+        tubeMesh(
+            [sectionZ(edges(-rimTolerance-sideWall),0),
+            sectionZ(edges(-rimTolerance-sideWall),rimHeight-1.5*rimWall),
+        sectionZ(edges(-rimTolerance-sideWall-rimWall),rimHeight)]);
+        translate([0,0,-nudge]) linear_extrude(height=rimHeight+2*nudge) polygon(edges(-rimTolerance-sideWall-rimWall));
+        rimHoles();
+    }
+}
+
+module bottom() {
+    linear_extrude(height=bottomWall) polygon(outer);
+    translate([0,0,bottomWall-nudge]) rim();
+}
+
+if (includeTop) top();
+
+if (includeBottom) translate(-[width+2*bulgeFraction*length+5,0,0]) bottom();
