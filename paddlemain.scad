@@ -2,6 +2,7 @@ use <bezier.scad>;
 use <paths.scad>;
 use <tubemesh.scad>;
 
+//<params>
 includeTop = false;
 includeBottom = true;
 buttonWidth = 11.9;
@@ -27,11 +28,12 @@ contactVerticalSpacing = 12.15;
 potShaftHole = 7.5;
 potIndexHole = 3.5;
 potIndexDistance = 8.3;
-
 buttonPosition = 0.2;
-nudge = 0.01;
+//</params>
 
 module dummy() {}
+
+nudge = 0.01;
 
 function edges(offset=0) = 
     let(width=width+2*offset,

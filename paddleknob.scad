@@ -1,5 +1,4 @@
-/*
- 
+/* 
   
 Atari 2600 Paddle Replacement Wheel by jtritell is licensed under the Creative Commons - Attribution - Share Alike license.
 By downloading this thing, you agree to abide by the license: Creative Commons - Attribution - Share Alike
