@@ -14,9 +14,10 @@ def process(name,level=0):
         for line in f:
             m = re.match(r'(include|use)\s+<([^>]+)>', line)
             if m:
-                current.append("\n//BEGIN: "+line.strip())
+                dep = line.strip()
+                current.append("\n//BEGIN DEPENDENCY: "+dep)
                 process(m.group(2),level=level+1)
-                current.append("\n//END: "+line.strip()+"\n")
+                current.append("\n//END DEPENDENCY: "+dep+"\n")
             else:
                 lineStripped = line.strip()
                 if lineStripped == "//<params>":
@@ -32,7 +33,10 @@ def process(name,level=0):
                     current = stack.pop()
                 else:
                     current.append(line.rstrip())
-                
+ 
+print("""// This file was processed by resolve-include.py [https://github.com/arpruss/miscellaneous-scad/blob/master/scripts/resolve-include.py] 
+// to include  all the dependencies inside one file.
+""")
 process(sys.argv[1])
 if params:
     params.append("\nmodule end_of_parameters_dummy() {}\n")
