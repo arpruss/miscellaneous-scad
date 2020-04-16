@@ -2,6 +2,9 @@ use <roundedSquare.scad>;
 use <pointHull.scad>;
 
 //<params>
+topButtons = false;
+includeBottom = true;
+includeLid = false;
 addToHeight = 15;
 width = 55;
 length = 56;
@@ -25,6 +28,15 @@ pcbScrewHole = 4;
 pcbScrewHeadDiameter = 7;
 pcbScrewHeadInset = 2;
 lidTolerance = 0.2;
+buttonWellWidth = 6.5;
+buttonWellLength = 6.5;
+buttonWellHeight = 2.75;
+buttonLegHoleDiameter = 1.75;
+buttonLegXSpacing = 4.6;
+buttonLegYSpacing = 6.21;
+buttonSpacing = 16;
+buttonColumns = 2;
+buttonRows = 2;
 //</params>
 
 module dummy() {}
@@ -51,17 +63,44 @@ module base(wall) {
     roundedSquare([width+2*wall,length+2*wall],radius=lidPillar/2,center=true);
 }
 
+module buttonBezel(positive=true) {
+    if (positive)  {
+        h = buttonWellHeight+nudge;
+    translate([0,0,wall-nudge]) {
+        difference() {
+            pointHull(
+                [for (w=[0,h]) for (i=[-1,1]) for(j=[-1,1]) [i*(buttonWellWidth/2+w),j*(buttonWellLength/2+w),h-w]]);
+            cube([buttonWellWidth,buttonWellLength,h*3],center=true);
+            }
+        }
+    }
+    else {
+        translate([0,0,-nudge]) {
+            h = buttonWellHeight+wall+2*nudge;
+            for (i=[-1,1]) for(j=[-1,1]) translate([i*buttonLegXSpacing/2,j*buttonLegYSpacing/2,0]) cylinder(d=buttonLegHoleDiameter,h=h);
+        }
+    }
+}
+
+module doTopButtons(positive=true) {
+    if (topButtons) {
+        for (i=[0:buttonColumns-1]) for (j=[0:buttonRows-1]) translate([-(buttonColumns-1)*buttonSpacing/2+buttonSpacing*i,length/2-(buttonRows-1)*buttonSpacing/2+buttonSpacing*j,0]) buttonBezel(positive);
+    }
+}
+
 module lid() {
     difference() {
         union() {
             translate([0,length/2,0])
             linear_extrude(height=wall) base(-lidTolerance);
-            linear_extrude(height=screwBearingWallMinimum) intersection() {
+            if (!topButtons) linear_extrude(height=screwBearingWallMinimum) intersection() {
                 for(s=lidScrews) translate(s) circle(d=screwHole+2*screwHoleWall);
                 translate([0,length/2,0]) base(-lidTolerance);
             }
+            doTopButtons(positive=true);
         }
-        for(s=lidScrews) translate(s) translate([0,0,-nudge]) cylinder(d=screwBiggerHole,h=max(screwBearingWallMinimum,wall)+2*nudge);
+        for(s=lidScrews) translate(s) translate([0,0,-nudge]) cylinder(d=screwBiggerHole,h=(topButtons ? wall : max(screwBearingWallMinimum,wall))+2*nudge);            
+        doTopButtons(positive=false);
     }
 }
 
@@ -106,7 +145,7 @@ module bottom() {
 module screwHolder() {
     d = lidPillar;
     h = screwGrabLength+d;
-    translate([0,0,bottomHeight-max(wall,screwBearingWallMinimum )-h+wall])
+    translate([0,0,bottomHeight-(topButtons ? wall : max(wall,screwBearingWallMinimum ))-h+wall])
     difference() {
         intersection() {
             cylinder(d=screwHole+2*screwHoleWall+nudge,h=h);
@@ -121,11 +160,12 @@ module usbCutout() {
     translate([0,0,h0+usbHoleCenterOffsetFromBase]) cube([usbHoleWidth,usbHoleHeight,wall*3],center=true);
 }
 
-//screwHolder();
+
+if (includeBottom)
 difference() {
     bottom();
     usbCutout();
-    #translate([0,length,bottomHeight-cableCutout/2])
+    translate([0,length,bottomHeight-cableCutout/2])
     rotate([270,0,0])
     translate([0,0,-5]) 
     rotate([0,0,180])
@@ -135,4 +175,5 @@ difference() {
     }
 }
 
-translate([width+wall+5,0,0]) lid();
+if (includeLid) translate([width+wall+5,0,0]) lid();
+
