@@ -1,20 +1,19 @@
-use <pointHull.scad>;
 
 bladeWidth = 17;
-bladeLength = 100;
+bladeLength = 100; // (downstairs 120);
 bladeMaxThickness = 5;
-bladeMinThickness = 1;
+bladeMinThickness = .75;
 toothLength = 6;
-toothBottomAngle = 50;
+toothBottomAngle = 40;
 toothTopAngle = 70;
 mountWall = 1.5;
-mountInnerDiameter = 24;
-mountTolerance = 0.5;
+mountInnerDiameter = 22.16; // (downstairs 19.6)
+mountTolerance = 0.2;
 mountSlitAngle = 6;
 holdingStripThickness = 2;
 holdingStripWidth = 15;
 tabWidth = 10;
-screwHole = 4;
+screwHole = 4.5;
 
 module dummy() {}
 
