@@ -12,7 +12,7 @@ lip = 3;
 // the following only apply if you do include the grip
 gripHeight = 80;
 gripAngle = 20;
-gripBevel = 3;
+gripBevel = 4;
 
 // the following only apply if you don't include the grip
 extraThickness = 3;
@@ -76,14 +76,22 @@ module gripless() {
 
 gripOffset = gripHeight*tan(gripAngle);
     
-gripOutlineTopView = let(dx = sin(gripAngle) * gripBevel, 
-    dy = cos(gripAngle) * gripBevel) Bezier([[0,0],LINE(),LINE(),[gripLength,0],LINE(),LINE(),[gripLength+gripOffset-dx,-gripHeight+dy],OFFSET([dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength+gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[gripOffset-dx,-gripHeight+dy]]);
+gripOutlineSideView = let(dx = sin(gripAngle) * gripBevel, 
+    dy = cos(gripAngle) * gripBevel) Bezier([[0,0],LINE(),LINE(),[gripLength,0],LINE(),LINE(),[gripLength-gripOffset+dx,-gripHeight+dy],OFFSET([-dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength-gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+dx,-gripHeight+dy]]);
 
 gripOutlineBottomView = Bezier([[0,gripWidth/2],LINE(),LINE(),[0,gripBevel],LINE(),LINE(),[gripBevel,0],LINE(),LINE(),[gripLength-gripBevel,0],SMOOTH_ABS(gripBevel*0.5),SMOOTH_ABS(gripBevel*0.5),[gripLength,gripBevel],LINE(),LINE(),[gripLength,gripWidth/2],REPEAT_MIRRORED([0,1])]);
 
+function atXY(points2D,x,y) = [for (p=points2D) [p[0]+x,y,p[1]]];
+
+module grip() {
+    intersection() {
+        pointHull(concat(atXY(gripOutlineBottomView,0,0),atXY(gripOutlineBottomView,-gripOffset,-gripHeight)));
+        linear_extrude(height=gripWidth) polygon(gripOutlineSideView);
+    }
+}
+
 module grippy() {
-//    gripOutlineTop();
-    polygon(gripOutlineBottom);
+    grip();
 }
 
 if (!includeGrip) 
