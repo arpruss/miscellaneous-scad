@@ -1,16 +1,26 @@
+use <Bezier.scad>;
+use <pointhull.scad>;
+
+//<params>
 includeGrip = false;
 tolerance = 0.18;
 thickness = 2.5;
 tabSize = 3.5;
 gripLength = 39;
 gripWidth = 17.53;
-gripHeight = 0;
 lip = 3;
+// the following only apply if you do include the grip
+gripHeight = 80;
+gripAngle = 20;
+gripBevel = 3;
+
 // the following only apply if you don't include the grip
 extraThickness = 3;
 screwHoleDiameter = 4;
 screwHoleInsetDepth = 3;
 screwHoleInsetDiameter = 9;
+
+//</params>
 
 module dummy() {}
 
@@ -56,9 +66,27 @@ module screwHoles() {
     }
 }
 
-difference() {
-    linear_extrude(height=gripLength)
-    outline();
-
-    screwHoles();
+module gripless() {
+    difference() {
+        linear_extrude(height=gripLength)
+        outline();
+        screwHoles();
+    }
 }
+
+gripOffset = gripHeight*tan(gripAngle);
+    
+gripOutlineTopView = let(dx = sin(gripAngle) * gripBevel, 
+    dy = cos(gripAngle) * gripBevel) Bezier([[0,0],LINE(),LINE(),[gripLength,0],LINE(),LINE(),[gripLength+gripOffset-dx,-gripHeight+dy],OFFSET([dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength+gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[gripOffset-dx,-gripHeight+dy]]);
+
+gripOutlineBottomView = Bezier([[0,gripWidth/2],LINE(),LINE(),[0,gripBevel],LINE(),LINE(),[gripBevel,0],LINE(),LINE(),[gripLength-gripBevel,0],SMOOTH_ABS(gripBevel*0.5),SMOOTH_ABS(gripBevel*0.5),[gripLength,gripBevel],LINE(),LINE(),[gripLength,gripWidth/2],REPEAT_MIRRORED([0,1])]);
+
+module grippy() {
+//    gripOutlineTop();
+    polygon(gripOutlineBottom);
+}
+
+if (!includeGrip) 
+    gripless();
+else 
+    grippy();
