@@ -2,9 +2,9 @@ use <Bezier.scad>;
 use <pointhull.scad>;
 
 //<params>
-includeGrip = false;
+includeGrip = true;
 tolerance = 0.18;
-thickness = 2.5;
+wallThicknesss = 2.5;
 tabSize = 3.5;
 gripLength = 39;
 gripWidth = 17.53;
@@ -15,11 +15,10 @@ gripAngle = 20;
 gripBevel = 4;
 
 // the following only apply if you don't include the grip
-extraThickness = 3;
+extrawallThicknesss = 3;
 screwHoleDiameter = 4;
 screwHoleInsetDepth = 3;
 screwHoleInsetDiameter = 9;
-
 //</params>
 
 module dummy() {}
@@ -28,7 +27,7 @@ $fn = 36;
 
 nudge = 0.01;
 
-wiiY = 30.;
+wiiY = 30.8;
 size_xsect_0 = [36.240508333,29.876988125];
 size_xsect_1 = [size_xsect_0[0],wiiY];
 // paths for xsect_1
@@ -48,12 +47,12 @@ module outline() {
     w  = size_xsect_1[0]+2*tolerance-2*tabSize;
     difference() {
         union() {
-            xsect(delta=tolerance+thickness);
+            xsect(delta=tolerance+wallThicknesss);
             w1 = gripWidth;
-            translate([-w1/2,-size_xsect_1[1]/2-extraThickness-tolerance-thickness]) square([w1,extraThickness+thickness+nudge]);
+            if (!includeGrip) translate([-w1/2,-size_xsect_1[1]/2-extrawallThicknesss-tolerance-wallThicknesss]) square([w1,extrawallThicknesss+wallThicknesss+nudge]);
         }
         xsect(delta=tolerance);
-        translate([-w/2,0]) square([w,size_xsect_1[1]+tolerance+thickness]);
+        translate([-w/2,0]) square([w,size_xsect_1[1]+tolerance+wallThicknesss]);
     }
 }
 
@@ -74,19 +73,26 @@ module gripless() {
     }
 }
 
-gripOffset = gripHeight*tan(gripAngle);
-    
-gripOutlineSideView = let(dx = sin(gripAngle) * gripBevel, 
-    dy = cos(gripAngle) * gripBevel) Bezier([[0,0],LINE(),LINE(),[gripLength,0],LINE(),LINE(),[gripLength-gripOffset+dx,-gripHeight+dy],OFFSET([-dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength-gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+dx,-gripHeight+dy]]);
+gripOffset = gripHeight*tan(gripAngle);    
 
-gripOutlineBottomView = Bezier([[0,gripWidth/2],LINE(),LINE(),[0,gripBevel],LINE(),LINE(),[gripBevel,0],LINE(),LINE(),[gripLength-gripBevel,0],SMOOTH_ABS(gripBevel*0.5),SMOOTH_ABS(gripBevel*0.5),[gripLength,gripBevel],LINE(),LINE(),[gripLength,gripWidth/2],REPEAT_MIRRORED([0,1])]);
+gripOutlineSideView = let(dx = sin(gripAngle) * gripBevel, 
+    dy = cos(gripAngle) * gripBevel, h = size_xsect_1[1]+2*wallThicknesss+2*tolerance) Bezier(
+    [[h*tan(gripAngle),h],LINE(),LINE(),[h*tan(gripAngle)+gripLength,h],LINE(),LINE(),[gripLength-gripOffset+dx,-gripHeight+dy],OFFSET([-dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength-gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+dx,-gripHeight+dy]]);
+
+gripOutlineBottomView = Bezier([[-nudge,gripWidth/2],LINE(),LINE(),[-nudge,gripBevel],LINE(),LINE(),[gripBevel,0],LINE(),LINE(),[gripLength-gripBevel,0],SMOOTH_ABS(gripBevel*0.5),SMOOTH_ABS(gripBevel*0.5),[gripLength,gripBevel],LINE(),LINE(),[gripLength,gripWidth/2],REPEAT_MIRRORED([0,1])]);
 
 function atXY(points2D,x,y) = [for (p=points2D) [p[0]+x,y,p[1]]];
 
 module grip() {
+    translate([0,0,-nudge])
+    rotate([0,-90,0])
+    rotate([0,0,gripAngle])
     intersection() {
-        pointHull(concat(atXY(gripOutlineBottomView,0,0),atXY(gripOutlineBottomView,-gripOffset,-gripHeight)));
-        linear_extrude(height=gripWidth) polygon(gripOutlineSideView);
+        union() {
+            pointHull(concat(atXY(gripOutlineBottomView,wallThicknesss/2*tan(gripAngle),wallThicknesss/2),atXY(gripOutlineBottomView,-gripOffset,-gripHeight)));
+           translate([0,0,gripWidth/2]) rotate([0,90,0]) translate([0,size_xsect_1[1]/2-nudge+tolerance+wallThicknesss,0]) linear_extrude(height=gripLength+tan(gripAngle)*(2*tolerance+2*wallThicknesss+size_xsect_1[1])) outline();
+        }
+        linear_extrude(height=3*gripWidth+size_xsect_1[1]*3,center=true) polygon(gripOutlineSideView);
     }
 }
 
@@ -97,4 +103,5 @@ module grippy() {
 if (!includeGrip) 
     gripless();
 else 
-    grippy();
+    grip();
+
