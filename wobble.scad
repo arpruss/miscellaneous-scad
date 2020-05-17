@@ -21,6 +21,7 @@ jointHorizontalTolerance = 1;
 jointVerticalTolerance = 2;
 angleLabel = 1; //[0:no,1:yes]
 alignmentHoles = 0; //[0:no,1:yes]
+demo = 0; //[0:no,1:yes]
 
 module dummy() {}
 
@@ -52,7 +53,12 @@ $fn = 100;
 function letterSum(n,soFar="") = 
     n == 0 ? str(labels[n],soFar) :
     letterSum(n-1,soFar=str("+",labels[n],soFar));
-    
+
+boltStickout = hexNutMinimumDistance + hexNutThickness + tolerance + 
+0.5*boltDiameter + heightDifference;
+
+
+module main() {    
 rotate([angleNumber==0 || alignmentHoles ? 0 : 180,0,0])
 difference() {
     if (angleNumber == 0) {
@@ -67,8 +73,7 @@ difference() {
             if (getContactRadius(currentAngle) > trimSize/2) {
                 echo("trimSize too small!");
             }
-            h0 = hexNutMinimumDistance + hexNutThickness + tolerance + 
-        0.5*boltDiameter + heightDifference;
+            h0 = boltStickout;
             echo("Bolt should stick out ",h0,"mm from board");
             translate([0,0,-nudge]) cylinder(d=boltDiameter+2*boltTolerance,h=h0);
             bhe = (sphereRadius-currentOffset)-h0;
@@ -105,3 +110,44 @@ difference() {
     linear_extrude(height=2)
         text(str(currentAngle, "\u00B0=", letterSum(angleNumber)),halign="center",size=10,font="Arial:style=Bold");
     }
+}
+
+intersection() {
+    main();
+    if (demo) {
+        translate([-500,0,0]) cube([1000,1000,1000]);
+    }
+}
+
+module nut() {
+    linear_extrude(height=hexNutThickness)
+        difference() {
+            circle(d=hexNutSize/cos(180/6), $fn=6);
+            circle(d=boltDiameter+.2, $fn=36);
+        }
+}
+
+module bolt() {
+    d0 = boltDiameter / .298;
+    sphereR = 23;
+    head = .719/2 * d0;
+    y = sqrt(sphereR*sphereR-(sphereR-head)*(sphereR-head));
+    intersection() {
+        translate([0,0,-y]) sphere(r=sphereR,$fn=36);
+        cylinder(d=sphereR*4,$fn=4,h=sphereR*2);
+    }
+    translate([0,0,-.170*d0+nudge])
+    cylinder(d=.315 * d0 * sqrt(2), h=.170*d0, $fn=4);
+    translate([0,0,nudge-boltStickout-0.75*25.4])
+    cylinder(d=boltDiameter, h=boltStickout+0.75*25.4, $fn=32);
+    
+}
+
+if (demo) {
+    color("red")
+    translate([0,0,hexNutMinimumDistance]) { 
+        nut();
+    }
+    color("gray")
+    translate([0,0,-0.75*25.4]) rotate([180,0,0]) bolt();
+}

@@ -50,12 +50,14 @@ module sloper(angle) {
 module basic() {
     difference() {
         cube([boardWidth,boardHeight,boardDepth]);
+        
         for (i=[0:n-1]) {
             row = floor(i / 2);
             col = i % 2;
             for (j=[0,2])
             translate([spacing+(col+j)*(spacing+holdWidth),verticalSpacing+row*(holdHeight+verticalSpacing),boardDepth+nudge]) hold(holdDepths[i]);
         }
+        
         sloperWidth = boardWidth / 4;
         for (i=[0,2]) {
             translate([i*sloperWidth,boardHeight+nudge,nudge+boardDepth]) sloper(sloperAngle1);
