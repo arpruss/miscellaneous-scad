@@ -14,13 +14,14 @@ laserDiameter = 14.13;
 laserTolerance = 0;
 screwHole = 4;
 screwOffsetFromEdge = 3;
-mountWidth = 30;
-mountWall = 2;
-mountOffset = 0;
-mountBarThickness = 10;
-hotshoe = true;
+hotshoe = false;
 hotshoeWidthTolerance = 0.4;
 hotshoeThicknessTolerance = 0.3;
+mountWidth = 30; // irrelevant in hotshoe mode
+mountWall = 2;  // irrelevant in hotshoe mode
+mountOffset = 0;  // irrelevant in hotshoe mode
+mountBarThickness = 10;  // irrelevant in hotshoe mode
+mountRadiusOfCurvature = 0;  // 0 for flat; irrelevant in hotshoe mode
 switchOnRight = true;
 layers = 60;
 //</params>
@@ -101,18 +102,39 @@ tubeMesh([for(z=[0:h/layers:h]) wallAt(z,arcAngle=snapAngle,widerAngle=switchAre
 }
 
 module mountPlate(plate=true) {
-    rotate([90,0,0]) {
-        if(plate)
-        linear_extrude(height=mountWall+nudge)
-        difference() {
-            translate([-mountWidth/2,0]) square([mountWidth,snapLength]);
-            for (s=[-1,1]) for(y=[screwOffsetFromEdge+screwHole,snapLength-(screwOffsetFromEdge+screwHole)]) translate([s*(mountWidth/2-screwOffsetFromEdge-screwHole/2),y]) circle(d=screwHole,$fn=16);
+    if (plate && mountRadiusOfCurvature) {
+        mountCurved();
+        rotate([90,0,0])
+            translate([-mountBarThickness/2,0,0]) cube([mountBarThickness,hotshoe?hotshoeLength:snapLength,mountOffset+laserDiameter/2+snapWall/2]);
+    }
+    else {
+        rotate([90,0,0]) {
+            if(plate)
+            linear_extrude(height=mountWall+nudge)
+            difference() {
+                translate([-mountWidth/2,0]) square([mountWidth,snapLength]);
+                for (s=[-1,1]) for(y=[screwOffsetFromEdge+screwHole,snapLength-(screwOffsetFromEdge+screwHole)]) translate([s*(mountWidth/2-screwOffsetFromEdge-screwHole/2),y]) circle(d=screwHole,$fn=16);
+            }
+            else 
+                hotshoe();
+            translate([-mountBarThickness/2,0,0]) cube([mountBarThickness,hotshoe?hotshoeLength:snapLength,mountOffset+laserDiameter/2+snapWall/2]);
         }
-        else
-            hotshoe();
-        translate([-mountBarThickness/2,0,0]) cube([mountBarThickness,hotshoe?hotshoeLength:snapLength,mountOffset+laserDiameter/2+snapWall/2]);
     }
 }
+
+module mountCurved() {
+    circum = 2 * PI * mountRadiusOfCurvature;
+    angle = 360 * mountWidth / circum;
+    off = screwOffsetFromEdge + screwHole/2;
+    holeAngularOffset = 360 * off / circum;
+    translate([0,mountRadiusOfCurvature,0])
+    difference() {
+        rotate([0,0,-angle/2-90]) rotate_extrude($fn=layers*360/angle,angle=angle) translate([mountRadiusOfCurvature,0]) square([mountWall,snapLength]);
+    for(z=[snapLength-off,off]) translate([0,0,z]) for(a=[angle/2-holeAngularOffset,-angle/2+holeAngularOffset]) rotate(a) translate([0,-mountRadiusOfCurvature,0]) rotate([90,0,0]) cylinder(h=3*mountWall,$fn=16,center=true);
+    }
+}
+
+//mountCurved();
 
 module main(plate=!hotshoe) {
     translate([0,-mountOffset+nudge,0]) snap();
