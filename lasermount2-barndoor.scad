@@ -1,7 +1,7 @@
 use <tubemesh.scad>;
 
 //<params>
-snapLength = 32;
+snapLength = 39;
 transitionAngle = 8;
 snapWall = 1.5;
 snapAngle = 230;
@@ -13,12 +13,12 @@ cutLength = 4;
 laserDiameter = 14.13;
 laserTolerance = 0;
 screwHole = 4;
-screwOffsetFromEdge = 3;
-mountWidth = 30;
-mountWall = 2;
-mountOffset = 0;
+screwOffsetFromEdge = 2.75;
+mountWidth = 30; // irrelevant for hotshoe
+mountWall = 2; // irrelevant for hotshoe
+mountOffset = 2.5;
 mountBarThickness = 10;
-hotshoe = true;
+hotshoe = false;
 hotshoeWidthTolerance = 0.4;
 hotshoeThicknessTolerance = 0.3;
 switchOnRight = true;
