@@ -1,20 +1,21 @@
 headHeight = 3.4; // Thickness of spherical portion of bolt head
 headWidth = 14.73; // Width of spherical portion of bolt head
-minimumThickness = 0; // Minimum thickness of adjustment device
-tolerance = 0.25; // We assume filament goes this far beyond its boundaries
+extraThickness = 1; // Extra thickness of adjustment device
+tolerance = 0.2; // We assume filament goes this far beyond its boundaries; set to 0 for 2D cutting
 initialStickout = 3.07; // The top of the bolt head sticks out this far past the horizontal plane through the hinge 
-distanceFromHinge = 294.5; // Distance from the rotational center of the hinge to the bolt
+distanceFromHinge = 292; // Distance from the rotational center of the hinge to the bolt
 threadPitch = 1.27; // in mm: 20 tpi = 1.27
 rpm = 1; // Planned speed of bolt rotation
 distanceToEnd = 35; // Distance from center of bolt to the end of the board
-correctorWidth = 14;
+correctorWidth = 20;
 extraGap = 2; // extra gap between boards at zero angle
 maxTime = 120; // in minutes
+dimensions = 3; // choose 2 or 3
 
 module dummy() {}
 
 animate = 0;
-adjustedStickout = initialStickout+minimumThickness+tolerance;
+adjustedStickout = initialStickout+extraThickness+tolerance;
 
 headRadius = (pow((headWidth/2),2)+headHeight*headHeight)/(2*headHeight);
 siderealDay = 23.9344699;
@@ -72,13 +73,18 @@ module corrector() {
     r1 = norm([distanceFromHinge,p]);
     theta = maxAngle-atan2(p,distanceFromHinge);
     maxHeight=r1 * sin(theta)+extraGap;
-    linear_extrude(height=correctorWidth)
-    difference() {
-        translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,maxHeight+extraGap]);
-        translate([-distanceFromHinge,minimumThickness+extraGap])
-        for (t=[0:.05:2*maxTime]) 
-            bump(t, attachments=false);
+    module flat() {
+        difference() {
+            translate([-headWidth/3,0]) square([distanceToEnd+headWidth/3,maxHeight+extraGap]);
+            translate([-distanceFromHinge,extraThickness+extraGap])
+            for (t=[0:.1:2*maxTime]) 
+                bump(t);
+        }
     }
+    if (dimensions==3) 
+        linear_extrude(height=correctorWidth) flat();
+    else
+        flat();
 }
 
 /*
@@ -90,7 +96,7 @@ if (animate) {
 }
 */
 if (animate) {
-    translate([0,0,-minimumThickness])
+    translate([0,0,-extraThickness])
     rotate([90,0,0])
     translate([distanceFromHinge,0,0]) corrector();
     arm($t*60);
