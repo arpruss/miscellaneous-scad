@@ -14,9 +14,10 @@ function normalize(v) = v/norm(v);
 
 function _winding(points,poly,sum=0,pos=0) =
     pos >= len(poly) ? sum :
-    _winding(points,poly,sum=sum+(points[poly[(pos+1)%len(poly)]][0]-points[poly[pos]][0])*(points[poly[(pos+1)%len(poly)]][1]-points[poly[pos]][1]),pos=pos+1);
+    _winding(points,poly,sum=sum+(points[poly[(pos+1)%len(poly)]][0]-points[poly[pos]][0])*(points[poly[(pos+1)%len(poly)]][1]+points[poly[pos]][1]),pos=pos+1);
 
-function _isCCW(points,poly) = _winding(points,poly) < 0;
+function _isCCW(points,poly) =
+_winding(points,poly) < 0;
 
 function identifyPlane(points,poly) = let(i=_furthestAwayFromPoint(points,poly,points[poly[0]]),
            j=_furthestAwayFromLine(points,poly,points[poly[0]],points[poly[i]]),
@@ -31,7 +32,9 @@ function projectPoint(coordsys,p) = let(v=p-coordsys[0],
            
 function projectPoints(coordsys,p) = [for(v=p) projectPoint(coordsys,v)];
     
-function triangulate(points,poly) = len(points[poly[0]]) == 2 ? triangulate2D(points,poly) : triangulate2D(projectPoints(identifyPlane(points,poly),points),poly);
+function triangulate(points,poly=undef) = 
+    let(poly = poly==undef ? [for(i=[0:1:len(points)-1]) i] : poly)
+    len(points[poly[0]]) == 2 ? triangulate2D(points,poly) : triangulate2D(projectPoints(identifyPlane(points,poly),points),poly);
 
 function mod(a,b) = let(m=a%b) m < 0 ? m+b : m;
 
@@ -47,7 +50,7 @@ function _isReflex(points,poly,i) =
     let(n=len(poly),
         a=points[poly[mod(i-1,n)]],
         b=points[poly[i]],
-        c=points[poly[mod(i+1,n)]]) cross(c-b,a-b) < 0;
+        c=points[poly[mod(i+1,n)]]) cross(b-a,c-b) < 0;
                 
 function _checkEar2(points,poly,a,b,c,j) = 
    let(p=points[poly[mod(j,len(poly))]],
@@ -60,7 +63,7 @@ function _checkEar(points,poly,a,b,c,i,j) =
     _checkEar(points,poly,a,b,c,i,j+1);
 
 function _isEar(points,poly,i) = 
-    _isReflex(points,poly,i) ? false :                
+    _isReflex(points,poly,i) ? false :
     let(n=len(poly),
         a=points[poly[mod(i-1,n)]],
         b=points[poly[i]],
@@ -86,7 +89,7 @@ function triangulate2D(points,poly,soFar=[]) =
     len(poly) == 3 ? concat(soFar,[poly]) :
     triangulate2D(points,_cutEar(points,poly),soFar=concat(soFar,[_getEar(points,poly)]));
     
-module _showTriangulation(points,tt) 
+module showTriangulation(points,tt) 
 {
     for(t=tt) {
         for(i=[0:2]) {
@@ -99,7 +102,8 @@ module _showTriangulation(points,tt)
 }
 
 //<skip>
-function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
+function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),0*rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),0*rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
+
 testPoints=testPoly2(10);
-_showTriangulation(testPoints,triangulate(testPoints,[for(i=[0:20-1]) i]));
+showTriangulation(testPoints,triangulate(testPoints));
 //</skip>
