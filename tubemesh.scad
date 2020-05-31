@@ -1,4 +1,5 @@
 use <eval.scad>;
+use <triangulation.scad>;
 
 // written for tail-recursion
 // _subtotals[i] = list[0] + ... + list[i-1]
@@ -132,18 +133,20 @@ function _tubeSegmentFaces(points,index,n1,n2,optimize=1)
 function _tubeMiddleFaces(points,counts,subtotals,optimize=1) = [ for (i=[1:len(counts)-1])
            for (face=_tubeSegmentFaces(points,subtotals[i-1],counts[i-1],counts[i],optimize=optimize)) face ];
                
-function _endCaps(counts,subtotals,startCap=true,endCap=true) =
+function _endCap(points,indices,triangulate) = triangulate ? triangulate(points,indices) : [indices];
+               
+function _endCaps(points,counts,subtotals,startCap=true,endCap=true,triangulate=false) =
     let( n = len(counts),
-         cap1 = counts[0]<=2 || !startCap ? undef : [for(i=[0:counts[0]-1]) i],
-         cap2 = counts[n-1]<=2 || !endCap ? undef : [for(i=[counts[n-1]-1:-1:0]) subtotals[n-1]+i] )
-       [for (c=[cap1,cap2]) if (c!=undef) c];
+         cap1 = counts[0]<=2 || !startCap ? [] : _endCap(points, [for(i=[0:counts[0]-1]) i], triangulate),
+         cap2 = counts[n-1]<=2 || !endCap ? [] : _endCap(points, [for(i=[counts[n-1]-1:-1:0]) subtotals[n-1]+i], triangulate))
+         concat(cap1,cap2);
            
-function _tubeFaces(sections,startCap=true,endCap=true,optimize=1) =
+function _tubeFaces(sections,startCap=true,endCap=true,optimize=1,triangulateEnds=false) =
                 let(
         counts = [for (s=sections) len(s)],
         points = _flatten(sections),
         subtotals = _subtotals(counts)) 
-            concat(_tubeMiddleFaces(points,counts,subtotals,optimize=optimize),_endCaps(counts,subtotals,startCap=startCap,endCap=endCap));
+            concat(_tubeMiddleFaces(points,counts,subtotals,optimize=optimize),_endCaps(points,counts,subtotals,startCap=startCap,endCap=endCap,triangulate=triangulateEnds));
 
 function _removeDuplicates1(points,soFar=[[],[]]) =
         len(soFar[0]) >= len(points) ? soFar :
@@ -164,10 +167,10 @@ function _removeDuplicates(points, faces) =
         newFaces=[for(f=faces) [for(v=f) map[v]]])
             [newPoints, newFaces];
         
-function pointsAndFaces(sections,startCap=true,endCap=true,optimize=1) =
+function pointsAndFaces(sections,startCap=true,endCap=true,optimize=1,triangulateEnds=false) =
         let(
             points0=_flatten(sections),
-            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize)) 
+            faces0=_tubeFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize,triangulateEnds=triangulateEnds)) 
         _removeDuplicates(points0,faces0);
         
 function sectionZ(section,z) = [for(xy=section) [xy[0],xy[1],z]];
@@ -182,8 +185,8 @@ function shiftSection(section,delta) = [for(p=section) [for(i=[0:len(delta)-1]) 
 //   0: no optimization at all
 //   1: minimal optimization at the quad level
 //   n>1: shift corresponding points in different layers by up to n-1 points to try to have the best triangles
-module tubeMesh(sections,startCap=true,endCap=true,optimize=1) {
-    pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize);
+module tubeMesh(sections,startCap=true,endCap=true,optimize=1,triangulateEnds=false) {
+    pAndF = pointsAndFaces(sections,startCap=startCap,endCap=endCap,optimize=optimize,triangulateEnds=triangulateEnds);
     polyhedron(points=pAndF[0],faces=pAndF[1]);
 }
 
@@ -263,7 +266,7 @@ function twistSectionXY(section,theta,autoShift=false) =
         i == 1 ? p[0]*sin(theta)+p[1]*cos(theta) :
         p[i]]];
 
-module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=1) {
+module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,curve="t",curveParams=[[]],startCap=true,endCap=true,optimize=1,triangulateEnds=false) {
     
     section2 = section2==undef ? section1 : section2;
     
@@ -285,7 +288,7 @@ module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,cu
                             section=(1-t1)*section1interp+t1*section2interp)
                         twistSectionXY(sectionZ(section,height*t),theta)];
                       
-    tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=optimize);   
+    tubeMesh(sections,startCap=startCap,endCap=endCap,optimize=optimize,triangulateEnds=triangulateEnds);   
 }
 
 module cone(r=10,d=undef,height=10) {
@@ -302,6 +305,7 @@ module prism(base=[[0,0,0],[1,0,0],[0,1,0]], vertical=[0,0,1]) {
 
 //<skip>
 translate([15,0,0]) morphExtrude(ngonPoints(30,d=6), ngonPoints(2,d=4), height=10);
+
 // for some reason this gives a CGAL error if we put in r1=0 and endCap=false
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=130,r=10);

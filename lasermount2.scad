@@ -98,7 +98,7 @@ module snap(inside=false) {
     translate([0,0,inside?-nudge:0])
     rotate([0,0,90])
     translate([-r1-snapWall,0,0]) 
-tubeMesh([for(z=[0:h/layers:h]) wallAt(z,arcAngle=snapAngle,widerAngle=switchAreaAngularSize,r1=r1,r2=r2, cutArcAngle=inside?snapAngle:30, height=h,transitionAngle=transitionAngle, insideOnly=inside, cutLength=cutLength, steps=layers)]);
+tubeMesh([for(z=[0:h/layers:h]) wallAt(z,arcAngle=snapAngle,widerAngle=switchAreaAngularSize,r1=r1,r2=r2, cutArcAngle=inside?snapAngle:30, height=h,transitionAngle=transitionAngle, insideOnly=inside, cutLength=cutLength, steps=layers)],triangulateEnds=true);
 }
 
 module mountPlate(plate=true) {
