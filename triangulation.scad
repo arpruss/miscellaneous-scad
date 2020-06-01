@@ -89,21 +89,69 @@ function triangulate2D(points,poly,soFar=[]) =
     len(poly) == 3 ? concat(soFar,[poly]) :
     triangulate2D(points,_cutEar(points,poly),soFar=concat(soFar,[_getEar(points,poly)]));
     
-module showTriangulation(points,tt) 
+module showMesh(points,tt,width=1) 
 {
     for(t=tt) {
-        for(i=[0:2]) {
+        for(i=[0:1:len(t)-1]) {
             hull() {
-                translate(points[t[i]]) sphere(d=1);
-                translate(points[t[(i+1)%3]]) sphere(d=1);
+                translate(points[t[i]]) sphere(d=width);
+                translate(points[t[(i+1)%len(t)]]) sphere(d=width);
             }
         }
     }
 }
 
+function _find(needle,haystack) = let(f=search([needle], haystack)) f==[[]] ? undef : f[0];
+
+function _refineTriangle(triangle,maxEdge) =
+    let(a = triangle[0],
+        b = triangle[1],
+        c = triangle[2],
+        ab = norm(a-b),
+        bc = norm(b-c),
+        ca = norm(c-a))
+        ab <= maxEdge && bc <= maxEdge && ca <= maxEdge ? [triangle] :
+        ab > maxEdge && bc > maxEdge && ca > maxEdge ? [[a,(a+b)/2,(a+c)/2],[b,(b+c)/2,(a+b)/2],[c,(a+c)/2,(b+c)/2],[(a+c)/2,(a+b)/2,(b+c)/2]] :
+    ab > maxEdge && bc > maxEdge ? [[b,(b+c)/2,(a+b)/2],[a,(a+b)/2,(b+c)/2],[c,a,(b+c)/2]] :
+    bc > maxEdge && ca > maxEdge ? [[c,(c+a)/2,(b+c)/2],[b,(b+c)/2,(c+a)/2],[a,b,(c+a)/2]] :
+    ca > maxEdge && ab > maxEdge ? [[a,(a+b)/2,(c+a)/2],[c,(c+a)/2,(a+b)/2],[b,c,(a+b)/2]] :
+    ab > maxEdge ? [[a,(a+b)/2,c],[(a+b)/2,b,c]] :
+    bc > maxEdge ? [[b,(b+c)/2,a],[(b+c)/2,c,a]] :
+    /*ca > maxEdge */ [[c,(c+a)/2,b],[(c+a)/2,a,b]];
+
+function _refineMesh1(triangles,maxEdge,pos=0,newTriangles=[]) =
+    pos >= len(triangles) ? newTriangles :
+    _refineMesh1(triangles,maxEdge,pos=pos+1,newTriangles=concat(newTriangles,_refineTriangle(triangles[pos],maxEdge)));
+    
+function _maxEdge(faces) = max([for(f=faces) for(i=[0:len(f)-1]) norm(f[(i+1)%len(f)]-f[i])]);
+
+function _refineMeshN(triangles,maxEdge,n=0) =
+    n <= 0 ? triangles : _refineMeshN(_refineMesh1(triangles,maxEdge),maxEdge,n=n-1);
+    
+function _newPointsAndFaces(pointsAndFaces,face,faceSoFar=[]) =
+    let(pos=len(faceSoFar),
+        points=pointsAndFaces[0],
+        faces=pointsAndFaces[1]
+    )
+    pos >= len(face) ? [points,concat(faces,[faceSoFar])] :
+    let(v=face[pos],
+        i=_find(v,points)) i==undef ? _newPointsAndFaces([concat(points,[v]),faces],face,faceSoFar=concat(faceSoFar,[len(points)])) : _newPointsAndFaces(pointsAndFaces,face,faceSoFar=concat(faceSoFar,[i]));            
+        
+function _toPointsAndFaces(faces,pointsAndFaces=[[],[]], pos=0) =
+    pos >= len(faces) ? pointsAndFaces :
+    _toPointsAndFaces(faces,_newPointsAndFaces(pointsAndFaces,faces[pos]),pos=pos+1);
+    
+function refineMesh(points=[],triangles=[],maxEdge=5) =
+    let(tris = [for (t=triangles) [for (v=t) points[v]]],
+        longestEdge = _maxEdge(tris),
+        n = ceil(ln(longestEdge/maxEdge)/ln(2)),
+        newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
+
 //<skip>
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),0*rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),0*rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
 
 testPoints=testPoly2(10);
-showTriangulation(testPoints,triangulate(testPoints));
+tt = triangulate(testPoints);
+m = refineMesh(testPoints,tt,5);
+showMesh(m[0],m[1],width=0.3);
 //</skip>
