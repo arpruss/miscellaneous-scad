@@ -41,3 +41,8 @@ function inflateMesh(points=[],triangles=[],top="d",bottom="0",params=[]) =
         topTriangles = [for (t=triangles) _invertTriangle([for (index=t) index*2+1])],
         bottomTriangles = [for (t=triangles) [for(index=t) index*2]]) 
         [newPoints,concat(topTriangles,bottomTriangles,_edgeTriangles(newPoints,outside,bottomc,topc,params))];
+
+module inflateMesh(pointsAndFaces=undef,points=undef,triangles=undef,top="d",bottom="0",params=[]) {
+    data = inflateMesh(points=pointsAndFaces==undef?points:pointsAndFaces[0],triangles=pointsAndFaces==undef?triangles:pointsAndFaces[1],top=top,bottom=bottom,params=params);
+    polyhedron(points=data[0],faces=data[1]);
+}
