@@ -143,6 +143,7 @@ _operators = [
     _func("round"),
     _func("sign"),
     _func("norm"),
+    [ "interpolate", 1, -1, 1, true, "interpolate" ],
     [ "atan2", 1, -1, 1, true, "atan2" ],
     [ "ATAN2", 1, -1, 1, true, "ATAN2" ],
     [ "max", 1, -1, 1, true, "max" ],
@@ -356,6 +357,20 @@ function _haveUndef(v,n=0) =
     is_undef(v[n]) ? true :
     _haveUndef(v,n=n+1);
 
+// TODO: remove the need for this
+function _removeDup(v,soFar=[],pos=0) = [for(i=[0:len(v)-1]) if(i==0 || v[i-1][0]!=v[i][0]) v[i]];
+
+function _interpolate1(a,b,x) = (x-a[0])/(b[0]-a[0])*(b[1]-a[1])+a[1];
+
+function _isInterp(v) = is_list(v) && is_list(v[0]) && is_num(v[0][0]);
+
+function _interpolate(x,f,pos=-1) =
+    pos < 0 ? _interpolate(x,_removeDup(f),pos=0) :
+    pos >= len(f)-1 ?
+    _interpolate1(f[len(f)-2],f[len(f)-1],x) :
+    pos == 0 && x < f[0][0] ? _interpolate1(f[1],f[0],x) :
+    x <= f[pos+1][0] ? _interpolate1(f[pos],f[pos+1],x) : _interpolate(x,f,pos=pos+1);
+    
 function eval(c,v=[]) = 
     is_string(c) ? _lookupVariable(c,v) :
     let(op=c[0]) (
@@ -396,6 +411,7 @@ function eval(c,v=[]) =
     op == "asin" ? asin(args[0]) :
     op == "atan" ? atan(args[0]) :
     op == "atan2" ? atan2(args[0],args[1]) :
+    op == "interpolate" ? _interpolate(args[0],args[1]) :
     op == "COS" ? cos(args[0]*180/PI) :
     op == "SIN" ? sin(args[0]*180/PI) :
     op == "TAN" ? tan(args[0]*180/PI) :

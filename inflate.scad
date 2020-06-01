@@ -33,11 +33,11 @@ function _edgeTriangles0(edge,bottomc,topc,params) =
 function _edgeTriangles(points,outside,bottomc,topc,params) = [for(edge=outside) for(t=_edgeTriangles0(edge,bottomc,topc,params)) [for(v=t) _find(v,points)]];
 
 function inflateMesh(points=[],triangles=[],top="d",bottom="0",params=[]) =
-    let(topc = compileFunction(top),
-        bottomc = compileFunction(bottom),
+    let(topc = _isInterp(top) ? _removeDup(top) : compileFunction(top),
+        bottomc = _isInterp(bottom) ? _removeDup(bottom) : compileFunction(bottom),
         outside = _outerEdges(points, triangles),
         n = len(points),
-        newPoints = [for (p=points) let(vars=concat(params,[["x", p[0]], ["y", p[1]], ["d",_distanceToOutside(p,outside)]])) for(fun=[bottomc,topc]) [p[0],p[1],eval(fun,vars)]],
+        newPoints = [for (p=points) let(d=_distanceToOutside(p,outside), vars=concat(params,[["x", p[0]], ["y", p[1]], ["d",d]])) for(fun=[bottomc,topc]) [p[0],p[1],eval(fun,vars)]],
         topTriangles = [for (t=triangles) _invertTriangle([for (index=t) index*2+1])],
         bottomTriangles = [for (t=triangles) [for(index=t) index*2]]) 
         [newPoints,concat(topTriangles,bottomTriangles,_edgeTriangles(newPoints,outside,bottomc,topc,params))];
