@@ -19,7 +19,8 @@ function _winding(points,poly,sum=0,pos=0) =
 function _isCCW(points,poly) =
 _winding(points,poly) < 0;
 
-function identifyPlane(points,poly) = let(i=_furthestAwayFromPoint(points,poly,points[poly[0]]),
+function identifyPlane(points,poly) = 
+let(i=_furthestAwayFromPoint(points,poly,points[poly[0]]),
            j=_furthestAwayFromLine(points,poly,points[poly[0]],points[poly[i]]),
            normal = cross(points[poly[i]]-points[poly[0]],points[poly[j]]-points[poly[0]]),
            a = points[poly[i]]-points[poly[0]],
@@ -32,9 +33,14 @@ function projectPoint(coordsys,p) = let(v=p-coordsys[0],
            
 function projectPoints(coordsys,p) = [for(v=p) projectPoint(coordsys,v)];
     
+function _removeDuplicates(points,poly)
+    = [for (i=[0:len(poly)-1]) if (points[poly[(i+1)%len(poly)]] != points[poly[i]]) poly[i]];
+    
 function triangulate(points,poly=undef,holes=[]) = 
     let(poly = poly==undef ? [for(i=[0:1:len(points)-1]) i] : poly)
-    len(points[poly[0]]) == 2 ? triangulate2D(points,poly,holes) : triangulate2D(projectPoints(identifyPlane(points,poly),points),poly,holes);
+    let(poly = _removeDuplicates(points,poly),
+        holes = [for(h=holes) _removeDuplicates(points,h)])
+    len(points[poly[0]]) == 2 ?triangulate2D(points,poly,holes) : triangulate2D(projectPoints(identifyPlane(points,poly),points),poly,holes);
     
 function _leftMostHoleData(points,holes,indexOfHole=0,indexInHole=0,bestData=undef,) =
     indexOfHole >= len(holes) ? bestData[1] :
@@ -185,10 +191,12 @@ function refineMesh(points=[],triangles=[],maxEdge=5) =
         newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
 
 //<skip>
+    /*
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),0*rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),0*rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
 
 testPoints=testPoly2(10);
 tt = triangulate(testPoints);
 m = refineMesh(testPoints,tt,5);
 showMesh(m[0],m[1],width=0.3);
+    */
 //</skip>

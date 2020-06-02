@@ -32,8 +32,11 @@ function _edgeTriangles0(edge,bottomc,topc,params) =
     
 function _edgeTriangles(points,outside,bottomc,topc,params) = [for(edge=outside) for(t=_edgeTriangles0(edge,bottomc,topc,params)) [for(v=t) _find(v,points)]];
 
-function inflateMesh(points=[],triangles=[],top="d",bottom="0",params=[]) =
-    let(topc = _isInterp(top) ? _removeDup(top) : compileFunction(top),
+function inflateMesh(pointsAndFaces=undef,points=undef,triangles=undef,top="d",bottom="0",params=[]) =
+    let(
+    points = pointsAndFaces==undef ? points : pointsAndFaces[0],
+    triangles = pointsAndFaces==undef ? triangles : pointsAndFaces[1],
+    topc = _isInterp(top) ? _removeDup(top) : compileFunction(top),
         bottomc = _isInterp(bottom) ? _removeDup(bottom) : compileFunction(bottom),
         outside = _outerEdges(points, triangles),
         n = len(points),
@@ -43,6 +46,6 @@ function inflateMesh(points=[],triangles=[],top="d",bottom="0",params=[]) =
         [newPoints,concat(topTriangles,bottomTriangles,_edgeTriangles(newPoints,outside,bottomc,topc,params))];
 
 module inflateMesh(pointsAndFaces=undef,points=undef,triangles=undef,top="d",bottom="0",params=[]) {
-    data = inflateMesh(points=pointsAndFaces==undef?points:pointsAndFaces[0],triangles=pointsAndFaces==undef?triangles:pointsAndFaces[1],top=top,bottom=bottom,params=params);
+    data = inflateMesh(pointsAndFaces=pointsAndFaces,points=points,triangles=triangles,top=top,bottom=bottom,params=params);
     polyhedron(points=data[0],faces=data[1]);
 }
