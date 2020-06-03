@@ -13,6 +13,8 @@ function _flatten(list) = [for (a=list) for(b=a) b];
             
 function _reverseTriangle(t) = [t[2], t[1], t[0]];
 
+function _reverse(v) = [for(i=[len(v)-1:-1:0]) v[i]];
+
 function _mod(a,b) = 
     let (m=a%b)
     m < 0 ? b+m : m;

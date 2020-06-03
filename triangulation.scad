@@ -71,8 +71,8 @@ function _removeHoles1(points,primary,holes) =
         indexWithinPrimary=_rightMostPrimaryData(points,primary,hp[0]),
         primaryAndHoles=_addLoop(primary,holes,indexWithinPrimary,indexOfHole,indexWithinHole)) _removeHoles1(points,primaryAndHoles[0],primaryAndHoles[1]);   
         
-function _removeHolesAndReorient(points,primary,holes) = 
-        _removeHoles1(points,_orient(points,primary,ccw=true),[for(h=holes) _orient(points,h,ccw=false)]);
+function _removeHolesAndReorient(points,primary,holes) =    let(points=_isCCW(points,primary)?points:[for(p=points) [p[0],-p[1]]])
+        [points,_removeHoles1(points,primary,[for(h=holes) _orient(newPoints,h,ccw=false)])];
 
 function mod(a,b) = let(m=a%b) m < 0 ? m+b : m;
 
@@ -128,7 +128,9 @@ function _reverse(v) = [for(i=[len(v)-1:-1:0]) v[i]];
 function _orient(points,poly,ccw=true) = !!_isCCW(points,poly) == ccw ? poly : _reverse(poly);
 
 function triangulate2D(points,poly,holes=[],soFar=[]) =
-    let(poly = _removeHolesAndReorient(points,poly,holes))
+    let(pp = _removeHolesAndReorient(points,poly,holes),
+    points=pp[0],
+    poly=pp[1])
     len(poly) == 3 ? concat(soFar,[poly]) :
     triangulate2D(points,_cutEar(points,poly),soFar=concat(soFar,[_getEar(points,poly)]));
     
@@ -191,12 +193,10 @@ function refineMesh(points=[],triangles=[],maxEdge=5) =
         newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
 
 //<skip>
-    /*
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),0*rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),0*rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
 
 testPoints=testPoly2(10);
 tt = triangulate(testPoints);
 m = refineMesh(testPoints,tt,5);
 showMesh(m[0],m[1],width=0.3);
-    */
 //</skip>
