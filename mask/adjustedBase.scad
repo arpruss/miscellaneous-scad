@@ -1,10 +1,6 @@
-fixHeight = 8.3;
-fixR1 = 25;
-fixR2 = 28.5;
-
-/*adjustRadius = 18;
-adjustHeight = 9;
-adjustFactor = 1.25;*/
+adjustRadius = 23;
+adjustHeight = 8;
+adjustFactor = 1.3;
 
 
 base_points=[
@@ -10487,19 +10483,16 @@ base_max=[for(i=[0:2]) max([for(p=base_points) p[i]])];
 base_size=[for(i=[0:2]) base_max[i]-base_min[i]];
 
 points_centered = [for (p=base_points) [p[0]-base_min[0]-base_size[0]/2,p[1]-base_min[1]-base_size[1]/2,p[2]-base_min[2]]];
+  
+function remapZ(r,z) = 
+    r <= adjustRadius && z <= adjustHeight ? z :
+    z <= adjustHeight ? z * adjustFactor :
+    (z-adjustHeight)+adjustFactor*adjustHeight;
     
-/*
-    
-function remapRadius(r,z) = 
-    z >= adjustHeight ? r : 
-    r <= adjustRadius ? r :
-    let(t=z/adjustHeight) t*r+(1-t)*r*adjustFactor;
-
 function remap(p) =
     let (r=norm([p[0],p[1]]))
-        r == 0 ? p :
-        let(r1=remapRadius(r,p[2]))
-        [p[0]*r1/r,p[1]*r1/r,p[2]];
+        let(z=remapZ(r,p[2]))
+        [p[0],p[1],z];
 
 points_adjusted = [for (p=points_centered) remap(p)];
 
@@ -10513,13 +10506,5 @@ intersection() {
     }
 }
 
-*/
 
-$fn = 63;
-
-polyhedron(points=points_centered,faces=base_faces);
-difference() {
-    cylinder(r1=fixR1,r2=fixR2,h=fixHeight);
-    translate([0,0,-.5])
-    cylinder(r1=14,r2=fixR2,h=fixHeight+1);
-}
+polyhedron(points=points_adjusted,faces=base_faces);

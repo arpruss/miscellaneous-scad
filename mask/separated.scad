@@ -1,7 +1,7 @@
 rim = 5;
 gridThickness = 2.5;
 tolerance = 0.3;
-includeLock = false;
+includeLock =true;
 includeGrid = true;
 
 function getCenterAtHeight(z,points) = let(minimum=[for(i=[0:1]) min([for(p=points) if(p[2]<z) p[i]])], maximum=[for(i=[0:1]) max([for(p=points) if(p[2]<z) p[i]])]) [(minimum[0]+maximum[0])/2,(minimum[1]+maximum[1])/2];
@@ -11889,7 +11889,7 @@ module adjustedGrid() {
                 projection() grid();
                 annulus(d2=grid_size[0], d1=grid_size[0]-2*rim);
                 }
-            translate([0,0,gridThickness/2])
+            translate([0,0,1])
             linear_extrude(height=10)
             annulus(d2=grid_size[0]+10,d1=grid_size[0]-rim-2*tolerance);
         }
