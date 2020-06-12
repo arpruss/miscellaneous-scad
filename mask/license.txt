@@ -1,0 +1,5 @@
+The original 3M Mask Filter replacement files for 3M 6000/6500/7500/7800/FF-400 series by Maxdarkdog are licensed under the Creative Commons - Attribution - 
+Non-Commercial - Share Alike license.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Source: https://www.thingiverse.com/thing:4223753

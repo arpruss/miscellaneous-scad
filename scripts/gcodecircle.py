@@ -8,13 +8,13 @@ zMoveFeedRate = 480
 xyCutFeedRate = 900
 xyMoveFeedRate = 2100
 zClearance = 2
-tabLength = 3.5
-tabHeight = 2.5
+tabLength = 2.5
+tabHeight = 2
 nTabs = 2
 
-r1 = 19.2/2 # 3.1
-r2 = 127/2
-thickness = 12.2
+r1 = 0
+r2 = 25.4*3
+thickness = 19.95
 
 eps = 1e-5
 curX = 0
