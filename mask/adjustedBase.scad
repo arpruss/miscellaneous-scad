@@ -1,5 +1,5 @@
 fixHeight = 8.3;
-fixR1 = 24;
+fixR1 = 25;
 fixR2 = 28.5;
 
 /*adjustRadius = 18;

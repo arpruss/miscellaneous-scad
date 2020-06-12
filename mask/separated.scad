@@ -1,5 +1,8 @@
 rim = 5;
-tolerance = 0.2;
+gridThickness = 2.5;
+tolerance = 0.3;
+includeLock = false;
+includeGrid = true;
 
 function getCenterAtHeight(z,points) = let(minimum=[for(i=[0:1]) min([for(p=points) if(p[2]<z) p[i]])], maximum=[for(i=[0:1]) max([for(p=points) if(p[2]<z) p[i]])]) [(minimum[0]+maximum[0])/2,(minimum[1]+maximum[1])/2];
 
@@ -11879,15 +11882,18 @@ module annulus(d1=10,d2=20) {
 
 $fn =63;
 module adjustedGrid() {
-    difference()  {
-        linear_extrude(height=2)
-        union() {
-            projection() grid();
-            annulus(d2=grid_size[0], d1=grid_size[0]-2*rim);
-            }
-        translate([0,0,1])
-        linear_extrude(height=2)
-        annulus(d2=grid_size[0]+10,d1=grid_size[0]-rim-2*tolerance);
+    intersection() {
+        difference()  {
+            linear_extrude(height=gridThickness)
+            union() {
+                projection() grid();
+                annulus(d2=grid_size[0], d1=grid_size[0]-2*rim);
+                }
+            translate([0,0,gridThickness/2])
+            linear_extrude(height=10)
+            annulus(d2=grid_size[0]+10,d1=grid_size[0]-rim-2*tolerance);
+        }
+        cylinder(d=grid_size[0]-tolerance*2,h=10);
     }
 }
 
@@ -11903,9 +11909,10 @@ module adjustedLock() {
     }
 }
 
+if (includeLock)
 adjustedLock();
+if (includeGrid)
 translate([grid_size[0]+10,0,0]) adjustedGrid();
-echo(grid_size[2]);
 /*
 d = grid_size[0];
 linear_extrude(height=gridThickness) {
