@@ -1,6 +1,6 @@
 adjustRadius = 23;
 adjustHeight = 8;
-adjustFactor = 1.3;
+adjustFactor = 1.4;
 
 
 base_points=[
@@ -10485,12 +10485,11 @@ base_size=[for(i=[0:2]) base_max[i]-base_min[i]];
 points_centered = [for (p=base_points) [p[0]-base_min[0]-base_size[0]/2,p[1]-base_min[1]-base_size[1]/2,p[2]-base_min[2]]];
   
 function remapZ(r,z) = 
-    r <= adjustRadius && z <= adjustHeight ? z :
+    r <= adjustRadius && z <= adjustHeight * 0.5 ? z :
     z <= adjustHeight ? z * adjustFactor :
     (z-adjustHeight)+adjustFactor*adjustHeight;
-    
-function remap(p) =
-    let (r=norm([p[0],p[1]]))
+  
+function remap(p) = let (r=norm([p[0],p[1]]))
         let(z=remapZ(r,p[2]))
         [p[0],p[1],z];
 
@@ -10498,13 +10497,15 @@ points_adjusted = [for (p=points_centered) remap(p)];
 
 $fn = 63;
 
-intersection() {
+/*
+//intersection() {
     polyhedron(points=points_adjusted,faces=base_faces);
     union() {
         cylinder(r=26.3,h=20);
         translate([0,0,1]) cylinder(r=50,h=20);
     }
 }
+*/
 
 
 polyhedron(points=points_adjusted,faces=base_faces);
