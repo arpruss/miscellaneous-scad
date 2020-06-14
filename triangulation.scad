@@ -220,22 +220,34 @@ function _cutTriangle(t,z,normal) =
     (t[1]*normal >= z && t[2]*normal >= z) || (t[1]*normal <= z && t[2]*normal <= z) ? _cutTriangle0(t, z, normal) :
     _cutTriangle0([t[1],t[2],t[0]],z, normal);
 
-function cutMesh(mesh=undef,points=[],triangles=[],slice=0,normal=[0,0,1]) =
-        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],normal=_normalize(normal))
-        _toPointsAndFaces([for(t=triangles) for(s=_cutTriangle([for (v=t) points[v]],slice,normal)) s]);
+function cutMesh(mesh=undef,points=[],triangles=[],slice=0,normal=[1,0,0]) =
+        sliceMesh(mesh=mesh,points=points,triangles=triangles,slices=[slice],normal=normal);
             
 function _normalize(v) = 
-    v[0] == 0 && v[1] == 0 ? [0,0,sign(v[2])] :
-    v[0] == 0 && v[2] == 0 ? [0,sign(v[1]),0] :
-    v[1] == 0 && v[2] == 0 ? [sign(v[0]),0,0] :
-    v / norm(v);
+    let(vv = 
+        v[0] == 0 && v[1] == 0 ? [0,0,sign(v[2])] :
+        v[0] == 0 && v[2] == 0 ? [0,sign(v[1]),0] :
+        v[1] == 0 && v[2] == 0 ? [sign(v[0]),0,0] :
+        v / norm(v))
+        [for(i=[0:1:len(v)-1]) vv[i]];
             
 function _sliceTriangles(triangles,slices,normal,pos=0) =
     pos >= len(slices) ? triangles :
     _sliceTriangles([for(t=triangles) for(s=_cutTriangle(t,slices[pos],normal)) s],slices,normal,pos=pos+1);
+        
+function _makeSlices(points,triangles,slices,normal,spacing) =
+    slices != undef ? slices :
+    let(zs = [for(t=triangles) for(v=t) points[v]*normal],
+        zMin = min(zs),
+        zMax = max(zs),
+        n = ceil((zMax-zMin) / spacing)-1)
+        echo(n)n <= 0 ? [] :
+        [for(i=[1:1:n]) zMin+i*spacing];    
 
-function sliceMesh(mesh=undef,points=[],triangles=[],slices=[],normal=[0,0,1]) =
-        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],normal=_normalize(normal))
+function sliceMesh(mesh=undef,points=[],triangles=[],slices=undef,spacing=undef,normal=[1,0,0]) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],
+        normal=_normalize(normal),
+        slices=_makeSlices(points,triangles,slices,normal,spacing))
         _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],slices,normal));        
 //<skip>
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(-.3,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(-.3,.3,1)[0],-0.8*sin(i*360/n)]]);

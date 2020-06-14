@@ -10495,7 +10495,7 @@ function remap(p) = let (r=norm([p[0],p[1]]))
         let(z=remapZ(r,p[2]))
         [p[0],p[1],z];
 
-refined = cutMeshZ(points=points_centered,triangles=base_faces,z=adjustHeight);
+refined = cutMesh(points=points_centered,triangles=base_faces,slice=adjustHeight,normal=[0,0,1]);
 
 points_adjusted = [for (p=refined[0]) remap(p)];
 
