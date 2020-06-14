@@ -1,3 +1,5 @@
+use <../triangulation.scad>;
+
 adjustRadius = 23;
 adjustHeight = 8;
 adjustFactor = 1.4;
@@ -10493,7 +10495,9 @@ function remap(p) = let (r=norm([p[0],p[1]]))
         let(z=remapZ(r,p[2]))
         [p[0],p[1],z];
 
-points_adjusted = [for (p=points_centered) remap(p)];
+refined = cutMeshZ(points=points_centered,triangles=base_faces,z=adjustHeight);
+
+points_adjusted = [for (p=refined[0]) remap(p)];
 
 $fn = 63;
 
@@ -10508,4 +10512,4 @@ $fn = 63;
 */
 
 
-polyhedron(points=points_adjusted,faces=base_faces);
+polyhedron(points=points_adjusted,faces=refined[1]);
