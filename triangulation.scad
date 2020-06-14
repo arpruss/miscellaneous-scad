@@ -191,12 +191,48 @@ function refineMesh(points=[],triangles=[],maxEdge=5) =
         longestEdge = _maxEdge(tris),
         n = ceil(ln(longestEdge/maxEdge)/ln(2)),
         newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
+    
+function _cutZ(a,b,z) =
+    let(t=(z-a[2])/(b[2]-a[2]))
+        (1-t)*a+t*b;
+    
+function _cutTriangle0(t, z) = 
+    /* cut lines joining vertex 0 to others */
+    t[1][2] == z ?
+    let(cut02 = _cutZ(t[0],t[2],z))
+    [[cut02,t[0],t[1]],[cut02,t[1],t[2]]] :
+    t[2][2] == z ?
+    let(cut01 = _cutZ(t[0],t[1],z))
+    [[cut01,t[2],t[0]],[cut01,t[1],t[2]]] :
+    let(cut01 = _cutZ(t[0],t[1],z),
+        cut02 = _cutZ(t[0],t[2],z))
+    [[cut02,t[0],cut01],
+     [t[1],t[2],cut02],
+     [cut02,cut01,t[1]]];
 
+function _cutTriangle(t, z) = 
+    (t[0][2] <= z && t[1][2] <= z && t[2][2] <= z) || (t[0][2] >= z && t[1][2] >= z && t[2][2] >= z ) ? [t] :
+    (t[0][2] >= z && t[1][2] >= z) || (t[0][2] <= z && t[1][2] <= z) ? _cutTriangle0([t[2],t[0],t[1]], z) :
+    (t[1][2] >= z && t[2][2] >= z) || (t[1][2] <= z && t[2][2] <= z) ? _cutTriangle0(t, z) :
+    _cutTriangle0([t[1],t[2],t[0]],z);
+
+function cutMeshZ(mesh=undef,points=[],triangles=[],z=0,zList=undef) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1])
+        _toPointsAndFaces([for(t=triangles) for(s=_cutTriangle([for (v=t) points[v]],z)) s]);
+            
+function _sliceTriangles(triangles,z) =
+    len(z) == 0 ? triangles :
+    _sliceTriangles([for(t=triangles) for(s=_cutTriangle(t,z[0])) s],[for(i=[1:1:len(z)-1]) z[i]]);
+
+function sliceMeshZ(mesh=undef,points=[],triangles=[],z=[]) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1])
+        _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],z));
+        
 //<skip>
-function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),0*rands(0,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),0*rands(0,.3,1)[0],-0.8*sin(i*360/n)]]);
+function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(-.3,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(-.3,.3,1)[0],-0.8*sin(i*360/n)]]);
 
-testPoints=testPoly2(10);
+testPoints=testPoly2(11);
 tt = triangulate(testPoints);
 m = refineMesh(testPoints,tt,5);
-showMesh(m[0],m[1],width=0.3);
+showMesh(m[0],m[1],width=.2);
 //</skip>
