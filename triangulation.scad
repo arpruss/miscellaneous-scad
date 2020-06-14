@@ -192,42 +192,51 @@ function refineMesh(points=[],triangles=[],maxEdge=5) =
         n = ceil(ln(longestEdge/maxEdge)/ln(2)),
         newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
     
-function _cutZ(a,b,z) =
-    let(t=(z-a[2])/(b[2]-a[2]))
+function _cutZ(a,b,z,normal) =
+    let(an = a*normal)
+        an == z ? a :
+        let(bn = b*normal)
+        bn == z ? b :
+        let(t=(z-a*normal)/(b*normal-a*normal))
         (1-t)*a+t*b;
     
-function _cutTriangle0(t, z) = 
+function _cutTriangle0(t, z, normal) = 
     /* cut lines joining vertex 0 to others */
-    t[1][2] == z ?
-    let(cut02 = _cutZ(t[0],t[2],z))
+    t[1]*normal == z ?
+    let(cut02 = _cutZ(t[0],t[2],z,normal))
     [[cut02,t[0],t[1]],[cut02,t[1],t[2]]] :
     t[2][2] == z ?
-    let(cut01 = _cutZ(t[0],t[1],z))
+    let(cut01 = _cutZ(t[0],t[1],z,normal))
     [[cut01,t[2],t[0]],[cut01,t[1],t[2]]] :
-    let(cut01 = _cutZ(t[0],t[1],z),
-        cut02 = _cutZ(t[0],t[2],z))
+    let(cut01 = _cutZ(t[0],t[1],z,normal),
+        cut02 = _cutZ(t[0],t[2],z,normal))
     [[cut02,t[0],cut01],
      [t[1],t[2],cut02],
      [cut02,cut01,t[1]]];
 
-function _cutTriangle(t, z) = 
-    (t[0][2] <= z && t[1][2] <= z && t[2][2] <= z) || (t[0][2] >= z && t[1][2] >= z && t[2][2] >= z ) ? [t] :
-    (t[0][2] >= z && t[1][2] >= z) || (t[0][2] <= z && t[1][2] <= z) ? _cutTriangle0([t[2],t[0],t[1]], z) :
-    (t[1][2] >= z && t[2][2] >= z) || (t[1][2] <= z && t[2][2] <= z) ? _cutTriangle0(t, z) :
-    _cutTriangle0([t[1],t[2],t[0]],z);
+function _cutTriangle(t,z,normal) = 
+    (t[0]*normal <= z && t[1]*normal <= z && t[2]*normal <= z) || (t[0]*normal >= z && t[1]*normal >= z && t[2]*normal >= z ) ? [t] :
+    (t[0]*normal >= z && t[1]*normal >= z) || (t[0]*normal <= z && t[1]*normal <= z) ? _cutTriangle0([t[2],t[0],t[1]], z,normal) :
+    (t[1]*normal >= z && t[2]*normal >= z) || (t[1]*normal <= z && t[2]*normal <= z) ? _cutTriangle0(t, z, normal) :
+    _cutTriangle0([t[1],t[2],t[0]],z, normal);
 
-function cutMeshZ(mesh=undef,points=[],triangles=[],z=0,zList=undef) =
-        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1])
-        _toPointsAndFaces([for(t=triangles) for(s=_cutTriangle([for (v=t) points[v]],z)) s]);
+function cutMesh(mesh=undef,points=[],triangles=[],slice=0,normal=[0,0,1]) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],normal=_normalize(normal))
+        _toPointsAndFaces([for(t=triangles) for(s=_cutTriangle([for (v=t) points[v]],slice,normal)) s]);
             
-function _sliceTriangles(triangles,z) =
-    len(z) == 0 ? triangles :
-    _sliceTriangles([for(t=triangles) for(s=_cutTriangle(t,z[0])) s],[for(i=[1:1:len(z)-1]) z[i]]);
+function _normalize(v) = 
+    v[0] == 0 && v[1] == 0 ? [0,0,sign(v[2])] :
+    v[0] == 0 && v[2] == 0 ? [0,sign(v[1]),0] :
+    v[1] == 0 && v[2] == 0 ? [sign(v[0]),0,0] :
+    v / norm(v);
+            
+function _sliceTriangles(triangles,slices,normal,pos=0) =
+    pos >= len(slices) ? triangles :
+    _sliceTriangles([for(t=triangles) for(s=_cutTriangle(t,slices[pos],normal)) s],slices,normal,pos=pos+1);
 
-function sliceMeshZ(mesh=undef,points=[],triangles=[],z=[]) =
-        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1])
-        _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],z));
-        
+function sliceMesh(mesh=undef,points=[],triangles=[],slices=[],normal=[0,0,1]) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],normal=_normalize(normal))
+        _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],slices,normal));        
 //<skip>
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(-.3,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(-.3,.3,1)[0],-0.8*sin(i*360/n)]]);
 
