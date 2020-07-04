@@ -1,6 +1,8 @@
 use <Bezier.scad>;
 use <tubemesh.scad>;
 
+//<params>
+
 holdDepths = [11,15,18,24];
 holdHeight = 19;
 holdWidth = 68;
@@ -10,10 +12,12 @@ boardDepth = 38.1;
 boardHeight = 88.9;
 boardWidth = 500;
 
-maxCutDepth = 32; // ??
+maxCutDepth = 32; 
 
 sloperAngle1 = 22;
 sloperAngle2 = 35;
+
+//</params>
 
 n = len(holdDepths);
 spacing = (boardWidth-n*holdWidth)/(n+1);
