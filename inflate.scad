@@ -21,8 +21,8 @@ function _distanceToOutside(p,outside) = min([for(edge=outside) _distanceToEdge(
     
 function _invertTriangle(t) = [t[2],t[1],t[0]];
 
-function _edgeTriangles0(edge,bottomc,topc,params) =
-    let(z=[for(v=edge) [for(fun=[bottomc,topc]) eval(fun,concat(params,[["x",v[0]],["y",v[1]],["d",0]]))]]) 
+function _edgeTriangles0(points,edge,bottomData,topData,params) =
+    let(z=[for(v=edge) [for(data=[bottomData,topData]) data[_find(v,points)]]]) 
         z[0][0] == z[0][1] && z[1][0] == z[1][1] ? [] :
         let(triRight = [[edge[0][0],edge[0][1],z[0][1]],[edge[1][0],edge[1][1],z[1][1]],[edge[1][0],edge[1][1],z[1][0]]],
             triLeft = [[edge[0][0],edge[0][1],z[0][0]],[edge[0][0],edge[0][1],z[0][1]],[edge[1][0],edge[1][1],z[1][0]]])
@@ -30,20 +30,33 @@ function _edgeTriangles0(edge,bottomc,topc,params) =
         z[1][0] == z[1][1] ? [triLeft] :
         [triLeft,triRight];
     
-function _edgeTriangles(points,outside,bottomc,topc,params) = [for(edge=outside) for(t=_edgeTriangles0(edge,bottomc,topc,params)) [for(v=t) _find(v,points)]];
+function _edgeTriangles(points,outside,bottomData,topData) = [for(edge=outside) for(t=_edgeTriangles0(points,edge,bottomData,topData)) [for(v=t) _find(v,points)]];
+    
+function _isNumericVector(v,pos=0) = 
+    !is_list(v) || len(v) == 0 ? false :
+    pos >= len(v) ? true :
+    is_num(v[pos]) ? _isNumericVector(v,pos=pos+1) : false;
+
+function _calculateData(fun,params,points,triangles,distances) =
+    _isNumericVector(fun) ? fun :
+    let(
+        func=compileFunction(fun))
+        [for(i=[0:1:len(points)-1]) 
+        eval(func,concat(params,[["x", points[i][0]], ["y", points[i][1]], ["d",distances[i]]]))];
 
 function inflateMesh(pointsAndFaces=undef,points=undef,triangles=undef,top="d",bottom="0",params=[]) =
     let(
     points = pointsAndFaces==undef ? points : pointsAndFaces[0],
     triangles = pointsAndFaces==undef ? triangles : pointsAndFaces[1],
-    topc = _isInterp(top) ? _removeDup(top) : compileFunction(top),
-        bottomc = _isInterp(bottom) ? _removeDup(bottom) : compileFunction(bottom),
-        outside = _outerEdges(points, triangles),
-        n = len(points),
-        newPoints = [for (p=points) let(d=_distanceToOutside(p,outside), vars=concat(params,[["x", p[0]], ["y", p[1]], ["d",d]])) for(fun=[bottomc,topc]) [p[0],p[1],eval(fun,vars)]],
+    outside = _outerEdges(points, triangles),
+    distances = [for(p=points) _distanceToOutside(p,outside)],
+    topData = _calculateData(top,params,points,triangles,distances),
+    bottomData = _calculateData(bottom,params,points,triangles,distances),
+    n = len(points),
+    newPoints = [for (i=[0:1:len(points)-1]) for(v=[bottomData,topData]) [points[i][0],points[i][1],v[i]]],
         topTriangles = [for (t=triangles) _invertTriangle([for (index=t) index*2+1])],
         bottomTriangles = [for (t=triangles) [for(index=t) index*2]]) 
-        [newPoints,concat(topTriangles,bottomTriangles,_edgeTriangles(newPoints,outside,bottomc,topc,params))];
+        [newPoints,concat(topTriangles,bottomTriangles,_edgeTriangles(newPoints,outside,bottomData,topData))];
 
 module inflateMesh(pointsAndFaces=undef,points=undef,triangles=undef,top="d",bottom="0",params=[]) {
     data = inflateMesh(pointsAndFaces=pointsAndFaces,points=points,triangles=triangles,top=top,bottom=bottom,params=params);

@@ -362,8 +362,6 @@ function _removeDup(v,soFar=[],pos=0) = [for(i=[0:len(v)-1]) if(i==0 || v[i-1][0
 
 function _interpolate1(a,b,x) = (x-a[0])/(b[0]-a[0])*(b[1]-a[1])+a[1];
 
-function _isInterp(v) = is_list(v) && is_list(v[0]) && is_num(v[0][0]);
-
 function _interpolate(x,f,pos=-1) =
     pos < 0 ? _interpolate(x,_removeDup(f),pos=0) :
     pos >= len(f)-1 ?

@@ -248,7 +248,18 @@ function sliceMesh(mesh=undef,points=[],triangles=[],slices=undef,spacing=undef,
         let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1],
         normal=_normalize(normal),
         slices=_makeSlices(points,triangles,slices,normal,spacing))
-        _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],slices,normal));        
+        _toPointsAndFaces(_sliceTriangles([for(t=triangles) [for (v=t) points[v]]],slices,normal));
+            
+function _origin(dimensions) = [for(i=[0:1:dimensions-1]) 0];        
+            
+function _cmCalc(points,triangles,pos=0,weightedSum=undef,sumWeights=0) =
+        pos >= len(triangles) ? weightedSum/sumWeights :
+        _cmCalc(points,triangles,pos=pos+1,weightedSum=(weightedSum==undef?_origin(len(points[0])):weightedSum)+_triangleArea(points[triangles[pos][0]],points[triangles[pos][1]],points[triangles[pos][2]])*(points[triangles[pos][0]]+points[triangles[pos][1]]+points[triangles[pos][2]])/3,sumWeights=sumWeights+_triangleArea(points[triangles[pos][0]],points[triangles[pos][1]],points[triangles[pos][2]]));
+    
+function centerOfMass(mesh=undef,points=[],triangles=[]) =
+        let(points=mesh==undef?points:mesh[0],triangles=mesh==undef?triangles:mesh[1])
+        _cmCalc(points,triangles);
+        
 //<skip>
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(-.3,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(-.3,.3,1)[0],-0.8*sin(i*360/n)]]);
 
