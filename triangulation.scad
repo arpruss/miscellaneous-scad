@@ -3,7 +3,8 @@ function _furthestAwayFromPoint(points,poly,z,bestD=-1,bestPos=0,pos=0) =
     norm(points[poly[pos]]-z) > bestD ? _furthestAwayFromPoint(points,poly,z,bestD=norm(points[poly[pos]]-z),bestPos=pos,pos=pos+1) :
     _furthestAwayFromPoint(points,poly,z,bestD=bestD,bestPos=bestPos,pos=pos+1);
     
-function _triangleArea(a,b,c) = norm(cross(b-a,c-a))/2;
+function _triangleArea(a,b,c) = let(cr=cross(b-a,c-a)/2)
+        is_num(cr) ? abs(cr) : norm(cr);
     
 function _furthestAwayFromLine(points,poly,z1,z2,bestArea=-1,bestPos=0,pos=0) = 
     len(poly) <= pos ? bestPos :
@@ -168,6 +169,11 @@ function _refineMesh1(triangles,maxEdge,pos=0,newTriangles=[]) =
     pos >= len(triangles) ? newTriangles :
     _refineMesh1(triangles,maxEdge,pos=pos+1,newTriangles=concat(newTriangles,_refineTriangle(triangles[pos],maxEdge)));
     
+/* simpler but slower */
+function _refineMesh1(triangles,maxEdge) =
+    [for(t=triangles) for(tr=_refineTriangle(t,maxEdge)) tr];
+
+
 function _maxEdge(faces) = max([for(f=faces) for(i=[0:len(f)-1]) norm(f[(i+1)%len(f)]-f[i])]);
 
 function _refineMeshN(triangles,maxEdge,n=0) =
@@ -186,8 +192,11 @@ function _toPointsAndFaces(faces,pointsAndFaces=[[],[]], pos=0) =
     pos >= len(faces) ? pointsAndFaces :
     _toPointsAndFaces(faces,_newPointsAndFaces(pointsAndFaces,faces[pos]),pos=pos+1);
     
-function refineMesh(points=[],triangles=[],maxEdge=5) =
-    let(tris = [for (t=triangles) [for (v=t) points[v]]],
+function refineMesh(mesh=undef,points=[],triangles=[],maxEdge=5) =
+    let(
+        points=mesh==undef?points:mesh[0],
+        triangles=mesh==undef?triangles:mesh[1],
+        tris = [for (t=triangles) [for (v=t) points[v]]],
         longestEdge = _maxEdge(tris),
         n = ceil(ln(longestEdge/maxEdge)/ln(2)),
         newTris = _refineMeshN(tris, maxEdge, n)) _toPointsAndFaces(newTris);
@@ -253,7 +262,7 @@ function sliceMesh(mesh=undef,points=[],triangles=[],slices=undef,spacing=undef,
 function _origin(dimensions) = [for(i=[0:1:dimensions-1]) 0];        
             
 function _cmCalc(points,triangles,pos=0,weightedSum=undef,sumWeights=0) =
-        pos >= len(triangles) ? weightedSum/sumWeights :
+        pos >= len(triangles) ?  weightedSum/sumWeights :
         _cmCalc(points,triangles,pos=pos+1,weightedSum=(weightedSum==undef?_origin(len(points[0])):weightedSum)+_triangleArea(points[triangles[pos][0]],points[triangles[pos][1]],points[triangles[pos][2]])*(points[triangles[pos][0]]+points[triangles[pos][1]]+points[triangles[pos][2]])/3,sumWeights=sumWeights+_triangleArea(points[triangles[pos][0]],points[triangles[pos][1]],points[triangles[pos][2]]));
     
 function centerOfMass(mesh=undef,points=[],triangles=[]) =
@@ -261,10 +270,12 @@ function centerOfMass(mesh=undef,points=[],triangles=[]) =
         _cmCalc(points,triangles);
         
 //<skip>
+/*
 function testPoly2(n) = concat([for(i=[0:n-1]) 20*[cos(i*360/n),rands(-.3,.3,1)[0],sin(i*360/n)]],[for(i=[0:n-1]) 20*[0.8*cos(i*360/n),rands(-.3,.3,1)[0],-0.8*sin(i*360/n)]]);
 
 testPoints=testPoly2(11);
 tt = triangulate(testPoints);
-m = refineMesh(testPoints,tt,5);
+m = refineMesh(points=testPoints,triangles=tt,maxEdge=5);
 showMesh(m[0],m[1],width=.2);
+*/
 //</skip>

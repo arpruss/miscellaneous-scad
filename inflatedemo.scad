@@ -9,5 +9,4 @@ demoTopFunction = "2+min(d^0.5,3)*cos(x*10)";
 //</params>
 
 poly = demoRadius*[for(i=[0:demoSides-1]) [cos(360*i/demoSides),sin(360*i/demoSides)]];
-refined = refineMesh(points=poly,triangles=triangulate(poly),maxEdge=2);
-inflateMesh(pointsAndFaces=refined,top=demoTopFunction,bottom=demoBottomFunction);
+inflateMesh(points=poly,triangles=triangulate(poly),refineMaxEdge=2,top=demoTopFunction,bottom=demoBottomFunction);
