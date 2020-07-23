@@ -119,7 +119,7 @@ function _func(op) = [ op, 1, -1, 1, true, op ];
 
 _operators = [
     [ "[", 1, -1, 1, true, "[" ],
-    [ "pow", 1, -1, 1, true, "^" ],
+    [ "pow", 1, -1, 1, true, "pow" ],
     [ "cross", 1, -1, 1, true, "cross" ],
     _func("sqrt"),
     _func("cos"),
