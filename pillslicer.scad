@@ -1,15 +1,16 @@
 baseThickness = 3;
-pillDiameters = [ 4, 6 ];
-pillDepths = [ 2, 6 ];
+pillDiameters = [ 5.3, 7.5, 10.3 ];
+pillDepths = [ 1.25, 1.75, 2.25 ];
 miterHeight = 5;
 miterWidth = 3;
-razorThickness = 0.5;
-spacing = 4;
+razorThickness = 0.2;
+spacing = 2;
 razorTolerance = 0.05;
-razorLength = 20;
-razorHolderHeight = 10;
-razorHolderOffset = 2;
-razorHolderWidth = 1.75;
+razorLength = 39;
+razorHolderHeight = 12;
+razorHolderOffset = 1;
+razorHolderWidth = 1;
+holderTolerance = 0.25;
 tolerance = 0.1;
 
 module dummy() {}
@@ -22,8 +23,8 @@ function sum(v,n=undef,pos=0,soFar=0) = pos>=(n==undef?len(v):n) ? soFar :
 
 n = len(pillDiameters);
 maxDiameter = max(pillDiameters);
-dx = spacing+maxDiameter/2;
-length = max((n+1)*dx,razorLength+2*tolerance+2*razorHolderWidth);
+dx = spacing+maxDiameter;
+length = max((n+1)*dx,razorLength+2*holderTolerance+2*razorHolderWidth);
 depth = max(pillDepths);
 height = baseThickness+depth;
 width = max(pillDiameters)+2*spacing+2*miterWidth;
@@ -49,11 +50,12 @@ adjCyl(d=pillDiameters[i]+tolerance,h=pillDepths[i]+nudge);
 }
 
 module holder() {
-    w = razorHolderOffset+razorHolderWidth+miterSlit;
+    slit = razorThickness + holderTolerance;
+    w = razorHolderOffset+razorHolderWidth+slit;
 translate([0,-w+nudge,0])
 difference() {
     cube([length,w,razorHolderHeight+razorHolderWidth]);
-    translate([razorHolderWidth,razorHolderWidth-miterSlit/2,razorHolderWidth])
-    cube([razorLength+2*tolerance,miterSlit,razorHolderHeight+nudge]);
+    translate([(length-(razorLength+2*tolerance))/2,razorHolderWidth,razorHolderWidth])
+    cube([razorLength+2*holderTolerance,slit,razorHolderHeight+nudge]);
 }
 }
