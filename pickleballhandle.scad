@@ -16,15 +16,7 @@ minThickness = tangThickness+minExtraThickness*2;
 
 halfThickness = (fullThickness-tangThickness)/2;
 
-center_handle_1 = [-32.379945135,5.552649021];
-size_handle_1 = [146.288746771,52.082610042];
-stroke_width_handle_1 = 0.007000434;
-color_handle_1 = [0.00000,0.00000,0.00000];
-fillcolor_handle_1 = undef;
-// paths for handle_1
-points_handle_1_1 = [ [-73.144373385,26.041305021],[-73.144373385,-26.041305021],[-70.862896810,-24.497060427],[-68.638751060,-23.264763552],[-66.468584775,-22.369250833],[-64.349046594,-21.835358708],[-62.460890666,-20.981841121],[-59.798564288,-19.945728106],[-53.416238695,-17.691137703],[-45.274765781,-15.010452792],[73.144373385,-15.010452792],[73.144373385,15.010452792],[-45.274765781,15.010452792],[-53.416238695,17.691139026],[-59.798564288,19.945730339],[-62.460890666,20.981843653],[-64.349046594,21.835361354],[-66.468584775,22.369252322],[-68.638751060,23.264764875],[-70.862896810,24.497061585],[-73.144373385,26.041305021],[-73.144373385,26.041305021] ];
-
-pointsTop = [[73.144373385,15.010452792],[-45.274765781,15.010452792],[-53.416238695,17.691139026],[-59.798564288,19.945730339],[-62.460890666,20.981843653],[-64.349046594,21.835361354],[-66.468584775,22.369252322],[-68.638751060,23.264764875],[-70.862896810,24.497061585],[-73.144373385,26.041305021],[-73.144373385,26.041305021]];
+pointsTop = [[73.144373385,29.6/2],[-45.274765781,29.6/2],[-53.416238695,17.691139026],[-59.798564288,19.945730339],[-62.460890666,20.981843653],[-64.349046594,21.835361354],[-66.468584775,22.369252322],[-68.638751060,23.264764875],[-70.862896810,24.497061585],[-73.144373385,26.041305021],[-73.144373385,26.041305021]];
 
 module outline() {
     polygon(points_handle_1_1);
@@ -60,8 +52,13 @@ module full(hole,countersink) {
             if(countersink)
             translate([x,0,fullThickness/2-tangThickness/2-screwCountersinkDepth]) cylinder(d=screwCountersinkWidth,$fn=20,h=fullThickness+1);
         }
-        translate([pointsTop[0][0]-(stringThickness+stringInset),-stringThickness/2,0])
-        cube([stringThickness+stringInset+1, stringThickness, stringThickness]);
+        translate([pointsTop[0][0]-(stringThickness+stringInset),-stringThickness/2,-0.01])
+        linear_extrude(height=stringThickness) hull() {
+            translate([stringThickness+stringInset+1-.1,0]) square([.1,stringThickness]);
+            translate([stringThickness/2,stringThickness/2])
+            circle(d=stringThickness,$fn=18);
+        }
+//        cube([stringThickness+stringInset+1, stringThickness, stringThickness]);
     }
 }
 
