@@ -1,14 +1,14 @@
 use <Bezier.scad>;
 use <ribbon.scad>;
 
-d1 = 19;
+d1 = 21;
 d3 = 78;
 depth = 30;
-extraDepth = 8;
+extraDepth = 10;
 angle1 = 10;
-angle2 = 18;
+angle2 = 22;
 thickness = 2;
-height = 7;
+height = 10;
 
 noseB=[[-d3/2, -extraDepth],POLAR(d3/4,angle2),
     POLAR(depth/2,-90-angle1),  [-d1/2,depth*.7], SMOOTH_REL(.5), POLAR(d1*.1,180),[0,depth],REPEAT_MIRRORED([1,0])];
@@ -25,5 +25,5 @@ module rounder() {
 
 intersection() {
 linear_extrude(height=height) ribbon(Bezier(noseB),thickness=thickness);
-    #rounder();
+    rounder();
 }
