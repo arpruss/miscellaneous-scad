@@ -6,6 +6,7 @@ height = 10;
 
 bezier_precision = -0.1;
 xSquish = 0.95;
+ySquish = 0.95;
 
 position_svg_1 = [6.992222,264.529947];
 size_svg_1 = [38.70946,29.405492];
@@ -26,7 +27,7 @@ module rounder() {
     }
 }
 
-scale([xSquish,1,1])
+scale([xSquish,ySquish,1])
 intersection() {
 translate([size_svg_1[0]/2,size_svg_1[1]/2+thickness/2,0]) linear_extrude(height=height) ribbon(points_svg_1_1,thickness=thickness);
     rounder();
