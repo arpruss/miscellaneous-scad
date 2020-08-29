@@ -5,7 +5,7 @@ use <ribbon.scad>;
 d1 = 23;
 d3 = 78;
 depth = 27;
-extraDepth = 7;
+extraDepth = 8;
 angle1 = 10;
 angle2 = 22;
 thickness = 2;
