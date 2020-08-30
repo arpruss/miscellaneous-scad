@@ -1,6 +1,7 @@
 use <Bezier.scad>;
 
 //<params>
+parts = 1; // 0:all, 1:female, 2:male
 cleatWidth = 12.4;
 cleatLength = 15;
 cleatMinWidth = 1.1;
@@ -12,7 +13,7 @@ neckDiameter = 5;
 headDiameter = 12;
 headHeight = 1;
 thickness = 2.5;
-slide = 15;
+slide = 12;
 //</params>
 
 module dummy(){}
@@ -63,6 +64,8 @@ module female() {
 }
 
 
-translate([0,width+2,0])
+if (parts==0 || parts==2)
+translate([0,parts==0?width+2:0,0])
 male();
+if (parts==1 || parts==0)
 female();
