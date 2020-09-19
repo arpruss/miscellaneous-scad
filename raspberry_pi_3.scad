@@ -42,7 +42,8 @@ pcb2roof = 17.0 + ceiling_extra; // 15.7
 pcbmntdia = 2.75; // mounting holes
 pcbmnt1dx = pcb[0]/2 - 3.5;  // 
 pcbmnt1dy = 3.5 - pcb[1]/2;
-pcbmnt2dx = pcb[0]/2 - 3.5 - 58.0; // 
+pcbmnt2dx = pcb[0]/2 - 3.5 - 58.0; 
+echo(pcbmnt1dx-pcbmnt2dx);
 pcbmnt2dy = pcb[1]/2 - 3.5;
 pcbmnthead = 6.2; // countersunk
 pcbmntthreads = 2.2;

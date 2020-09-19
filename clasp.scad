@@ -1,7 +1,7 @@
 use <Bezier.scad>;
 
 //<params>
-parts = 1; // 0:all, 1:female, 2:male
+parts = 0; // 0:all, 1:female, 2:male
 cleatWidth = 12.4;
 cleatLength = 15;
 cleatMinWidth = 1.1;
