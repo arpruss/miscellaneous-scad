@@ -69,3 +69,35 @@ function stitchPaths(a,b) = let(na=len(a)) [for (i=[0:na+len(b)-2]) i<na? a[i] :
 //echo(singleInterpolateByParameter([[1,1],[2,2],[3,1]],0.75));
 //echo(measurePath([[1,2],[2,3],[1,2]]));
 
+function _removeDuplicates(v, closed=false, out=[], pos=0) =
+    pos >= len(v) ? out :
+    (pos==0 && closed && v[0] == v[len(v)-1]) || (pos>0 && v[pos] == v[pos-1]) ? _removeDuplicates(v, closed=closed, out=out, pos=pos+1) : _removeDuplicates(v, closed=closed, out=concat(out, [v[pos]]), pos=pos+1);
+
+function _normalizeVectorSafe(v) = let(l=norm(v)) l==0?v:v/norm(v);
+
+function _insetVertex(path,distance,closed,pos) = 
+    let( npos = (pos+1)%len(path),
+         ppos = (pos+len(path)-1)%len(path),
+         next = closed || pos+1 < len(path) ? path[npos]-path[pos] : path[pos]-path[ppos],
+         prev = closed || 0<pos ? path[pos]-path[ppos] : path[npos]-path[pos],
+         avg = _normalizeVectorSafe(prev)+_normalizeVectorSafe(next),
+        turned = _normalizeVectorSafe([-avg[1],avg[0]]) )
+        path[pos] + turned * distance;
+
+function _insetPath(path=[],distance=2, closed=true, out=[], pos=0) =
+    pos >= len(path) ? out :
+    _insetPath(path=path,distance=distance,closed=closed,out=concat(out,[_insetVertex(path,distance,closed,pos)]),pos=pos+1);    
+
+function insetPath(path=[], distance=2, closed=true) =
+    let(path=_removeDuplicates(path, closed=true))
+    _insetPath(path=path,distance=distance,closed=closed);
+    
+//<skip>
+n = 10;
+demo = [for(i=[0:n-1]) 10*[cos(360*i/n),sin(360*i/n)]];
+difference() 
+{
+    polygon(insetPath(demo,distance=-2));
+    polygon(insetPath(demo,distance=2));
+}    
+//</skip>
