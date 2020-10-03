@@ -3,10 +3,10 @@ use <Bezier.scad>;
 //<params>
 parts = 0; // 0:all, 1:female, 2:male
 cleatWidth = 12.4;
-cleatLength = 12;
+cleatLength = 11;
 cleatMinWidth = 1.1;
 cleatHead = 2.9;
-bezel = 2.5;
+bezel = 2.2;
 tolerance = 0.4;
 headTolerance = 0.5;
 neckDiameter = 5;
