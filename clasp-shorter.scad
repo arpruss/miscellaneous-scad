@@ -3,9 +3,9 @@ use <Bezier.scad>;
 //<params>
 parts = 0; // 0:all, 1:female, 2:male
 cleatWidth = 12.4;
-cleatLength = 11;
+cleatLength = 9;
 cleatMinWidth = 1.1;
-cleatHead = 2.9;
+cleatHead = 2;
 bezel = 2.2;
 tolerance = 0.4;
 headTolerance = 0.5;
