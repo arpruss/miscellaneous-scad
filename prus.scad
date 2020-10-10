@@ -1,12 +1,12 @@
 use <tubeMesh.scad>;
 
 //<params>
-iconWidth = 12;
-iconLength = 20;
-lineThickness = 3;
+iconWidth = 18;
+iconLength = 30;
+lineThickness = 4.2;
 iconHeight = 4;
-handleWidth = 14;
-handleLength = 22;
+handleWidth = 21;
+handleLength = 31;
 handleHeight = 18;
 handleInsetRatio = 0.25;
 stipple = 0.5;
