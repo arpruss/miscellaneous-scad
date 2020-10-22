@@ -5,8 +5,8 @@ standoffLength = 5.5;
 standoffDiameter = 6;
 standoffConnectorMinimumHeight = 3;
 screwHole = 3;
-screwSpacing1 = 119.5;
-screwSpacing2 = 109.4;
+// clockwise
+screwSpacings = [119.5,109.4,119.5,109.4]; 
 crankGap = 40;
 chamfer = 1;
 
@@ -15,11 +15,22 @@ curvedWall = 2;
 
 module dummy() {}
 
-standoffR = norm([screwSpacing1,screwSpacing2])/2;
-standoffAngle1 = 2*asin(screwSpacing1/(2*standoffR));
-standoffAngle2 = 2*asin(screwSpacing2/(2*standoffR));
-standoffAngles = [0,standoffAngle1,standoffAngle1+standoffAngle2,standoffAngle1+standoffAngle2+standoffAngle1];
-echo(standoffR,standoffAngle1,standoffAngle2);
+precision = 0.0001;
+
+function sum(v,n=undef,soFar=0,pos=0) = pos >= (n==undef ? len(v) : n) ? soFar :
+             sum(v,n=n,soFar=soFar+v[pos],pos=pos+1);
+
+function totalAngle(radius) = sum([for(d=screwSpacings) d<=2*radius ? 2*asin(d/(2*radius)) : 1e100]);
+    
+function solveRadius(d1=precision,d2=sum(screwSpacings)) = 
+    (d2-d1) <= precision ? (d1+d2)/2 :
+    totalAngle((d1+d2)/2) >= 360 ? solveRadius(d1=(d1+d2)/2,d2=d2) : solveRadius(d1=d1,d2=(d1+d2)/2);    
+
+standoffR = solveRadius();
+standoffAngles = [for(s=screwSpacings) 2*asin(s/(2*standoffR))];
+standoffAnglesCumulative = [for(i=[0:1:len(standoffAngles)-1]) sum(standoffAngles,i)];
+
+echo("standoff radius",standoffR);
 
 nudge = 0.01;
 
@@ -53,7 +64,8 @@ module main() {
 }
 
 module standoffs() {
-    for(angle=standoffAngles) rotate([0,0,angle]) {
+    // standoffAnglesCumulative is clockwise, but here we use it counterclockwise as we're working upside-down
+    for(angle=standoffAnglesCumulative) rotate([0,0,angle]) {
         difference() {
             hull() 
             {
