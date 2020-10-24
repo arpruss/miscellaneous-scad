@@ -1,7 +1,8 @@
 innerDiameter = 40;
-outerDiameter = 130;
-totalThickness = 3;
+outerDiameter = 140;
+totalThickness = 2.25;
 mountingHoles = 4;
+relativeHoleLocation = 0.5;
 tolerance = 0.4;
 
 module dummy() {}
@@ -18,7 +19,7 @@ module base() {
     difference() {
         circle(d=outerDiameter);
         circle(d=innerDiameter);
-        for (i=[0:1:mountingHoles-1]) rotate(360/mountingHoles*i) translate([(outerDiameter+innerDiameter)/4,0]) mountingHole();
+        for (i=[0:1:mountingHoles-1]) rotate(360/mountingHoles*i) translate([(outerDiameter*(relativeHoleLocation)+innerDiameter*(1-relativeHoleLocation))/2,0]) mountingHole();
     }
 }
 

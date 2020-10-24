@@ -1,20 +1,22 @@
-outerDiameter = 205;
+teeth = 48;
+// put in distances between screws going clockwise; even if the distances are all equal, fill in as many as there are screws
+screwSpacings = [119.5,109.4,119.5,109.4]; 
+screwHoleDiameter = 3;
+// extra stickout past chain
+outsideExtra = 1.5;
+// distance from edge to curved wall
 outerInset = 10;
-stickout = 5;
 standoffLength = 5.5;
 standoffDiameter = 6;
-standoffConnectorMinimumHeight = 3;
-screwHole = 3;
-// clockwise
-screwSpacings = [119.5,109.4,119.5,109.4]; 
-crankGap = 40;
+standoffConnectionHeight = 3;
 chamfer = 1;
-
-flatWall = 2;
-curvedWall = 2;
+flatWallThickness = 2;
+curvedWallHeight = 5;
+curvedWallThickness = 2;
 
 module dummy() {}
 
+outerDiameter = 12.7 / sin (180 / teeth)+7.92 + 2*outsideExtra;
 precision = 0.0001;
 
 function sum(v,n=undef,soFar=0,pos=0) = pos >= (n==undef ? len(v) : n) ? soFar :
@@ -22,6 +24,7 @@ function sum(v,n=undef,soFar=0,pos=0) = pos >= (n==undef ? len(v) : n) ? soFar :
 
 function totalAngle(radius) = sum([for(d=screwSpacings) d<=2*radius ? 2*asin(d/(2*radius)) : 1e100]);
     
+// if radius is too small, totalAngle(radius)>360 and if it's too big, totalAngle(radius)<360
 function solveRadius(d1=precision,d2=sum(screwSpacings)) = 
     (d2-d1) <= precision ? (d1+d2)/2 :
     totalAngle((d1+d2)/2) >= 360 ? solveRadius(d1=(d1+d2)/2,d2=d2) : solveRadius(d1=d1,d2=(d1+d2)/2);    
@@ -50,14 +53,14 @@ module hollowCylinder(id,od,height,arc=360) {
 }
 }
 
-d1 = outerDiameter-2*outerInset-2*curvedWall;
+d1 = outerDiameter-2*outerInset-2*curvedWallThickness;
 d2 = outerDiameter-2*outerInset;
 d3 = outerDiameter;
 
 module main() {
-    hollowCylinder(d1,d3,flatWall);
-    hollowCylinder(d1,d2,flatWall+stickout);
-    translate([0,0,flatWall-nudge])
+    hollowCylinder(d1,d3,flatWallThickness);
+    hollowCylinder(d1,d2,flatWallThickness+curvedWallHeight);
+    translate([0,0,flatWallThickness-nudge])
     rotate_extrude() {
         translate([d2/2-nudge,0]) polygon([[0,0],[chamfer,0],[0,chamfer]]);
     }
@@ -69,10 +72,10 @@ module standoffs() {
         difference() {
             hull() 
             {
-                translate([standoffR,0,0]) hollowCylinder(screwHole,standoffDiameter,standoffLength+flatWall+stickout);
-                hollowCylinder(d1,d1+nudge,standoffConnectorMinimumHeight,arc=25);
+                translate([standoffR,0,0]) hollowCylinder(screwHoleDiameter,standoffDiameter,standoffLength+flatWallThickness+curvedWallHeight);
+                hollowCylinder(d1,d1+nudge,standoffConnectionHeight,arc=25);
             }
-            translate([standoffR,0,-5]) cylinder(d=screwHole,h=standoffLength+flatWall+stickout+10);
+            translate([standoffR,0,-5]) cylinder(d=screwHoleDiameter,h=standoffLength+flatWallThickness+curvedWallHeight+10);
         }
     }
 }
@@ -86,6 +89,6 @@ difference() {
 
 /*    rotate([0,0,45]) 
     
-    translate([0,-crankGap/2,flatWall]) cube([outerDiameter+1,crankGap,standoffLength+flatWall+stickout+10]);
+    translate([0,-crankGap/2,flatWallThickness]) cube([outerDiameter+1,crankGap,standoffLength+flatWall+wallHeight+10]);
     */
 }
