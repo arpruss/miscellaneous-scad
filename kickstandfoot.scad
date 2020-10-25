@@ -1,13 +1,15 @@
 use <tubemesh.scad>;
 
-angleToGround = 68;
+//<params>
+angleToGround = 65;
 kickstandDiameter = 14.1;
 minimumThickness = 2;
-tolerance = 0.22;
+tolerance = 0.3;
 length = 38;
 bottomDiameter = 28;
 bottomDistance = 15;
 bottomRim = 3;
+//</params>
 
 $fn = 60;
 
