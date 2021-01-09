@@ -60,12 +60,10 @@ function POLAR(r,angle) = OFFSET(r*[cos(angle),sin(angle)]);
 //function POINT_IS_SPECIAL(v) = (v[0]=="r" || v[0]=="a" || v[0]=="o" || v[0]=="l");
 
 // this does NOT handle offset type points; to handle those, use DecodeBezierOffsets()
-function getControlPoint(cp,node,otherCP,otherNode,nextNode) = 
-    let(v=node-otherCP) (          
-    cp[0]=="r" ? node+cp[1]*v:
+function getControlPoint(cp,node,otherCP,otherNode,nextNode) =     cp[0]=="r" ? node+cp[1]*(node-otherCP):
     cp[0]=="a" ? (
-        norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) :
-        cp );
+        let(v=node-otherCP) ( norm(v)<1e-9 ? node+cp[1]*(node-otherNode)/norm(node-otherNode) : node+cp[1]*v/norm(v) ) ) :
+        cp;
 
 function onLine2(a,b,c,eps=1e-4) =
     norm(c-a) <= eps ? true 

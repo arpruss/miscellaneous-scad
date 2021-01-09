@@ -3,7 +3,7 @@ use <bezier.scad>;
 //<params>
 tubeID = 10;
 tubeWall = 1.5;
-tubeHeight = 30;
+tubeHeight = 50;
 baseHeight = 13;
 baseWidth = 27;
 holeAspectRatio = 0.65;

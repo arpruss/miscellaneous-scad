@@ -5,13 +5,13 @@ pumpWallThickness = 2;
 tubeDiameter =  32; 
 tubeOpeningAngle = 260;
 // needs to be at least as large as than pumpWallThickness and zipTieHoleWidth
-tubeWallThickness = 4;
+tubeWallThickness = 3.5;
 
 topHolderHeight = 45; 
 cinch = 3.5;
 topSlit = 4;
-zipTieHoleHeight = 5.7;
-zipTieHoleWidth = 3;
+zipTieHoleHeight = 9; // 5.7;
+zipTieHoleWidth = 2.75;
 
 module dummy() {}
 
