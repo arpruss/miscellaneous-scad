@@ -2,7 +2,7 @@ use <bezier.scad>;
 
 //<params>
 tubeID = 10;
-tubeWall = 1.5;
+tubeWall = 1.75;
 tubeHeight = 50;
 baseHeight = 13;
 baseWidth = 27;

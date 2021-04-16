@@ -26,9 +26,9 @@ function TAN(theta) = tan(theta * 180 / pi);
 
 //<skip>
 color("red") linear_extrude(height=10)
- ribbon([for (theta=[0:0.1:2*pi]) [theta * 10 / (2*pi), SIN(theta) * 10 / (2*pi)]], thickness=3, height=10, closed=true);
+ ribbon([for (theta=[0:0.1:2*pi]) [theta * 10 / (2*pi), SIN(theta) * 10 / (2*pi)]], thickness=3, closed=true);
 color("blue") linear_extrude(height=10)
- ribbon([for (theta=[0:0.1:2*pi]) [theta * 10 / (2*pi), SIN(theta) * 10 / (2*pi)]], thickness=.1, height=10, closed=true);
+ ribbon([for (theta=[0:0.1:2*pi]) [theta * 10 / (2*pi), SIN(theta) * 10 / (2*pi)]], thickness=.1, closed=true);
 ribbon([for (theta=[0:0.1:2*pi+.1]) [COS(theta)*10, SIN(3*theta) * 10]], thickness=.5);
 //</skip>
     
