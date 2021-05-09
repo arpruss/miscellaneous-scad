@@ -176,7 +176,14 @@ function mod(n,m) = let(q=n%m) q>=0 ? q : m+q;
 
 function _unit(v) = norm(v)==0 ? [for(x=v) 0] : v/norm(v);
 
+function _extractCorner(p) = is_list(p[1]) ? p[1] : p;
+
 function _corner(p0,p1,p2,offset=2,tension=0.448084975506) =
+    let(
+        offset=is_list(p1[1]) ? p1[0] : offset,
+        p1=_extractCorner(p1),
+        p0=_extractCorner(p0),
+        p2=_extractCorner(p2))
     [p1-_unit(p1-p0)*offset,    
     p1-_unit(p1-p0)*offset*(1-tension),
     p1-_unit(p1-p2)*offset*(1-tension),
@@ -193,10 +200,11 @@ function PathToBezier(path,offset=2,tension=0.551915024494,closed=false) =
         n=len(p1))
         offset==0 && tension==0 ?
         p1 :
-        !closed ? concat([p1[0],LINE(),LINE()], _roundPathRaw(p1,1,n-1,offset=offset,tension=tension), [p1[n-1]]) :
+        !closed ? concat([_extractCorner(p1[0]),LINE(),LINE()], _roundPathRaw(p1,1,n-1,offset=offset,tension=tension), [_extractCorner(p1[n-1])]) :
         let(p2 = _roundPathRaw(p1,0,n,offset=offset,tension=tension),
             n2 = len(p2))
-        [for(i=[0:1:n2-3]) p2[mod(i,n2)]];        
+        [for(i=[0:1:n2-3]) p2[mod(i,n2)]];
+            
 function BezierSmoothPoints(points,tension=0.5,closed=false)
     = let (n=len(points))
         flatten(
