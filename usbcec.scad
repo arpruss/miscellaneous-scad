@@ -11,7 +11,7 @@ hdmiHoleDiameter = 5;
 hdmiHoleFromBase = 15;
 usbHoleWidth = 11.3;
 usbHoleHeight = 5.65;
-usbHoleCenterOffsetFromBase = 6.1;
+usbHoleCenterOffsetFromBase = 6.1+5.65/2;
 screwHole = 3.5;
 screwBiggerHole = 4;
 screwHeadDiameter = 8;
@@ -44,7 +44,7 @@ lidPillar=screwHole+2*screwHoleWall;
 lidScrews = [[-width/2+lidPillar/2,lidPillar/2],[width/2-lidPillar/2,lidPillar/2],[-width/2+lidPillar/2,length-lidPillar/2],[width/2-lidPillar/2,length-lidPillar/2]];
 lidScrewAngles = [45,135,-45,-135];
 
-extraHeight = pcbScrewHeadInset+max(wall,screwBearingWallMinimum)-wall+wall;
+extraHeight = pcbScrewHeadInset+max(wall,screwBearingWallMinimum)-wall+wall+2;
 
 bottomHeight = hdmiHoleFromBase+hdmiHoleDiameter+extraHeight;
 
@@ -124,43 +124,49 @@ module usbCutout() {
     translate([0,0,h0+usbHoleCenterOffsetFromBase]) cube([usbHoleWidth,usbHoleHeight,wall*3],center=true);
 }
 
+hdmiZ = bottomHeight-hdmiHoleDiameter/2;
+
 module hdmiOverhang() {
-    translate([0,0,bottomHeight])
+    translate([0,0,hdmiZ])
     rotate([-90,0,0])
     rotate([0,0,180])
     translate([0,0,-hdmiHoleDiameter*0.5])
     difference() {
         cylinder(d2=hdmiHoleDiameter*3,d1=hdmiHoleDiameter,h=hdmiHoleDiameter*0.5+nudge);
         cylinder(d=hdmiHoleDiameter,h=hdmiHoleDiameter*5,center=true);
-        translate([-hdmiHoleDiameter*5,0,-hdmiHoleDiameter*5]) cube([hdmiHoleDiameter*10,hdmiHoleDiameter*2,hdmiHoleDiameter*10]);
+        translate([-hdmiHoleDiameter*5,0+wall+hdmiHoleDiameter/2,-hdmiHoleDiameter*5]) cube([hdmiHoleDiameter*10,hdmiHoleDiameter*2,hdmiHoleDiameter*10]);
     }
 }
 
 module hdmiOverhangs() {
-    for(y=[0,length+wall]) {
-        translate([0,y,0]) {
-            translate([0,-wall,0]) hdmiOverhang();
-            rotate([0,0,180]) 
-            hdmiOverhang();
-        }
+    translate([0,length+wall,0]) {
+        //translate([0,-wall,0]) hdmiOverhang();
+        rotate([0,0,180]) 
+        hdmiOverhang();
+    }
+
+    {
+        translate([0,-wall,0]) hdmiOverhang();
+        //rotate([0,0,180]) 
+        hdmiOverhang();
     }
 }
 
 module hdmiCutout() {
-    translate([0,0,bottomHeight-hdmiHoleDiameter/2]) rotate([90,0,0]) {
-        cylinder(d=hdmiHoleDiameter,length*3,center=true);
-        translate([0,hdmiHoleDiameter/2,0]) cube([hdmiHoleDiameter+nudge,hdmiHoleDiameter+nudge,length*3],center=true);
+    translate([0,0,hdmiZ]) rotate([90,0,0]) {
+        cylinder(d=hdmiHoleDiameter,h=length*3,center=true);
+        translate([0,hdmiHoleDiameter/2,0]) cube([hdmiHoleDiameter+nudge,hdmiHoleDiameter+2*nudge,length*3],center=true);
     }
 }
 
 
 difference() {
-    bottom();
+    union() {
+        hdmiOverhangs();
+        bottom();
+    }
     usbCutout();
     hdmiCutout();
 }
-hdmiOverhangs();
 
-translate([width+wall+5,0,0]) lid();
-
-hdmiOverhang();
+//translate([width+wall+5,0,0]) lid();
