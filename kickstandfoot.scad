@@ -3,11 +3,11 @@ use <tubemesh.scad>;
 //<params>
 angleToGround = 65;
 kickstandDiameter = 14.1;
-minimumThickness = 2;
-tolerance = 0.3;
+minimumThickness = 3.5;
+tolerance = 0.5;
 length = 38;
-bottomDiameter = 28;
-bottomDistance = 15;
+bottomDiameter = 30;
+bottomDistance = 13;
 bottomRim = 3;
 //</params>
 
