@@ -1,4 +1,7 @@
-snapSpacing = 25.6;
+includeLid = false;
+includeBox = true;
+
+snapSpacing = 26;
 pcbLength = 33.77;
 pcbThickness = 1.53;
 
@@ -8,17 +11,17 @@ wall = 1.75;
 bottomHeight = 15;
 lidTolerance = 0.4;
 
-outDiameter = 1.8;
-inDiameter = 4.4;
+outDiameter = 1.6;
+inDiameter = 4.2;
 
 sides = 8;
 size = 46;
 outAngle = 90;
 
 snapWidth = 12;
-snapThickness = 2;
-snapStickout = 1.5;
-extraThickness = 2;
+snapThickness = 1.5;
+snapStickout = 1.25;
+extraThickness = 3;
 extraHeight = 2;
 
 screwDiameter = 1.8;
@@ -95,5 +98,5 @@ module lid() {
     }    
 }
 
-bottom();
-translate([diameter+10,0,0]) lid();
+if (includeBox) bottom();
+if (includeLid) translate([diameter+10,0,0]) lid();
