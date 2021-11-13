@@ -1,7 +1,7 @@
 use <bezier.scad>;
 use <paths.scad>;
 
-headbandWidth = 128;
+headbandWidth = 128*1.25;
 headbandHeightRatio = 1.05;
 headbandStripWidth = 20;
 headbandStripThickness = 3.9; // 2.5;
@@ -13,12 +13,15 @@ toothWidthRatio = 0.5;
 bottomNarrowing = 0.35;
 headbandBottomFlare = 1; // [0:no, 1:yes]
 
+// if you use attachment hole, it replaces the spikes
+attachmentHole = 4;
+
 spikeThickness = 3.95;
 spikeWidth = 10;
 spikeLength = 14;
-spikePosition = 0.25;
+spikePosition = 0.35;
 spikeAngle = 90;
-secondarySpike = 1; //[0:no, 1:yes]
+secondarySpike = 0; //[0:no, 1:yes]
 secondarySpikePosition = 0.45;
 secondarySpikeAngle = 90;
 
@@ -28,6 +31,11 @@ nudge = 0.01;
 
 headbandHeight = headbandWidth * headbandHeightRatio;
 
+module spike(spikeLength,spikeVector,spikeVectorPlus90,p0,p1,delta) {
+linear_extrude(height=spikeWidth)
+        polygon([p1,p0,p0+spikeVector*(spikeLength-delta),p0+spikeVector*spikeLength+spikeVectorPlus90*spikeThickness*0.5,p0+spikeVector*(spikeLength-delta)+spikeVectorPlus90*spikeThickness]);
+}
+
 pointsRight = Bezier([
 [0,headbandHeight], /*C*/POLAR(headbandWidth/3,0), /*C*/POLAR(headbandWidth/4,90), [headbandWidth/2,headbandHeight/2],
 /*C*/SYMMETRIC(), /*C*/POLAR(headbandWidth/(headbandBottomFlare?6:4),headbandBottomFlare?90:60),[headbandWidth*bottomNarrowing,0]]);
@@ -35,30 +43,32 @@ pointsRight = Bezier([
 interp = interpolationData(pointsRight);
 length = totalLength(interp);
 
-module rightSide() {
+module rightSide(doMain=true,doSpikes=true,doHoles=false) {
     segmentLength = headbandStripWidth/3;
     segments = floor(length / segmentLength);
 
-    for(i=[0:segments-1]) {
-        adjust = i < segments-1 ? 0 : (1/(2+sqrt(2)))* headbandStripWidth;
-        a = interpolateByDistance(interp, i*segmentLength);
-        b = interpolateByDistance(interp, (i+1)*segmentLength);
-        hull() {
-            translate(a) cylinder(d=headbandStripThickness,h=headbandStripWidth,$fn=16);
-            translate([b[0],b[1],adjust]) cylinder(d=headbandStripThickness,h=headbandStripWidth-2*adjust,$fn=16);
-        }
-    }
-
-    if (toothedRatio>0) {
-        teeth = floor(length * toothedRatio / toothSpacing);
-        for(i=[0:teeth-1]) {
-            d = i * toothSpacing;
-            tangent = getTangentByDistance(interp, d);
-            normal = [tangent[1],-tangent[0]];
-            a = interpolateByDistance(interp, d);
+    if (doMain) {
+        for(i=[0:segments-1]) {
+            adjust = i < segments-1 ? 0 : (1/(2+sqrt(2)))* headbandStripWidth;
+            a = interpolateByDistance(interp, i*segmentLength);
+            b = interpolateByDistance(interp, (i+1)*segmentLength);
             hull() {
-                translate(a) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
-                translate(a+(toothLength+headbandStripThickness*0.5)*normal) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+                translate(a) cylinder(d=headbandStripThickness,h=headbandStripWidth,$fn=16);
+                translate([b[0],b[1],adjust]) cylinder(d=headbandStripThickness,h=headbandStripWidth-2*adjust,$fn=16);
+            }
+        }
+
+        if (toothedRatio>0) {
+            teeth = floor(length * toothedRatio / toothSpacing);
+            for(i=[0:teeth-1]) {
+                d = i * toothSpacing;
+                tangent = getTangentByDistance(interp, d);
+                normal = [tangent[1],-tangent[0]];
+                a = interpolateByDistance(interp, d);
+                hull() {
+                    translate(a) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+                    translate(a+(toothLength+headbandStripThickness*0.5)*normal) cylinder(h=toothWidthRatio*headbandStripWidth,d=toothThickness);
+                }
             }
         }
     }
@@ -79,15 +89,24 @@ module rightSide() {
         p0 = spikeCenter-tangent/2*lengthAlongTangent;
         p1 = spikeCenter+tangent/2*lengthAlongTangent;
         delta = min(spikeThickness,headbandStripWidth)/2;
-        linear_extrude(height=spikeWidth)
-        polygon([p1,p0,p0+spikeVector*(spikeLength-delta),p0+spikeVector*spikeLength+spikeVectorPlus90*spikeThickness*0.5,p0+spikeVector*(spikeLength-delta)+spikeVectorPlus90*spikeThickness]);
+        if (doSpikes) 
+            spike(spikeLength,spikeVector,spikeVectorPlus90,p0,p1,delta);
+        else if (doHoles)
+            translate([0,0,headbandStripWidth/2]) 
+            translate((p0+p1)/2) rotate([0,0,spikeAngle1+90]) rotate([90,0,0]) translate([0,0,-headbandStripThickness-5]) cylinder(h=headbandStripThickness*3+10,d=attachmentHole);
     }
 }
 
-module headband() {
-    rightSide();
-    mirror([1,0,0]) rightSide();
+module headband(doMain=true,doSpikes=true,doHoles=false) {
+    rightSide(doMain=doMain,doSpikes=doSpikes,doHoles=doHoles);
+    mirror([1,0,0]) rightSide(doMain=doMain,doSpikes=doSpikes,doHoles=doHoles);
 }
 
-headband();
+module genericSpike(tolerance=0.2) {
+    spike(spikeLength+tolerance,[0,1],[1,0],[-spikeThickness/2-tolerance/2,0],[spikeThickness/2+tolerance/2,0],min(spikeThickness,headbandStripWidth)/2);
+}
 
+difference() {
+    headband(doMain=true,doSpikes=attachmentHole==0,doHoles=false);
+   if (attachmentHole>0) headband(doMain=false,doSpikes=false,doHoles=true);
+}
