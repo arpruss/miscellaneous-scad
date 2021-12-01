@@ -2,22 +2,29 @@ use <bezier.scad>
 
 //<params>
 wall = 2.25;
-sightHeight = 3.25;
-frontRingWidth = 12+2;
+sightHeight = 2.5; 
+frontRingWidth = 14;
 frontSightLength = 8;
-rearRingWidth = 12+2;
+rearRingWidth = 20.5;
 rearSightLength = 8;
 rearSightGapToThicknessRatio = 1.2;
 sightThickness = 2;
 frontTolerance = 0.12;
 rearTolerance = 0.09;
-distanceToTV = 2438;
+// set to infinity to do all adjustments in software
+distanceToTV = 1/0;
 // set to 9.5 to adjust for camera offset from sight-base
 extraSightAdjust = -0;
 sightSpacing = 140;
 xTweakFront = 0.25;
 xTweakRear = 0.25;
+ledOffset = 14;
+ledLength = 3.5;
+ledWidth = 26;
 //</params>
+
+
+nudge = 0.001;
 slope = (-sightHeight-wall+extraSightAdjust)/distanceToTV;
 echo(slope);
 
@@ -65,7 +72,7 @@ module profileRear() {
 //profileFront();
 //profileRear();
 
-module rearSight() {
+module rearSightBasic() {
     rotate([0,-90,0])
     translate([0,0,-0.5*sightThickness*(2+rearSightGapToThicknessRatio)]) {
         linear_extrude(height=sightThickness) profileRear();
@@ -73,6 +80,13 @@ module rearSight() {
         linear_extrude(height=sightThickness) profileRear();
     }
     wiiRear();
+}
+
+module rearSight() {
+    difference() {
+        rearSightBasic();
+        translate([-ledWidth/2,-wall-nudge,ledOffset]) cube([ledWidth,wall+2*nudge,ledLength]);
+    }
 }
 
 module frontSight() {

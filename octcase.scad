@@ -1,7 +1,7 @@
-includeLid = false;
+includeLid = true;
 includeBox = true;
 
-snapSpacing = 26;
+snapSpacing = 27;
 pcbLength = 33.77;
 pcbThickness = 1.53;
 
@@ -11,7 +11,7 @@ wall = 1.75;
 bottomHeight = 15;
 lidTolerance = 0.4;
 
-outDiameter = 1.6;
+outDiameter = 1.5;
 inDiameter = 4.2;
 
 sides = 8;
@@ -19,9 +19,10 @@ size = 46;
 outAngle = 90;
 
 snapWidth = 12;
-snapThickness = 1.5;
+snapThickness = 1.4;
 snapStickout = 1.25;
-extraThickness = 3;
+extraThicknessSnap = 0.4;
+extraThicknessHolder = 3;
 extraHeight = 2;
 
 screwDiameter = 1.8;
@@ -34,7 +35,7 @@ module snap(snapStickout=snapStickout,baseExtra=0,heightExtra=0) {
     translate([0,snapWidth/2,0])
     rotate([90,0,0])
     linear_extrude(height=snapWidth)
-    polygon([[-snapThickness-baseExtra,0],[0,0],[0,wall+offsetFromBase-snapStickout],[snapStickout,wall+offsetFromBase],[0,wall+offsetFromBase],[0,wall+offsetFromBase+pcbThickness],[snapStickout,wall+offsetFromBase+pcbThickness+snapStickout],[0,wall+offsetFromBase+pcbThickness+2*snapStickout],[0,wall+offsetFromBase+pcbThickness+2*snapStickout+heightExtra],[-snapThickness,wall+offsetFromBase+pcbThickness+2*snapStickout+heightExtra]]);
+    polygon([[-snapThickness-baseExtra,0],[0,0],[0,wall+offsetFromBase-1.5*snapStickout],[snapStickout*1.5,wall+offsetFromBase],[0,wall+offsetFromBase],[0,wall+offsetFromBase+pcbThickness],[snapStickout,wall+offsetFromBase+pcbThickness+snapStickout],[0,wall+offsetFromBase+pcbThickness+3*snapStickout],[0,wall+offsetFromBase+pcbThickness+3*snapStickout+heightExtra],[-snapThickness,wall+offsetFromBase+pcbThickness+3*snapStickout+heightExtra]]);
 }
 
 diameter = size / cos(180/sides);
@@ -72,10 +73,10 @@ module bottom() {
         rotate([0,0,-outAngle/2]) hole(outDiameter);
         rotate([0,0,180]) hole(inDiameter);
     }
-    translate([-snapSpacing/2,0,0]) snap();
-    translate([snapSpacing/2,0,0]) rotate([0,0,180]) snap();
-    translate([0,pcbLength/2,0]) rotate([0,0,-90]) snap(0,extraThickness,extraHeight);
-    translate([0,-pcbLength/2,0]) rotate([0,0,90]) snap(0,extraThickness,extraHeight);
+    translate([-snapSpacing/2,0,0]) snap(snapStickout,extraThicknessSnap);
+    translate([snapSpacing/2,0,0]) rotate([0,0,180]) snap(snapStickout,extraThicknessSnap);
+    translate([0,pcbLength/2,0]) rotate([0,0,-90]) snap(0,extraThicknessHolder,extraHeight);
+    translate([0,-pcbLength/2,0]) rotate([0,0,90]) snap(0,extraThicknessHolder,extraHeight);
     for (angle=[0,180]) 
         rotate([0,0,angle]) {
         translate([screwX,0,0])

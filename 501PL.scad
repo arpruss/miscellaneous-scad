@@ -9,7 +9,7 @@ height = 11; // height of the plate (>=11 mm recommended)
 extraHeight = 2.75; 
 length = 90; // Length of the plate (90 mm is the stock one)
 wall = 3; // Thickness of walls
-sideTolerance = 0.2;
+sideTolerance = 0.3;
 //</params>
 
 nudge = 0.01;
