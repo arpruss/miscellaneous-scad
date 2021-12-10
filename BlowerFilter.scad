@@ -1,7 +1,9 @@
 use <Bezier.scad>;
 use <ribbon.scad>;
 
+//<params>
 topTolerance = 0.2;
+bottomTolerance = 0.2;
 topDiameter = 15.5;
 bottomDiameter = 55;
 lip = 3;
@@ -11,8 +13,9 @@ topNeck = 6;
 grilleWidth = 1.2;
 grilleHeight = 1.5;
 bottomWall = 1.2;
-bottomTolerance = 0.2;
 extraHeightRatio = 1.1;
+mode = 2; //[0:all, 1:bottom, 2:top]
+//</params>
 
 $fn = 128;
 
@@ -73,5 +76,5 @@ module bottom() {
     
 }
 
-top();
-//translate([bottomDiameter+10,0,0]) bottom();
+if (mode != 1) top();
+if (mode != 2) translate([bottomDiameter+10,0,0]) bottom();
