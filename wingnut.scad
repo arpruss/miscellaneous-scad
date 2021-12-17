@@ -16,6 +16,7 @@ wingThickness = 10;
 wings = 3; // [3:3, 4:4, 5:5, 6:6, 7:7, 8:8]
 captive = 0; // [0:No, 1:Yes]
 throughHole = 1; // [0:No, 1:Yes]
+nutAtInside = 0; // [0:No, 1:Yes]
 bezierTensionInside = 0.5;
 bezierTensionFromOutside = 0.5;
 chamfer = 1;
@@ -65,7 +66,9 @@ module solid() {
 }
 
 nt = nutThickness+.1;
-z0 = neckLength+wingThickness-(captive?minWallVertical:-nudge)-nt;
+z0 = nutAtInside ? (neckLength+wingThickness-(captive?minWallVertical:-nudge)-nt) :
+    (captive?minWallVertical:-nudge);
+
 difference() {
     solid();
     translate([0,0,z0])

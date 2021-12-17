@@ -134,11 +134,11 @@ module renderOutside(offset, spacing=10) {
 }
 
 module innerWall() {
-    linear_extrude(height=innerWallHeight) circle(d=innerWallThickness, center=true);
+    linear_extrude(height=innerWallHeight) circle(d=innerWallThickness);
 }
 
 module innerWallFlare() {
-    translate([0,0,innerWallHeight-flareSize]) linear_extrude(height=flareSize,scale=(flareSize*2+innerWallThickness)/innerWallThickness) circle(d=innerWallThickness,center=true);
+    translate([0,0,innerWallHeight-flareSize]) linear_extrude(height=flareSize,scale=(flareSize*2+innerWallThickness)/innerWallThickness) circle(d=innerWallThickness);
 }
 
 module mazeBox(h) {
