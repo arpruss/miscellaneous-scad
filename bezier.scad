@@ -179,6 +179,8 @@ function _unit(v) = norm(v)==0 ? [for(x=v) 0] : v/norm(v);
 function _extractCorner(p) = is_list(p[1]) ? p[1] : p;
 
 function _corner(p0,p1,p2,offset=2,tension=0.448084975506) =
+    p1[0] == "s" ?
+    [p1[1],LINE(),LINE()] :
     let(
         offset=is_list(p1[1]) ? p1[0] : offset,
         p1=_extractCorner(p1),

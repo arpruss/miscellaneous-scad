@@ -9,11 +9,11 @@ dovetailWidth = 13;
 dovetailHeight = 3;
 extraHeight = 4;
 baseWidth = 13;
-webThickness = 1.5;
+webThickness = 1.75;
 mountThickness = 2.8;
 mountWidth = 22;
 cornerRadius = 3;
-flangeSize = 9;
+flangeSize = 11;
 //</params>
 
 module dummy() {}
