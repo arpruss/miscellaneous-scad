@@ -1,13 +1,25 @@
 use <roundedSquare.scad>;
+use <hershey.scad>;
 
 //<params>
-forPrinting = 1;
+pcbPortTolerance = 2;
+pcbLengthTolerance = 0.8;
+pcbRailTolerance = 0.2;
+tolerance = 0.35;
+driveLength = 144.44;
+driveWidth = 100.5;
+driveHeight = 24.92;
+driveScrewFromBase = 4.9;
+driveScrewsFromFront = [ 21.1, 80.88, 110.82 ];
+forPrinting = 1; // 0:no, 1:yes
+includeBase = 0; // 0:no, 1:yes
+includeMain = 1; // 0:no, 1:yes
+includeLogo = 1; // 0:no, 1:yes
 pcbWidth = 22.55;
-pcbLength = 52.97;
+pcbLength = 53.43;
 pcbThickness = 1.6;
 pcbPortThickness = 3;
 pcbPortWidth = 7.55;
-pcbPortTolerance = 1.5;
 pcbBackLeaveFree = 10;
 pcbOffset = 3.5;
 pcbBaseToDrive = 31;
@@ -15,18 +27,11 @@ pcbPillarStickout = 4;
 pcbPillarThickness = 4;
 pcbRailStickout = 2;
 pcbRailThickness = 1.65;
-pcbRailTolerance = 0.1;
 pcbHolderExtraHeight = 14;
-driveLength = 144.44;
-driveWidth = 100.5;
-driveHeight = 24.92;
-driveScrewFromBase = 4.9;
-driveScrewsFromFront = [ 21.8, 80.65, 110.86 ];
 driveScrewDiameter = 3.91;
 baseScrewDiameterInner = 2;
 baseScrewDiameterOuter = 3.5;
 baseScrewOffset = 5;
-tolerance = 0.2;
 radius = 8;
 sideWall = 2;
 backWall = 2;
@@ -37,7 +42,7 @@ numberOfRearVents = 4;
 numberOfSideVents = 6;
 guideWidth = 5;
 footDiameter = 10;
-footHeight = 2;
+footHeight = 3.5;
 //</params>
 
 nudge = 0.01;
@@ -67,7 +72,7 @@ module inner(hollow=true) {
 
 module pcbRail(sign) {
     startDelta = radius;
-    xStart = innerWidth/2+sideWall+tolerance-startDelta;
+    xStart = innerWidth/2+sideWall-startDelta-pcbLengthTolerance;
     railHeight = backWall+pcbOffset+pcbThickness+pcbRailStickout;
     translate([xStart,-sign*(pcbWidth/2+pcbRailTolerance),0])
     rotate([0,0,180]) 
@@ -81,8 +86,8 @@ module pcbRail(sign) {
 }
 
 module portCutout() {
-    z = backWall+pcbOffset+pcbThickness+pcbPortThickness;
-    translate([width/2,0,z]) cube([10,pcbPortWidth+pcbPortTolerance*2,pcbPortThickness+2*pcbPortTolerance],center=true);
+    z = backWall+pcbOffset+pcbThickness+pcbPortThickness/2;
+    mirror([1,0,0]) translate([width/2,0,z]) cube([10,pcbPortWidth+pcbPortTolerance*2,pcbPortThickness+2*pcbPortTolerance],center=true);
 }
 
 pcbHolderHeight = pcbOffset+pcbThickness+backWall + pcbHolderExtraHeight;
@@ -170,10 +175,16 @@ module feet() {
     translate([-(driveWidth/2-footOffset),0,length-footOffset]) foot();
 }
 
+module label() {
+    if (includeLogo)
+    rotate([0,0,90])
+drawHersheyText("GreaseWeazle", font="SerifItalic", valign="center", halign="center", size=14.5,extraSpacing=-1.5) cylinder(d1=4,d2=1,h=2,$fn=16);
+}
+
 module shell() {
         difference() {
             linear_extrude(height=length) outer(hollow=true);
-            bottomScrews(baseScrewDiameterOuter);
+            mirror([1,0,0]) bottomScrews(baseScrewDiameterOuter);
             portCutout();
             sideVents();
             driveScrews();
@@ -184,13 +195,16 @@ module shell() {
         mirror([1,0,0]) guide();
         frontWall();
         feet();
+        translate([0,height/2+sideWall-nudge,length/2]) rotate([-90,0,0]) label();
 }
 
-pcbHolder();
+if (includeBase) pcbHolder();
 
-translate([0,height+2*sideWall+5,0]) if (forPrinting) {
-       translate([0,0,length])
-    rotate([180,0,0]) 
- shell();
-}
-else shell();
+if (includeMain)    {
+    translate([0,height+2*sideWall+5,0]) if (forPrinting) {
+           translate([0,0,length])
+        rotate([180,0,0]) 
+     shell();
+    }
+    else shell();
+    }
