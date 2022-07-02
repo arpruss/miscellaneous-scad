@@ -10,18 +10,20 @@ angle1 = 10;
 angle2 = 22;
 thickness = 2;
 height = 10;
+sideTrim = 6;
 //</params>
 
 noseB=[[-d3/2, -extraDepth],POLAR(d3/4,angle2),
     POLAR(depth/2,-90-angle1),  [-d1*0.5,depth*.7], SMOOTH_REL(.5-.05*1), POLAR(d1*(.1+.07*1),180),[0,depth],REPEAT_MIRRORED([1,0])];
     
 module rounder() {
+    width = d3-sideTrim*2;
     translate([0,-extraDepth-thickness/2,height/2])
     rotate([-90,0,0])
     linear_extrude(height=depth+extraDepth+thickness*2)
     hull() {
-        translate([-d3/2+height/2,0]) circle(d=height,$fn=16);
-        translate([d3/2-height/2,0]) circle(d=height,$fn=16);
+        translate([-width/2+height/2,0]) circle(d=height,$fn=16);
+        translate([width/2-height/2,0]) circle(d=height,$fn=16);
     }
 }
 

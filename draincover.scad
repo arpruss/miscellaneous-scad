@@ -19,7 +19,7 @@ pi = 3.14159265358979;
 
 holeWidthAtBottom = bottomDiameter * pi/numberOfHolesAround - holeHorizontalSpacingAtBottom;
 
-holeHeight = (height - holeVerticalSpacings)/2;
+//holeHeight = (height - holeVerticalSpacings)/2;
 
 maxDiameter = max(topDiameter, bottomDiameter) + 2 * topFlange;
 
@@ -28,6 +28,7 @@ function scaleByZ(z, x) = x * topDiameter/bottomDiameter * z/height + x * (heigh
 function scaleByR(r, x) = x * r / (bottomDiameter/2);
 
 holeHeight = (height-holeVerticalSpacing*(1+numberOfHolesVertically))/numberOfHolesVertically;
+
 holeRadialSize = (bottomDiameter/2-holeRadialSpacing*(numberOfHolesRadially)-bottomHoleRadialOffset)/numberOfHolesRadially;
 
 module sideHole(z1) {

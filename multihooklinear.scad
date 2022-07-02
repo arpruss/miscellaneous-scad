@@ -10,6 +10,7 @@ nailHoleDiameter = 2.2;
 nailHoleAngle = 70;
 spacing = 46;
 endSpacing = 8;
+tipBallDiameter = 12;
 centralHoles = 1; //[1:yes, 0:no]
 
 module dummy() {}
@@ -50,6 +51,7 @@ module hook()
             translate([hookLength,0,thickness/2]) sphere(d=thickness);
             translate([hookLength,0,hookWidth-thickness/2]) sphere(d=thickness);
         }
+        translate([hookLength,0,thickness*.75]) sphere(d=tipBallDiameter);
     }
 }
 
