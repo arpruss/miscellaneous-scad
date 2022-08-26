@@ -1,0 +1,259 @@
+
+/* [Simulation] */
+alpha = 1.6;
+beta = 0.7;
+gamma = 0.003;
+gamma_variation_amplitude_ratio = 0.5;
+random_beta_variation = 0.4;
+steps = 150;
+// in hexes
+maximumRadius = 60;
+// This will reduce edge effects.
+edge_mirror = 1; // [0:no, 1:yes]
+
+/* [Rendering] */
+color1 = [.26,.71,.9];
+color2 = [1,1,1];
+thickness = 10;
+variableThickness = 1; // [0:no, 1:yes]
+starProfile = 0; // [0:no, 1:yes (slow, monochrome)]
+hexSize = 10;
+// If you use join mode, it is recommended you set filledFraction to 0.5 or less. Also, variableThickness is ignored
+joinMode = 0; // [0:no, 1:yes]
+// How much of the hex to fill.
+filledFraction = 1;
+// set to 0 to get a different result each time
+randomSeed = 20;
+
+
+module end_of_parameters_dummy() {}
+
+
+//BEGIN: use <starcylinder.scad>;
+function makeFaces(bc,b1,b2,tc,t1,t2)
+    = [ [bc,b1,b2],
+        [tc,t2,t1],
+//        [tc,t1,b1],
+//        [bc,tc,b1],
+//        [tc,b2,t2],
+//        [bc,b2,tc],
+        [t1,t2,b2],
+        [t1,b2,b1] ];
+
+function joinStars(bottomCenter,bottomRing,topCenter,topRing) =
+    [
+        concat([bottomCenter],[topCenter],
+        bottomRing,topRing),
+        let(n=len(bottomRing),bc=0,tc=1,br=2,tr=br+n)
+        [for(i=[0:n-1]) for(f=makeFaces(bc,br+i,br+(i+1)%n,tc,tr+i,tr+(i+1)%n)) f]
+    ];
+
+module polyhedronFaces(points=[], faces=[], radius=1) {
+    for (f=faces) {
+        hull() {
+            for(p=f) {
+                translate(points[p]) sphere(r=radius);
+            }
+        }
+    }
+}
+
+module starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenZ=0, bottomOddZ=0,
+	bottomEvenRadius=50, bottomOddRadius=30, topCenter=[0,0,10], topEvenZ=10, topOddZ=0.01,
+	topEvenRadius=50, topOddRadius=30) {
+
+	bottom = [for(i=[0:points-1]) let(angle=360/points*i)
+					i%2 ? [bottomOddRadius*cos(angle),bottomOddRadius*sin(angle),bottomOddZ] :
+						  [bottomEvenRadius*cos(angle),bottomEvenRadius*sin(angle),bottomEvenZ]];
+	top = [for(i=[0:points-1]) let(angle=360/points*i)
+					i%2 ? [topOddRadius*cos(angle),topOddRadius*sin(angle),topOddZ] :
+						  [topEvenRadius*cos(angle),topEvenRadius*sin(angle),topEvenZ]];
+
+    pointsAndFaces = joinStars(bottomCenter,bottom,topCenter,top);
+    polyhedron(points=pointsAndFaces[0],faces=pointsAndFaces[1]);
+}
+
+
+//END: use <starcylinder.scad>;
+
+
+
+module dummy(){}
+//gamma_variation_degrees_per_step = 30;
+
+// filamentary: a0.8,b0.7,g0.01,n100,r30
+// pretty: 0.8,0.8,0.01
+// very nice and classical: 0.8,0.8,0.002,n100,r30, also n20, n50 is very nice
+// b0.7 is nice, too
+// elegant 1.6,0.7,.002
+
+animate = 0;
+samples = 0;
+
+cos30 = cos(30);
+sin30 = sin(30);
+
+// The data holds about 1/12 of the snowflake.
+function rowSize(i) =
+    i == 0 ? 1 : ceil((i+1)/2);
+
+function sum(vector, pos=0, soFar=0) =
+    pos >= len(vector) ? soFar :
+    sum(vector, pos=pos+1, soFar=vector[pos]+soFar);
+
+function cumulativeSums(vector, pos=0, soFar=[0]) =
+    pos >= len(vector) ? soFar :
+    cumulativeSums(vector, pos=pos+1, soFar=concat(soFar,[soFar[pos]+vector[pos]]));
+
+cumulativeRowSizes = cumulativeSums([for(i=[0:maximumRadius]) rowSize(i)]);
+
+numCells = cumulativeRowSizes[maximumRadius+1];
+
+numRandomPoints = (1+steps) * numCells;
+
+seed = samples ? 1+round($t*samples) : randomSeed;
+
+rawRandomData = seed ? rands(0,1,numRandomPoints,seed) : rands(0,1,numRandomPoints);
+
+startData = [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) i==0 ? 1 : beta-random_beta_variation/2+random_beta_variation*rawRandomData[cumulativeRowSizes[i]+j  ]]];
+
+randomData = [for (step=[0:steps-1]) [for (i=[0:maximumRadius]) [for(j=[0:rowSize(i)-1]) rawRandomData[(1+step)*numCells+cumulativeRowSizes[i]+j  ]]]];
+
+// This allows data to be got at points at one
+// remove from the data by using symmetries.
+function get(data,i,j) =
+    i < 0 ? data[1][0] :
+    i > maximumRadius ?
+    ( edge_mirror ? get(data,maximumRadius,max(j,rowSize(maximumRadius)-1)) : beta )
+    :
+    i <= 1 ? data[i][0] :
+    let(rs = rowSize(i)) (
+    j < 0 ? data[i][-j] :
+    j >= rs ? ( i%2 ? data[i][2*rs-1-j] : data[i][2*rs-2-j] )
+    : data[i][j] );
+
+function receptive(data,i,j) =
+    i>=maximumRadius ? false :
+    get(data,i,j)>=1 || (
+    j == 0 ? get(data,i,1)>=1 || get(data,i+1,0)>=1 || get(data,i+1,1)>=1 || get(data,i-1,0)>=1 :
+    get(data,i,j-1)>=1 || get(data,i,j+1)>=1 || get(data,i+1,j)>=1 || get(data,i+1,j+1)>=1 || get(data,i-1,j)>=1 || get(data,i-1,j-1)>=1);
+
+function u(data,i,j) =
+    receptive(data,i,j) ? 0 : get(data,i,j);
+
+function neighborUSum(u,i,j) =
+    j == 0 ?
+    2*get(u,i,1)+get(u,i+1,0)+2*get(u,i+1,1)+get(u,i-1,0) :
+    get(u,i,j-1)+get(u,i,j+1)+get(u,i+1,j)+get(u,i+1,j+1)+get(u,i-1,j)+get(u,i-1,j-1);
+
+/*function evolveCell(data,i,j) =
+    let(r=receptive(data,i,j))
+        (r ? gamma : 0) + get(data,i,j) + (alpha/12)*(-6*u(data,i,j)+neighborUSum(data,i,j));
+*/
+
+function adjustedGamma(i,j,step) = (1+(randomData[step-1][i][j]-0.5)*gamma_variation_amplitude_ratio) * gamma;
+
+//function adjustedGamma(i,j,step) = (1+sin(step*gamma_variation_degrees_per_step)*gamma_variation_amplitude_ratio/2) * gamma;
+
+function evolveCell(data,u,i,j,step) =
+        let(u0=get(u,i,j))
+        (u0==0 ? adjustedGamma(i,j,step)+get(data,i,j) : (1-alpha/2)*u0) + (alpha/12)*neighborUSum(u,i,j);
+
+function evolve(data, n) =
+    n == 0 ? data :
+    let(u=
+     [ for(i=[0:maximumRadius])
+        [ for(j=[0:rowSize(i)-1])
+            receptive(data,i,j) ? 0 : get(data,i,j) ] ])
+
+    evolve(
+     [ for(i=[0:maximumRadius])
+        [ for(j=[0:rowSize(i)-1])
+            evolveCell(data,u,i,j,n) ] ], n-1);
+
+function getCoordinates(i,j) =
+        hexSize*([0,i]+[cos(30),-sin(30)]*j);
+
+function getRadius(v,i,j) =
+        v < 1 ? 0 :
+        norm(getCoordinates(i,j))+1.001*hexSize*filledFraction/2;
+
+
+function getColor(v) =
+    let(t=min((v-1)*6,1))
+        t*color1+(1-t)*color2;
+
+module show(i,j) {
+    foldout()
+    translate(getCoordinates(i,j)) circle(r=1.001*hexSize/sqrt(3)*filledFraction,$fn=6);
+}
+
+function getHeight(v) = (variableThickness || joinMode) ? (min(v,1.25)-1)*4*thickness : thickness;
+
+module visualize(data) {
+    for(i=[0:len(data)-1]) {
+        for(j=[0:rowSize(i)-1]) {
+            v = data[i][j];
+            if(v>=1) color(getColor(v)) linear_extrude(height=getHeight(v)) show(i,j);
+        }
+    }
+}
+
+module visualizeJoined(data) {
+    linear_extrude(height=thickness)
+    for(i=[0:len(data)-1]) for(j=[0:rowSize(i)-1])
+        if(data[i][j]) {
+           if(get(data,i,j+1))
+                hull() { show(i,j); show(i,j+1); }
+           if(get(data,i+1,j))
+                hull() { show(i,j); show(i+1,j); }
+           if (get(data,i+1,j+1))
+                hull() { show(i,j); show(i+1,j+1); }
+        }
+}
+
+module foldout() {
+    for(i=[0:60:359.999]) rotate(i) {
+        mirror([1,0]) children();
+        children();
+    }
+}
+
+module draw(simulated) {
+    if (joinMode)
+        visualizeJoined(simulated);
+    else
+        visualize(simulated);
+}
+
+simulated = evolve(startData,animate ? round($t*steps) : steps);
+
+maxRadius = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getRadius(simulated[i][j],i,j)]);
+
+if (starProfile) {
+    maxHeight = max([for(i=[0:len(simulated)-1]) for(j=[0:rowSize(i)-1]) getHeight(simulated[i][j])]);
+
+    render(convexity=5)
+    intersection() {
+        draw(simulated);
+        rotate([0,0,360/12]) starCylinder(points=12, bottomCenter=[0,0,0], bottomEvenRadius=maxRadius,bottomOddRadius=maxRadius*sqrt(3)/2,bottopCenter=[0,0,maxHeight], bottomEvenZ = 0,
+        bottomOddZ = 0, topEvenRadius=maxRadius, topOddRadius=maxRadius*sqrt(3)/2, topEvenZ=maxHeight, topOddZ=0.01);
+    }
+
+}
+else {
+    draw(simulated);
+}
+
+if (samples) {
+    corner = getCoordinates(maximumRadius,0)[1] * .9;
+    msg = str("Seed: ",seed);
+    color("yellow")
+    linear_extrude(height=1)
+    translate([-corner,-corner])
+    text(msg, size=hexSize*maximumRadius/9);
+}
+
+//echo(evolveCell(data,1,0));
+//echo(receptive(data,3,0));
+//echo(neighborCount(data,3,0));

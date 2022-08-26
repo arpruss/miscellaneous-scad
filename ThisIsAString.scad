@@ -1,0 +1,1 @@
+text("This is a string",font="Times New Roman",size=0.5,$fn=30);
