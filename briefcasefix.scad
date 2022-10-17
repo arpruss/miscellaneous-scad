@@ -1,5 +1,6 @@
 use <Bezier.scad>;
 
+//<params>
 length = 30;
 width = 21;
 spacingSmaller = 7.5;
@@ -11,6 +12,7 @@ holeSpacing = 4.5;
 holeRows = 2;
 holeDiameter = 1.75;
 rounding = 2;
+//</params>
 
 function outline(extra=0)
     = [ [ 0, spacingSmaller/2 ], LINE(),LINE(),

@@ -205,11 +205,11 @@ function _interpolateSection(section,n) =
                         let(t=j/k)
                             section[i]*(1-t)+section[i2]*t];
                     
-function arcPoints(r=10,d=undef,start=0,end=180,z=undef) =
+function arcPoints(r=10,d=undef,start=0,end=180,center=[0,0]) =
             let(r=d==undef?r:d/2,
                 n=getPointsAround(abs(end-start)))
-                    r*[for(i=[0:n])
-                        let(angle=start+i*(end-start)/n) [cos(angle),sin(angle)]];
+                    [for(i=[0:n])
+                        let(angle=start+i*(end-start)/n) center+r*[cos(angle),sin(angle)]];
 
 function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)
