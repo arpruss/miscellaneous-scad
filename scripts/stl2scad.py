@@ -51,8 +51,8 @@ def toSCAD(polygons,name="stlObject1"):
     scad.append('module ' + name + '() { polyhedron(points=' + name + '_points, faces=' + name + '_faces); }')
     scad.append(name+"_min=[for(i=[0:2]) min([for(p=" + name + "_points) p[i]])];")
     scad.append(name+"_max=[for(i=[0:2]) max([for(p=" + name + "_points) p[i]])];")
-    scad.append('stlObject1_size=[for(i=[0:2]) '+name+'_max[i]-'+name+'_min[i]];')
-    scad.append('stlObject1();')
+    scad.append(name+"_size=[for(i=[0:2]) '+name+'_max[i]-'+name+'_min[i]];')
+    scad.append(name+'();')
     stderr.write("Joining.\n" )
     return '\n'.join(scad)
     
