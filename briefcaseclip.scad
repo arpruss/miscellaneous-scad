@@ -2,18 +2,18 @@ use <pointHull.scad>;
 
 //<params>
 bigWidth = 34;
-smallWidth = 23;
-thickness = 3;
-majorAxis = 45;
-minorAxis = 20;
-slitThickness = 0.75;
+smallWidth = 22;
+thickness = 4;
+majorAxis = 46;
+minorAxis = 21;
+slitThickness = 0.7;
 //</params>
 
 module profile() {
     difference() {
         resize([majorAxis,minorAxis]) circle(d=majorAxis);
         resize([majorAxis-2*thickness,minorAxis-2*thickness]) circle(d=majorAxis);
-        translate([-majorAxis*.43,0,0]) rotate(-35) square([majorAxis,slitThickness]);
+        translate([-majorAxis*.43,0,0]) rotate(-35) translate([minorAxis/4,0]) square([majorAxis,slitThickness]);
     }
 }
 

@@ -2374,7 +2374,7 @@ module drawHersheyGlyph(glyph,size=10) {
 }
 
 function _segmentUnpack(data) =
-    [for(seg=data) let(i=0)for(i=[0:2:len(seg)-3]) [[seg[i],seg[i+1]],[seg[i+2],seg[i+3]]]]/1000;
+    [for(seg=data) for(i=[0:2:len(seg)-3]) [[seg[i],seg[i+1]],[seg[i+2],seg[i+3]]]]/1000;
 
 function cross2D(a,b) = a[0]*b[1]-a[1]*b[0];
 

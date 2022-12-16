@@ -216,7 +216,7 @@ function _getFaceOnPlane(planeIndex,triangles,data) =
         outer = _outerEdges(trianglesOnPlane),
         edgeStarts = [for(e=outer) e[0]],
         edgeEnds = [for(e=outer) e[1]]
-    ) len(outer) == 0 ? undef : echo("se",edgeStarts,edgeEnds) _traceEdges(edgeStarts,edgeEnds);
+    ) len(outer) == 0 ? undef : _traceEdges(edgeStarts,edgeEnds);
 
 // 3D only, does not work if there are multiple planes defined by the same constraint
 function linearConstraintPointsAndFaces(constraints) =

@@ -1,7 +1,7 @@
 import re
 import sys
 
-PARK = "G1 X-12"
+PARK = "G1 X-12 : G1 Y0"
 
 def dumpSplit(s):
     for line in re.split(r'\s*:\s*', s):
@@ -78,9 +78,8 @@ def insertCommands(commandList):
     for c in commandList:
         if c[0] == '~':
             dumpSplit(PARK)
-            print('M117 '+c[1:])
-            print('M25')
-            print('M24')
+            print('M0 '+c[1:])
+#            print('M24')
             returnToXYZ()
         elif c == 'r':
             returnToXYZ()

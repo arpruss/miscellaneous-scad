@@ -13,8 +13,8 @@ tabHeight = 2
 nTabs = 2
 
 r1 = 0
-r2 = 25.4*3
-thickness = 19.95
+r2 = 55
+thickness = 6
 
 eps = 1e-5
 curX = 0
