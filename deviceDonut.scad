@@ -78,7 +78,7 @@ module main() {
     if (mode == 3) 
         fillHoleLid();
     else difference() {
-        puck(mode==0);
+        puck(mode==1);
         translate([34,0,h-25+9-size_upright[1]*0.5*(slotScaling-1)]) upright();
         translate([-26,0,h-25+11-size_angled[1]*0.5*(slotScaling-1)]) angled();
         if (mode==2 || mode==4) fillHole();
