@@ -42,7 +42,7 @@ dinHoleBottomOffsetFromPCBTop = 5;
 screwHoleDiameterTight = 1.75;
 screwHoleDiameterLoose = 3.5;
 
-label = "ABD2USB";
+label = "ADB2USB";
 labelFontSize = 6.5;
 
 boxInnerWidth = pcbWidth+2*pcbWidthTolerance;
