@@ -1,5 +1,3 @@
-//todo;block left end of LCD holders
-
 use <Bezier.scad>;
 use <roundedSquare.scad>;
 
@@ -202,4 +200,4 @@ module main() {
 translate([0,0,length+wall])
 rotate([0,180,0]) 
 main();
-translate([0,100,0]) lid(tolerance=lidTolerance, usb=true,pushUp=true,sensorHole=true);
+translate([0,80,0]) lid(tolerance=lidTolerance, usb=true,pushUp=true,sensorHole=true);
