@@ -2,7 +2,7 @@ module rotateToPath(path, index, closed=false) {
     function getAngle(v) = atan2(v[1],v[0])-90;
 
     if (index == len(path)-1 && ! closed) {
-        rotate([0,0,getAngle(path[index-1]-path[index])]) children();
+        rotate([0,0,getAngle(path[index]-path[index-1])]) children();
     }
     else {
         nextIndex = (index == len(path)-1) ? 0 : index + 1;
