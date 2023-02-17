@@ -28,9 +28,9 @@ holderStickout = 1.5;
 holderTolerance = 0.1;
 holderSlope = 0.3;
 
-buttonSide = 6.04;
 buttonSpacing = 25;
 buttonArea = 20;
+buttonSide = 6.04;
 buttonHole = 3;
 
 sensorHoleSize = 6;

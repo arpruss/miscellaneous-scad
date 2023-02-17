@@ -1,6 +1,10 @@
 use <tubemesh.scad>;
 use <roundedSquare.scad>;
 
+includeTop = 0; //1:Yes, 0:No
+includeKnob = 1; //1:Yes, 0:No
+shaftOnly = 0; //1:Yes, 0:No
+
 bearingID = 8;
 bearingThickness = 7;
 bearingOD = 22;
@@ -24,8 +28,8 @@ shaftLength = 14;
 
 tolerance = 0.2;
 pcbTolerance = 0.3;
-shaftOuterTolerance = 0.1;
-magnetTolerance = 0.15;
+shaftOuterTolerance = 0.065; // 0.05, 0.1;
+magnetTolerance = 0.08; // 0.15;
 
 bottomWall = 3;
 sideWall = 2;
@@ -56,21 +60,25 @@ miniButtonY2 = 75;
 screwOffset = 8;
 screwHole = 4;
 
-knobDiameter = 30;
-knurlingAngle = 8;
-knobTopThickness = 2;
-knobJoinThickness = 2;
+knobDiameter = 31.75;
+knurlingAngle = 5;
+//knobTopThickness = 2;
+//knobJoinThickness = 2;
 knobSideWallThickness = 1.75;
-knobSideWallHeight = 12;
+knobSideWallHeightBase = 16; // not exactly parametric -- must be tuned to fit and clear bearing holder
+knobTopChamfer = 0.75;
+knobClearance = 1.5;
 
 wall = 1.5;
 
 module dummy() {}
 
+knobSideWallHeight = knobSideWallHeightBase + 3 - bottomWall;
+
 pcbThickness1 = pcbThickness+pcbTolerance;
 
 nudge = 0.001;
-height = bearingCollarHeight+verticalOffset+pcbThickness1;
+spinnerHolderHeight = bearingCollarHeight+verticalOffset+pcbThickness1;
 
 // this is xy-centered for convenience
 module topBeveledCube(size, bevel=1, bevelHeightToWidthRatio=1) {
@@ -97,11 +105,10 @@ module flaredCylinder(d=10, r=undef, h=10, flare=1) {
 
 module spinnerHolder() {
     $fn = 64;
-    render(convexity=2)
     difference() {
-        cylinder(d=bearingOD+2*wall+2*tolerance, h=height);
-        translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=height);
-        translate([0,0,height-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
+        cylinder(d=bearingOD+2*wall+2*tolerance, h=spinnerHolderHeight);
+        translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=spinnerHolderHeight);
+        translate([0,0,spinnerHolderHeight-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
         translate([0,0,-nudge])
         topBeveledCube([pcbSizeX+2*pcbTolerance,pcbSizeY+2*pcbTolerance,pcbThickness1+pcbHolderBevel+2*nudge], bevel=pcbHolderBevel);
     }
@@ -115,11 +122,10 @@ module spinnerCutout() {
 module top(supports=false) {
     $fn = 64;
     od = bearingID-2*shaftOuterTolerance;
-    render(convexity=2)
     difference() {
         cylinder(d=od,h=shaftLength+magnetCollarHeight);
         translate([0,0,shaftLength])
-            flaredCylinder(d=magnetDiameter+2*magnetTolerance,h=magnetCollarHeight,flare=magnetCollarBevel);
+            flaredCylinder(d=magnetDiameter+2*magnetTolerance,h=magnetCollarHeight+nudge,flare=magnetCollarBevel);
     }
     cylinder(h=shaftLength+magnetCollarHeight-bearingThickness,d=od+1);
     if (supports && supportSize>0) {
@@ -138,16 +144,28 @@ module top(supports=false) {
         }
     }
 
-    linear_extrude(height=knobTopThickness) {
-        knobProfile();
-    }
-    linear_extrude(height=knobSideWallHeight) {
-        difference() {
-            knobProfile();
-            circle(d=knobDiameter-knobSideWallThickness*2);
+    knobSideWallThickness = knobDiameter - ( bearingOD+2*wall+2*tolerance + 2 * knobClearance);
+    if (! shaftOnly) {
+        intersection() {
+            union() {
+            linear_extrude(height=shaftLength+magnetCollarHeight-bearingThickness-knobClearance) {
+                knobProfile();
+            }
+            linear_extrude(height=knobSideWallHeight) {
+                difference() {
+                    knobProfile();
+                    circle(d=knobDiameter-knobSideWallThickness*2);
+                }
+                }
+            }
+            cylinder(r1=knobDiameter/2-knobTopChamfer,r2=knobDiameter/2-knobTopChamfer+(knobSideWallHeight+1),h=knobSideWallHeight+1,$fn=128);
         }
+            
+        /*
+            for(angle=[0,90]) rotate([0,0,angle]) translate([0,0,(shaftLength+magnetCollarHeight-bearingThickness-knobClearance)/2]) cube([knobDiameter-knobSideWallThickness*2+nudge*2,knobJoinThickness,shaftLength+magnetCollarHeight-bearingThickness-knobClearance],center=true); 
+        */
+
     }
-    for(angle=[0,90]) rotate([0,0,angle]) translate([0,0,(shaftLength+magnetCollarHeight-bearingThickness-1)/2]) cube([knobDiameter-knobSideWallThickness*2+nudge*2,knobJoinThickness,shaftLength+magnetCollarHeight-bearingThickness-1],center=true);
     
 }
 
@@ -190,7 +208,7 @@ module arcadeButton() {
 module knobProfile() {
     circle(d=knobDiameter,$fn=128);
     kd = knurlingAngle / 180 * PI * knobDiameter / 2;
-    for (angle = [0:knurlingAngle:360]) rotate(angle) translate([knobDiameter/2,0]) circle(d=kd,$fn=8);
+    for (angle = [0:knurlingAngle:360]) rotate(angle) translate([knobDiameter/2,0]) circle(d=kd,$fn=16);
 }
 
 module miniButton() {
@@ -216,7 +234,7 @@ module main() {
     translate([0,spinnerY]) spinnerHolder();
 }
 
+if (includeTop)
 main();
-
-//translate([10+bearingOD,0,0]) 
+if (includeKnob)
 translate([00,-knobDiameter/2-10,0]) top();
