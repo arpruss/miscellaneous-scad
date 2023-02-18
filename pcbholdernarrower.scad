@@ -33,8 +33,9 @@ function getHeight() = h;
 function getScrewSpacing() = screwDistanceFromPCB*2 + pcbWidth;
 function getFrontScrewDistance() = screw1DistanceFromFront;
 function getBackScrewDistance() = screw2DistanceFromFront;
-function getPCBTopHeight() = wall+pcbOffsetFromBase+pcbThickness;    
-
+function getPCBTopHeight() = wall+pcbOffsetFromBase+pcbThickness; 
+echo("pcbTopHeight",getPCBTopHeight());    
+    
 module screw() {
     d = screwSize + screwHoleWall*2;
     translate([screwDistanceFromPCB+pcbWidth/2,0,0]) {

@@ -2,8 +2,9 @@ use <tubemesh.scad>;
 use <roundedSquare.scad>;
 
 includeTop = 0; //1:Yes, 0:No
-includeKnob = 1; //1:Yes, 0:No
+includeKnob = 0; //1:Yes, 0:No
 shaftOnly = 0; //1:Yes, 0:No
+includeBottom = 1; //1:Yes, 0:No
 
 bearingID = 8;
 bearingThickness = 7;
@@ -27,12 +28,12 @@ magnetCollarBevel = 0.25; //0.25;
 shaftLength = 14+1;
 
 tolerance = 0.2;
-pcbTolerance = 0.3;
+sensorPCBTolerance = 0.3;
 shaftOuterTolerance = 0.065; // 0.05, 0.1;
 magnetTolerance = 0.08; // 0.15;
 
-bottomWall = 3;
-sideWall = 2;
+topWall = 3;
+bottomWall = 2.5;
 length = 100;
 width = 88;
 roundingRadius = 10;
@@ -59,23 +60,46 @@ miniButtonY2 = 75;
 
 screwOffset = 8;
 screwHole = 4;
+pillarScrewHole = 3.75;
+pillarDiameter = 13;
 
 knobDiameter = 31.75;
 knurlingAngle = 5;
 //knobTopThickness = 2;
 //knobJoinThickness = 2;
 knobSideWallThickness = 1.75;
-knobSideWallHeightBase = 16+1; // not exactly parametric -- must be tuned to fit and clear bearing holder
+knobSideWallHeightBase = 17; // not exactly parametric -- must be tuned to fit and clear bearing holder
 knobTopChamfer = 0.75;
 knobClearance = 1.25;
+
+lidTolerance = 0.2;
+clearanceAbovePillPCB = 10.5;
+clearanceAboveFloor = 21;
+sideWall = 2.5;
+topLip = 1.2;
+pillPCBTopHeight = 5.65;
+bottomScrewPillarDiameter = 10;
+bottomScrewPillarHeight = 2;
+bottomScrewHole = 3.75;
+bottomScrewHead = 8;
+bottomScrewInset = 2;
+pillY = 65;
+bottomScrew1DistanceFromFront = 5;
+bottomScrew2DistanceFromFront = 50;
+bottomScrewSpacing = 30.7;
+usbHoleHeight = 7;
+usbHoleWidth = 12;
+usbPortHeight = 2.9;
 
 wall = 1.5;
 
 module dummy() {}
 
-knobSideWallHeight = knobSideWallHeightBase + 3 - bottomWall;
+bottomHeight = topWall+bottomWall+max(clearanceAboveFloor,bottomScrewPillarHeight+clearanceAbovePillPCB+pillPCBTopHeight);
 
-pcbThickness1 = pcbThickness+pcbTolerance;
+knobSideWallHeight = knobSideWallHeightBase + 3 - topWall;
+
+pcbThickness1 = pcbThickness+sensorPCBTolerance;
 
 nudge = 0.001;
 spinnerHolderHeight = bearingCollarHeight+verticalOffset+pcbThickness1;
@@ -110,7 +134,7 @@ module spinnerHolder() {
         translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=spinnerHolderHeight);
         translate([0,0,spinnerHolderHeight-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
         translate([0,0,-nudge])
-        topBeveledCube([pcbSizeX+2*pcbTolerance,pcbSizeY+2*pcbTolerance,pcbThickness1+pcbHolderBevel+2*nudge], bevel=pcbHolderBevel);
+        topBeveledCube([pcbSizeX+2*sensorPCBTolerance,pcbSizeY+2*sensorPCBTolerance,pcbThickness1+pcbHolderBevel+2*nudge], bevel=pcbHolderBevel);
     }
 }
 
@@ -217,24 +241,79 @@ module miniButton() {
             circle(d=miniButtonHole,$fn=12);
 }
 
-module main() {
-    linear_extrude(height=bottomWall) {
+module plate(inset=0) {
+    translate([-width/2,0]) translate([inset,inset]) roundedSquare([width-2*inset,length-2*inset],radius=roundingRadius-inset,$fn=32);
+}
+
+module topScrews() {
+            for (x=[-width/2+screwOffset,width/2-screwOffset]) for (y=[screwOffset,length-screwOffset]) translate([x,y]) children();
+}
+
+module topPlate() {
+    linear_extrude(height=topWall) {
         difference() {
-            translate([-width/2,0]) 
-            roundedSquare([width,length],radius=roundingRadius,$fn=32);
+            plate(inset=0);
             translate([0,spinnerY]) spinnerCutout();
             translate([buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
             translate([-buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
             translate([miniButtonX,miniButtonY1]) miniButton();
             translate([miniButtonX,miniButtonY2]) miniButton();
-            for (x=[-width/2+screwOffset,width/2-screwOffset]) for (y=[screwOffset,length-screwOffset]) translate([x,y]) circle(d=screwHole,$fn=12);
+            topScrews() circle(d=screwHole,$fn=12);
         }        
     }
     for (s=[-1,1]) translate([s*buttonSpacing/2,buttonY,0]) arcadeButton();
     translate([0,spinnerY]) spinnerHolder();
 }
 
+module bottomScrews() {
+    translate([-topLip-lidTolerance+sideWall,0])
+    translate([-width/2,pillY])
+        for (dy=[-bottomScrewSpacing/2,bottomScrewSpacing/2]) for (dx=[bottomScrew1DistanceFromFront,bottomScrew2DistanceFromFront]) translate([dx,dy]) children();
+}
+
+module bottomMain() {
+    difference() {
+        union() {
+            linear_extrude(height=bottomWall+bottomScrewPillarHeight) bottomScrews() difference() {
+                circle(d=bottomScrewPillarDiameter,$fn=16);
+                circle(d=bottomScrewHole,$fn=12);
+            }
+            linear_extrude(height=bottomWall) plate(inset=-topLip-lidTolerance);
+        }
+        translate([0,0,-nudge]) {
+            linear_extrude(height=bottomWall+2*nudge) bottomScrews() circle(d=bottomScrewHole,$fn=12);
+            linear_extrude(height=bottomScrewInset+nudge) bottomScrews() circle(d=bottomScrewHead,$fn=16);
+        }
+    }
+    linear_extrude(height=bottomHeight-topWall) difference() {
+        plate(inset=-topLip-lidTolerance-nudge);
+        plate(inset=-topLip-lidTolerance+sideWall+nudge);
+    }
+    
+    linear_extrude(height=bottomHeight) difference() {
+        plate(inset=-topLip-lidTolerance);
+        plate(inset=-lidTolerance);
+    }
+    linear_extrude(height=bottomHeight-topWall)
+    topScrews() difference() {
+        circle(d=pillarDiameter,$fn=16);
+        circle(d=pillarScrewHole,$fn=12);
+    }
+    
+    
+}
+
+module bottom() {
+    difference() {
+        bottomMain();
+        translate([-width/2,pillY,bottomWall+bottomScrewPillarHeight+pillPCBTopHeight+usbPortHeight/2]) cube([sideWall+10,usbHoleWidth,usbHoleHeight],center=true);
+    }
+}
+
 if (includeTop)
-main();
+translate([0,0,0*(bottomHeight-topWall)]) topPlate();
 if (includeKnob)
 translate([00,-knobDiameter/2-10,0]) top();
+if (includeBottom)
+translate([width+20,0,0]) 
+bottom();
