@@ -5,6 +5,7 @@ includeTop = 0; //1:Yes, 0:No
 includeKnob = 0; //1:Yes, 0:No
 shaftOnly = 0; //1:Yes, 0:No
 includeBottom = 1; //1:Yes, 0:No
+includeNunchuckPort = 1;
 
 bearingID = 8;
 bearingThickness = 7;
@@ -90,10 +91,33 @@ bottomScrewSpacing = 30.7;
 usbHoleHeight = 7;
 usbHoleWidth = 12;
 usbPortHeight = 2.9;
+//wall = 1.5;
 
-wall = 1.5;
+nunchuckPortTolerance = 0.25;
+nunchuckPortHeight = 7.36;
+nunchuckPortWidth = 12.24;
+nunchuckPortInsetDepth = 1.28;
+nunchuckPortInsetWidth = 4.59;
+nunchuckPortPillarTopFromCenter = 4.9;
+nunchuckOffsetFromFloor = 7;
+
+
+
 
 module dummy() {}
+
+
+module nunchuckConnector() {
+    h = nunchuckPortHeight + 2*nunchuckPortTolerance;
+    w = nunchuckPortWidth + 2*nunchuckPortTolerance;
+    insetDepth = nunchuckPortInsetDepth;
+    insetWidth = nunchuckPortInsetWidth+2*nunchuckPortTolerance;
+    rotate([0,90,0])
+    translate([0,0,-sideWall-nudge])
+    linear_extrude(height=sideWall*2+2*nudge)
+    polygon([[-h/2,-w/2],[h/2,-w/2],[h/2,w/2],[-h/2,w/2],[-h/2,insetWidth/2],[-h/2+insetDepth,insetWidth/2],[-h/2+insetDepth,-insetWidth/2],[-h/2,-insetWidth/2]]);
+}
+
 
 bottomHeight = topWall+bottomWall+max(clearanceAboveFloor,bottomScrewPillarHeight+clearanceAbovePillPCB+pillPCBTopHeight);
 
@@ -307,6 +331,7 @@ module bottom() {
     difference() {
         bottomMain();
         translate([-width/2,pillY,bottomWall+bottomScrewPillarHeight+pillPCBTopHeight+usbPortHeight/2]) cube([sideWall+10,usbHoleWidth,usbHoleHeight],center=true);
+        translate([0,0,nunchuckOffsetFromFloor+bottomWall]) rotate([180,0,0]) rotate([0,0,90]) nunchuckConnector();
     }
 }
 
