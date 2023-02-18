@@ -1,12 +1,13 @@
 shaft = 14.65;
 wellDiameter = 20.33;
 wellDepth = 9.82;
-shaftRing = 10;
+metalLinerLength = 10;
 
 height = 34;
 
 shaftDiameter = 7;
 shaftIncut = 1;
+shaftHoleConstrict = 0.65;
 
 generousTolerance = 1.5;
 tolerance = 0.22; 
@@ -59,8 +60,8 @@ module main() {
             linear_extrude(height=height) circle(d=wellDiameter-generousTolerance*2);
             for (i=[0:ribs-1]) let(angle=i/ribs*360) rotate([0,0,angle]) translate([0,-ribThickness/2,0]) cube([knobDiameter/2,ribThickness,height-wellDepth-generousTolerance]);
         }
-        translate([0,0,height+nudge-shaft]) { linear_extrude(height=shaft) shaftHole(constrict=0.65);
-            translate([0,0,shaft-shaftRing]) linear_extrude(height=shaftRing+nudge) shaftHole(0);
+        translate([0,0,height+nudge-shaft]) { linear_extrude(height=shaft) shaftHole(constrict=shaftHoleConstrict);
+            translate([0,0,shaft-metalLinerLength]) linear_extrude(height=metalLinerLength+nudge) shaftHole(0);
         }
     }
 }

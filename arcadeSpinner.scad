@@ -22,9 +22,9 @@ pcbHolderBevel = 1.4;
 
 magnetDiameter = 6;
 //magnetThickness = 2.5;
-magnetCollarHeight = 2.25;
+magnetCollarHeight = 2; //2.25;
 magnetCollarBevel = 0.25; //0.25;
-shaftLength = 14;
+shaftLength = 14+1;
 
 tolerance = 0.2;
 pcbTolerance = 0.3;
@@ -65,9 +65,9 @@ knurlingAngle = 5;
 //knobTopThickness = 2;
 //knobJoinThickness = 2;
 knobSideWallThickness = 1.75;
-knobSideWallHeightBase = 16; // not exactly parametric -- must be tuned to fit and clear bearing holder
+knobSideWallHeightBase = 16+1; // not exactly parametric -- must be tuned to fit and clear bearing holder
 knobTopChamfer = 0.75;
-knobClearance = 1.5;
+knobClearance = 1.25;
 
 wall = 1.5;
 
@@ -144,7 +144,7 @@ module top(supports=false) {
         }
     }
 
-    knobSideWallThickness = knobDiameter - ( bearingOD+2*wall+2*tolerance + 2 * knobClearance);
+    knobSideWallThickness = (knobDiameter - ( bearingOD+2*wall+2*tolerance + 2 * knobClearance))/2;
     if (! shaftOnly) {
         intersection() {
             union() {
