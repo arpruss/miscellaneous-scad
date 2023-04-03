@@ -2,9 +2,9 @@ use <tubemesh.scad>;
 use <roundedSquare.scad>;
 
 includeTop = 0; //1:Yes, 0:No
-includeKnob = 0; //1:Yes, 0:No
+includeKnob = 1; //1:Yes, 0:No
 shaftOnly = 0; //1:Yes, 0:No
-includeBottom = 1; //1:Yes, 0:No
+includeBottom = 0; //1:Yes, 0:No
 includeNunchuckPort = 1;
 
 bearingID = 8;
@@ -61,17 +61,22 @@ miniButtonY2 = 75;
 
 screwOffset = 8;
 screwHole = 4;
-pillarScrewHole = 3.75;
+pillarScrewHole = 3;
 pillarDiameter = 13;
 
 knobDiameter = 31.75;
 knurlingAngle = 5;
 //knobTopThickness = 2;
 //knobJoinThickness = 2;
+//knobSideWallThickness = 1.75;
 knobSideWallThickness = 1.75;
 knobSideWallHeightBase = 17; // not exactly parametric -- must be tuned to fit and clear bearing holder
 knobTopChamfer = 0.75;
 knobClearance = 1.25;
+knobDepressionFractionOfRadius = 0.4;
+knobDepressionDepth = 1.7;
+knobDepressionOffsetFromEdge = 0.5;
+knobDepressionChamfer = 1.5;
 
 lidTolerance = 0.2;
 clearanceAbovePillPCB = 10.5;
@@ -93,7 +98,7 @@ usbHoleWidth = 12;
 usbPortHeight = 2.9;
 //wall = 1.5;
 
-nunchuckPortTolerance = 0.25;
+nunchuckPortTolerance = 0.32;
 nunchuckPortHeight = 7.36;
 nunchuckPortWidth = 12.24;
 nunchuckPortInsetDepth = 1.28;
@@ -111,7 +116,7 @@ module nunchuckConnector() {
     h = nunchuckPortHeight + 2*nunchuckPortTolerance;
     w = nunchuckPortWidth + 2*nunchuckPortTolerance;
     insetDepth = nunchuckPortInsetDepth;
-    insetWidth = nunchuckPortInsetWidth+2*nunchuckPortTolerance;
+    insetWidth = nunchuckPortInsetWidth-2*nunchuckPortTolerance;
     rotate([0,90,0])
     translate([0,0,-sideWall-nudge])
     linear_extrude(height=sideWall*2+2*nudge)
@@ -167,7 +172,7 @@ module spinnerCutout() {
     circle(d=bearingOD+2*wall+2*tolerance-nudge);
 }
 
-module top(supports=false) {
+module knobBasic(supports=false) {
     $fn = 64;
     od = bearingID-2*shaftOuterTolerance;
     difference() {
@@ -192,7 +197,7 @@ module top(supports=false) {
         }
     }
 
-    knobSideWallThickness = (knobDiameter - ( bearingOD+2*wall+2*tolerance + 2 * knobClearance))/2;
+    //knobSideWallThickness = (knobDiameter - ( bearingOD+2*knobSideWall+2*tolerance + 2 * knobClearance))/2;
     if (! shaftOnly) {
         intersection() {
             union() {
@@ -215,6 +220,17 @@ module top(supports=false) {
 
     }
     
+}
+
+module knob(supports=false) {
+    difference() {
+        knobBasic(supports=supports);
+            r = knobDiameter/2-knobTopChamfer;
+            d2 = knobDepressionFractionOfRadius * r;
+            d1 = d2 + knobDepressionChamfer*2;
+            
+    translate([r-d1/2-knobDepressionOffsetFromEdge ,0,-nudge]) cylinder(d1=d1,d2=d2,h=knobDepressionDepth+nudge,$fn=128);
+        }
 }
 
 module arcadeButtonCylinder() {
@@ -338,7 +354,7 @@ module bottom() {
 if (includeTop)
 translate([0,0,0*(bottomHeight-topWall)]) topPlate();
 if (includeKnob)
-translate([00,-knobDiameter/2-10,0]) top();
+translate([00,-knobDiameter/2-10,0]) knob();
 if (includeBottom)
 translate([width+20,0,0]) 
 bottom();
