@@ -10,6 +10,8 @@ glassDiameter = 23.2;
 offsetFromGlass = 30;
 angleStep = 2;
 straightLength = 5;
+topMarkerDiameter = 3;
+topMarkerDepth = 1;
 
 wallThickness = 2;
 mediumWallThickness = 1.75;
@@ -20,16 +22,15 @@ radialTolerance = 0;
 tabRadialSize = 0.7;
 tabLength = 11.75;
 tabThickness = 0.9;
-tabTolerance = 0.1;
 tabLowering = 1.5;
 tabAngles = [90,210,-30];
 distanceBehindTab = 2.25;
 flangeRadialSize = 1.75;
 flangeOverhangAngle = 50;
-flangeTolerance = -.1;
+flangeTolerance = -.2;
 flangeThickness = 1.5;
 glassInset = 6.4;
-bumpExtra = 0.3;
+bumpExtra = .1;
 outerLensDiameter = 37.7;
 //</params>
 
@@ -55,9 +56,36 @@ function filmRadiusAtAngle0(angle) =
        
 function filmRadiusAtAngle(angle) =
     angle >= 360-cornerAngle || angle < 180-cornerAngle ? filmRadiusAtAngle0(angle) : filmRadiusAtAngle0(angle < 180 ? angle + 180 : angle - 180);
-    
-function hoodRadiusAtAngle(angle) =    
-    glassDiameter / 2 + offsetFromGlass * filmRadiusAtAngle(angle) / focalLength;
+
+cx = (filmWidth / 2 + filmTolerance) * offsetFromGlass / focalLength;    
+right = cx + glassDiameter / 2;
+cy = (filmHeight / 2 + filmTolerance) * offsetFromGlass / focalLength;
+top = cy + glassDiameter / 2;
+
+startCircle = atan2(cy, right);
+endCircle = atan2(top, cx);
+
+// distance to origin from intersection of line through (0,0) and (a,b) with circle of radius r at x,y        
+function circleIntersect(a,b,x,y,r) =
+   (2*a*x + 2*b*y + sqrt(pow(-2*a*cx - 2*b*cy,2) - 
+       4*(a*a + b*b)*
+        (x*x + y*y - r*r)))/
+   (2*(a*a + b*b));
+   
+   
+
+function hoodRadiusAtAngleQuadI(angle) = 
+    angle <= startCircle ? hypot(right, right*tan(angle)) :
+    angle >= endCircle ? hypot(top, top/tan(angle)) :
+    //let(t=(angle-startCircle)/(endCircle-startCircle)*90)
+    //    hypot(cx+glassDiameter/2 * cos(t), cy+glassDiameter/2 * sin(t));
+    circleIntersect(cos(angle),sin(angle),cx,cy,glassDiameter/2);
+
+function hoodRadiusAtAngle(angle) = 
+    angle <= 90 ? hoodRadiusAtAngleQuadI(angle) :
+    angle <= 180 ? hoodRadiusAtAngleQuadI(180-angle) :
+    angle <= 270 ? hoodRadiusAtAngleQuadI(angle-180) :
+    hoodRadiusAtAngleQuadI(360-angle);
     
 function hoodProfile(extra=0)=
     [for (angle=[0:angleStep:360-.000001]) (hoodRadiusAtAngle(angle)+extra)*[cos(angle),sin(angle)]];
@@ -67,6 +95,7 @@ function end(z,extra=0) = sectionZ(hoodProfile(extra=extra),z);
 
 flangeDistance = distanceBehindTab + tabThickness + flangeTolerance;
 flangeSlopeHeight = flangeRadialSize1 / tan(flangeOverhangAngle);
+topZ = offsetFromGlass+distanceBehindTab+tabThickness-glassInset;
 
 function sections(inside=false) = 
     let(extra=inside?0:wallThickness)
@@ -80,11 +109,10 @@ function sections(inside=false) =
       base(flangeDistance+flangeSlopeHeight+flangeThickness+.01,extra),
       end(offsetFromGlass+distanceBehindTab+tabThickness-glassInset-straightLength,extra),
     
-      end(offsetFromGlass+distanceBehindTab+tabThickness-glassInset+(inside?1:0),extra)
+      end(topZ+(inside?1:0),extra)
     ];
     
 module cylindricalBump(topProfile,r1,r2) {
-    echo(r1,r2);
     sections = [for (theta_z=topProfile) 
         let(theta = theta_z[0], z = theta_z[1]) 
             [ [r1*cos(theta),r1*sin(theta),0],
@@ -107,11 +135,16 @@ module bumps() {
     }
 }
 
+module topMark() {
+    translate([0,top+wallThickness-topMarkerDepth,topZ-straightLength/2]) rotate([-90,0,0]) cylinder(d=topMarkerDiameter,h=wallThickness+topMarkerDepth,$fn=16);
+}
+
 module main() {        
     bumps();
     difference() {
         tubeMesh(sections(false));
         tubeMesh(sections(true));
+        topMark();
     }
 }
 

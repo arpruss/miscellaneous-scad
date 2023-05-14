@@ -1,15 +1,15 @@
 show = 0; // [0:back, 1:front]
 pictureSizeUnits = 25.4; // [1:mm, 25.4:inches]
-pictureHeightInUnits = 7;
-pictureWidthInUnits = 5;
+pictureHeightInUnits = 4;
+pictureWidthInUnits = 6;
 // millimeters
-frameFrontThickness = 4;
+frameFrontThickness = 3;
 // millimeters
 frameWidth=12;
 // millimeters
 framePictureOverlap=5;
 // millimeters
-frameBackingThickness=3;
+frameBackingThickness=2;
 // millimeters
 frameStandWidth=45;
 // millimeters
