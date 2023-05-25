@@ -1,8 +1,6 @@
 use <tubemesh.scad>;
 
-// sideTol = 0.5 ok, but loose
-// snapBump = 0.35
-
+//<params>
 buttonDiameter = 11.7;
 bottomBevel = 0.5;
 buttonDepth = 5.45;
@@ -18,6 +16,7 @@ snapSpacing = 0.25;
 snapBump = 0.42;
 snapBumpHeight = 0.4;
 snapJoinedHeight = 0.1;
+//</params>
 
 nudge = 0.01;
 

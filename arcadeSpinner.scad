@@ -1,12 +1,14 @@
 use <tubemesh.scad>;
 use <roundedSquare.scad>;
 
-includeTop = 0; //1:Yes, 0:No
+//<params>
+includeTop = 1; //1:Yes, 0:No
 includeKnob = 1; //1:Yes, 0:No
 shaftOnly = 0; //1:Yes, 0:No
-includeBottom = 0; //1:Yes, 0:No
+includeBottom = 1; //1:Yes, 0:No
 includeNunchuckPort = 1;
 
+bearingCollarWall = 1.5;
 bearingID = 8;
 bearingThickness = 7;
 bearingOD = 22;
@@ -105,7 +107,11 @@ nunchuckPortInsetDepth = 1.28;
 nunchuckPortInsetWidth = 4.59;
 nunchuckPortPillarTopFromCenter = 4.9;
 nunchuckOffsetFromFloor = 7;
-
+nunchuckScrewOffset = 15.5;
+nunchuckScrewHole = 2.5;
+nunchuckScrewInsetDiameter = 6;
+nunchuckScrewInsetDepth = 1.25;
+//</params>
 
 
 
@@ -156,11 +162,12 @@ module flaredCylinder(d=10, r=undef, h=10, flare=1) {
         ngonPoints(n=$fn,d=diameter+2*flare,z=h)]);
 }
 
-module spinnerHolder() {
+module spinnerHolder(plus=true) {
     $fn = 64;
-    difference() {
-        cylinder(d=bearingOD+2*wall+2*tolerance, h=spinnerHolderHeight);
-        translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*wall, h=spinnerHolderHeight);
+    if (plus)
+        cylinder(d=bearingOD+2*bearingCollarWall+2*tolerance, h=spinnerHolderHeight);
+    else {
+        translate([0,0,pcbThickness1+pcbHolderBevel]) cylinder(d=bearingOD+2*tolerance-2*bearingCollarWall, h=spinnerHolderHeight);
         translate([0,0,spinnerHolderHeight-bearingCollarHeight]) flaredCylinder(d=bearingOD+2*tolerance, h=bearingCollarHeight+nudge, flare=0.5);
         translate([0,0,-nudge])
         topBeveledCube([pcbSizeX+2*sensorPCBTolerance,pcbSizeY+2*sensorPCBTolerance,pcbThickness1+pcbHolderBevel+2*nudge], bevel=pcbHolderBevel);
@@ -169,7 +176,7 @@ module spinnerHolder() {
 
 module spinnerCutout() {
     $fn = 64;
-    circle(d=bearingOD+2*wall+2*tolerance-nudge);
+    circle(d=bearingOD+2*bearingCollarWall+2*tolerance-nudge);
 }
 
 module knobBasic(supports=false) {
@@ -290,19 +297,24 @@ module topScrews() {
 }
 
 module topPlate() {
-    linear_extrude(height=topWall) {
-        difference() {
-            plate(inset=0);
-            translate([0,spinnerY]) spinnerCutout();
-            translate([buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
-            translate([-buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
-            translate([miniButtonX,miniButtonY1]) miniButton();
-            translate([miniButtonX,miniButtonY2]) miniButton();
-            topScrews() circle(d=screwHole,$fn=12);
-        }        
+    difference() {
+        union() {
+            translate([0,spinnerY]) spinnerHolder(true);
+            linear_extrude(height=topWall) {
+                difference() {
+                    plate(inset=0);
+                    translate([0,spinnerY]) spinnerCutout();
+                    translate([buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
+                    translate([-buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
+                    translate([miniButtonX,miniButtonY1]) miniButton();
+                    translate([miniButtonX,miniButtonY2]) miniButton();
+                    topScrews() circle(d=screwHole,$fn=12);
+                }        
+            }
+        }
+        translate([0,spinnerY])         spinnerHolder(false);
     }
     for (s=[-1,1]) translate([s*buttonSpacing/2,buttonY,0]) arcadeButton();
-    translate([0,spinnerY]) spinnerHolder();
 }
 
 module bottomScrews() {
@@ -347,7 +359,11 @@ module bottom() {
     difference() {
         bottomMain();
         translate([-width/2,pillY,bottomWall+bottomScrewPillarHeight+pillPCBTopHeight+usbPortHeight/2]) cube([sideWall+10,usbHoleWidth,usbHoleHeight],center=true);
-        translate([0,0,nunchuckOffsetFromFloor+bottomWall]) rotate([180,0,0]) rotate([0,0,90]) nunchuckConnector();
+        translate([0,0,nunchuckOffsetFromFloor+bottomWall]) rotate([180,0,0]) rotate([0,0,90]) nunchuckConnector(); 
+        translate([0,0,bottomWall+nunchuckScrewOffset]) rotate([-90,0,0]) translate([0,0,-sideWall+topLip-lidTolerance-nudge]) union() {
+            cylinder(d=nunchuckScrewHole,$fn=16,h=10);
+            cylinder(d=nunchuckScrewInsetDiameter,$fn=16,h=nunchuckScrewInsetDepth);
+        }
     }
 }
 
@@ -358,3 +374,5 @@ translate([00,-knobDiameter/2-10,0]) knob();
 if (includeBottom)
 translate([width+20,0,0]) 
 bottom();
+
+spinnerHolder();

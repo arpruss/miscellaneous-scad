@@ -1,24 +1,25 @@
 pcbSizeX = 11.94;
 pcbSizeY = 11.58;
-//pcbThickness = 1.6;
 icSizeX = 4.9; 
 icSizeY = 3.9;
 icHeight = 1.5;
+hole = 2;
 
 wall = 1.25;
 baseThickness = 0.75;
 snapLength = 4;
 wallHeight = 1.75;
 
-tolerance = 0.3;
+pcbTolerance = 0.05;
+icTolerance = 0.02;
 
 module dummy() {}
 
-icSizeX1 = icSizeX + 2*tolerance;
-icSizeY1 = icSizeY + 2*tolerance;
-pcbSizeX1 = pcbSizeX + 2*tolerance;
-pcbSizeY1 = pcbSizeY + 2*tolerance;
-nudge = 0.001;
+icSizeX1 = icSizeX + 2*icTolerance;
+icSizeY1 = icSizeY; // + 2*tolerance;
+pcbSizeX1 = pcbSizeX + 2*pcbTolerance;
+pcbSizeY1 = pcbSizeY + 2*pcbTolerance;
+nudge = 0.01;
 
 module mirrored() {
     children();
@@ -33,15 +34,19 @@ module base() {
                  [pcbSizeX1/2,-pcbSizeY1/2]]);
             }
      
-    render(convexity=3)
+    
     difference() {
-        linear_extrude(height=baseThickness+icHeight)
-        difference() {
-            square([pcbSizeX1+2*wall,pcbSizeY1+2*wall],center=true);
-            mirrored() side(); 
+        union() {
+            linear_extrude(height=baseThickness+icHeight)       
+                difference() {
+                    square([pcbSizeX1+2*wall,pcbSizeY1+2*wall],center=true);
+                    mirrored() side(); 
+                }
+            
         }
-        translate([-icSizeX1/2,-icSizeY1/2,baseThickness])
-        cube([icSizeX1,icSizeY1,icHeight+nudge]);
+        translate([-icSizeX1/2,-icSizeY/2-nudge,baseThickness]) 
+            cube([icSizeX1,icSizeY+2*nudge,icHeight+nudge]);
+        translate([0,0,-1]) cylinder(h=baseThickness+icHeight+2,d=hole,$fn=30);
     }
 }
 

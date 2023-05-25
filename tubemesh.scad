@@ -1,4 +1,3 @@
-use <eval.scad>;
 use <triangulation.scad>;
 
 // written for tail-recursion
@@ -272,7 +271,7 @@ module morphExtrude(section1,section2=undef,height=undef,twist=0,numSlices=10,cu
     
     section2 = section2==undef ? section1 : section2;
     
-    fc = compileFunction(curve);
+    fc = curve == "t" ? "t" : compileFunction(curve);
     function getCurve(t) = (curve=="t" ? t : eval(fc,concat([["t",t]],curveParams)));
     
     n = max(len(section1),len(section2));
@@ -312,6 +311,6 @@ translate([15,0,0]) morphExtrude(ngonPoints(30,d=6), ngonPoints(2,d=4), height=1
 translate([24,0,0]) morphExtrude(ngonPoints(30,r=3), starPoints(4,r1=0.001,r2=4), height=10);
 mySphere($fn=130,r=10);
 translate([36,0,0]) morphExtrude(ngonPoints(4,r=4),ngonPoints(4,r=4,rotate=45),height=10);
-translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, curve="sin(90*t)" );
+//translate([46,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, curve="sin(90*t)" );
 translate([80,0,0]) morphExtrude([ [0,0], [20,0], [20,10], [0,10] ], [ [ 10,5 ] ], height=20, twist=90);
 //</skip>

@@ -65,7 +65,8 @@ top = cy + glassDiameter / 2;
 startCircle = atan2(cy, right);
 endCircle = atan2(top, cx);
 
-// distance to origin from intersection of line through (0,0) and (a,b) with circle of radius r at x,y        
+// distance to origin from intersection of line through (0,0) and (a,b) with circle of radius r at x,y  
+// calculated by Mathematica
 function circleIntersect(a,b,x,y,r) =
    (2*a*x + 2*b*y + sqrt(pow(-2*a*cx - 2*b*cy,2) - 
        4*(a*a + b*b)*

@@ -1,5 +1,5 @@
 module roundedSquare(size=[10,10], radius=1, center=false, $fn=16) {
-    size1 = (size+0==size) ? [size,size] : size;
+    size1 = !is_list(size) ? [size,size] : size;
     if (radius <= 0) {
         square(size1, center=center);
     }

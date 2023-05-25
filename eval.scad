@@ -338,6 +338,7 @@ function _optimize(expression) =
 function compileFunction(expression,optimize=true) = 
             is_list(expression) ? expression :
             is_num(expression) ? expression :
+            !is_string(expression) ? expression :
             let(unoptimized = _fixArguments(_fixCommas(_parseMain(_parsePass1(expression)))))
         optimize ? _optimize(unoptimized) : unoptimized;
 

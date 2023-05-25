@@ -1,5 +1,8 @@
+// This file was processed by resolve-include.py [https://github.com/arpruss/miscellaneous-scad/blob/master/scripts/resolve-include.py] 
+// to include  all the dependencies inside one file.
 
-//BEGIN: use <pointhull.scad>;
+
+//BEGIN DEPENDENCY: use <pointhull.scad>;
 function _slice(list,start,end=undef) =
     let(end = end==undef?len(list):end)
     [for(i=[start:1:end-1]) list[i]];
@@ -218,7 +221,7 @@ function _getFaceOnPlane(planeIndex,triangles,data) =
         outer = _outerEdges(trianglesOnPlane),
         edgeStarts = [for(e=outer) e[0]],
         edgeEnds = [for(e=outer) e[1]]
-    ) len(outer) == 0 ? undef : echo("se",edgeStarts,edgeEnds) _traceEdges(edgeStarts,edgeEnds);
+    ) len(outer) == 0 ? undef : _traceEdges(edgeStarts,edgeEnds);
 
 // 3D only, does not work if there are multiple planes defined by the same constraint
 function linearConstraintPointsAndFaces(constraints) =
@@ -241,12 +244,12 @@ module dualHull(points) {
 }
 
 
-//END: use <pointhull.scad>;
+//END DEPENDENCY: use <pointhull.scad>;
 
 
-//BEGIN: use <roundedSquare.scad>;
+//BEGIN DEPENDENCY: use <roundedSquare.scad>;
 module roundedSquare(size=[10,10], radius=1, center=false, $fn=16) {
-    size1 = (size+0==size) ? [size,size] : size;
+    size1 = !is_list(size) ? [size,size] : size;
     if (radius <= 0) {
         square(size1, center=center);
     }
@@ -278,7 +281,7 @@ module roundedOpenTopBox(size=[10,10,10], radius=2, wall=1, solid=false) {
     }
 }
 
-//END: use <roundedSquare.scad>;
+//END DEPENDENCY: use <roundedSquare.scad>;
 
 
 // <params>
@@ -289,7 +292,7 @@ pcbOffsetFromBase = 2.6;
 tolerance = 0.05;
 wall = 1.5;
 ridge = 1.5;
-screwSize = 3.5;
+screwSize = 2.75;
 screwHoleWall = 2;
 screwButtressWall = 3;
 screw1DistanceFromFront = 5;
@@ -308,6 +311,13 @@ h = wall+pcbOffsetFromBase+pcbThickness+ridge;
 
 echo("height", h);
 echo("screwSpacing", screwDistanceFromPCB*2 + pcbWidth);
+
+function getHeight() = h;
+function getScrewSpacing() = screwDistanceFromPCB*2 + pcbWidth;
+function getFrontScrewDistance() = screw1DistanceFromFront;
+function getBackScrewDistance() = screw2DistanceFromFront;
+function getPCBTopHeight() = wall+pcbOffsetFromBase+pcbThickness;
+echo("pcbTopHeight",getPCBTopHeight());
 
 module screw() {
     d = screwSize + screwHoleWall*2;
