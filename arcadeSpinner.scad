@@ -4,9 +4,10 @@ use <roundedSquare.scad>;
 //<params>
 includeTop = 1; //1:Yes, 0:No
 includeKnob = 1; //1:Yes, 0:No
-shaftOnly = 0; //1:Yes, 0:No
+shaftOnly = 1; //1:Yes, 0:No
 includeBottom = 1; //1:Yes, 0:No
-includeNunchuckPort = 1;
+includeNunchuckPort = 1; //1:Yes, 0:No
+simpleTopMountedTactileButtons = 0; //1:Yes, 0:No
 
 bearingCollarWall = 1.5;
 bearingID = 8;
@@ -111,11 +112,21 @@ nunchuckScrewOffset = 15.5;
 nunchuckScrewHole = 2.5;
 nunchuckScrewInsetDiameter = 6;
 nunchuckScrewInsetDepth = 1.25;
+
+miniArcadeButtonCutoutDiameter = 18;
+miniArcadeButtonDepth = 16.3;
+miniArcadeButtonSpacing = 20;
+miniArcadeButtonCrownDiameter = 22;
+miniArcadeButton1Y = 59;
+miniArcadeButtonXOffset = 3;
 //</params>
 
 
 
 module dummy() {}
+
+useMiniArcadeButtons = ! simpleTopMountedTactileButtons;
+miniArcadeButtonCutoutDiameter1 = miniArcadeButtonCutoutDiameter+2*tolerance;
 
 
 module nunchuckConnector() {
@@ -296,9 +307,24 @@ module topScrews() {
             for (x=[-width/2+screwOffset,width/2-screwOffset]) for (y=[screwOffset,length-screwOffset]) translate([x,y]) children();
 }
 
+module miniArcadeButtonPosition() {
+    x = width/2 - miniArcadeButtonXOffset - miniArcadeButtonCrownDiameter/2;
+    for (y = [miniArcadeButton1Y,miniArcadeButton1Y+miniArcadeButtonSpacing])
+        translate([x,y,0]) children();
+}
+
+module miniArcadeButtonCutouts() {
+    miniArcadeButtonPosition() {
+            cylinder(d=miniArcadeButtonCutoutDiameter1,h=20,center=true,$fn=64);
+            translate([0,0,topWall-nudge]) cylinder(d=miniArcadeButtonCrownDiameter+2*tolerance,h=20,$fn=64);
+        }
+}
+
+
 module topPlate() {
     difference() {
         union() {
+        for (s=[-1,1]) translate([s*buttonSpacing/2,buttonY,0]) arcadeButton();
             translate([0,spinnerY]) spinnerHolder(true);
             linear_extrude(height=topWall) {
                 difference() {
@@ -306,15 +332,18 @@ module topPlate() {
                     translate([0,spinnerY]) spinnerCutout();
                     translate([buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
                     translate([-buttonSpacing/2,buttonY]) arcadeButtonCutout(inset=nudge);
-                    translate([miniButtonX,miniButtonY1]) miniButton();
-                    translate([miniButtonX,miniButtonY2]) miniButton();
+                    if (! useMiniArcadeButtons) {
+                        translate([miniButtonX,miniButtonY1]) miniButton();
+                        translate([miniButtonX,miniButtonY2]) miniButton();
+                    }
                     topScrews() circle(d=screwHole,$fn=12);
                 }        
             }
         }
-        translate([0,spinnerY])         spinnerHolder(false);
+        if (useMiniArcadeButtons) 
+            miniArcadeButtonCutouts();
+        translate([0,spinnerY]) spinnerHolder(false);
     }
-    for (s=[-1,1]) translate([s*buttonSpacing/2,buttonY,0]) arcadeButton();
 }
 
 module bottomScrews() {
@@ -346,10 +375,18 @@ module bottomMain() {
         plate(inset=-topLip-lidTolerance);
         plate(inset=-lidTolerance);
     }
-    linear_extrude(height=bottomHeight-topWall)
-    topScrews() difference() {
-        circle(d=pillarDiameter,$fn=16);
-        circle(d=pillarScrewHole,$fn=12);
+    difference() {
+        linear_extrude(height=bottomHeight-topWall)
+        topScrews() difference() {
+            circle(d=pillarDiameter,$fn=16);
+            circle(d=pillarScrewHole,$fn=12);
+        }
+        if (useMiniArcadeButtons) {
+            miniArcadeButtonPosition() {
+                translate([0,0,bottomHeight-topWall-miniArcadeButtonDepth+2]) 
+                cylinder(d=miniArcadeButtonCutoutDiameter1,h=bottomHeight-topWall,$fn=64);
+            }
+        }
     }
     
     
@@ -374,5 +411,3 @@ translate([00,-knobDiameter/2-10,0]) knob();
 if (includeBottom)
 translate([width+20,0,0]) 
 bottom();
-
-spinnerHolder();

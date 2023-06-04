@@ -5,9 +5,9 @@ demo = 0; // [0:no,1:yes]
 count = 1;
 spacing = 20;
 hullCrowns = 1; // [0:no,1:yes]
-includeCrown = 0; // [0:no,1:yes]
+includeCrown = 1; // [0:no,1:yes]
 includePlunger = 1; // [0:no,1:yes]
-includeWell = 0; // [0:no,1:yes]
+includeWell = 1; // [0:no,1:yes]
 
 buttonTopDiameter = 12;
 cutoutDiameter = 18;
@@ -159,13 +159,19 @@ module crowns() {
     spread() sleeve();
 }
 
+module tactButton() {
+    translate([-tactWidth/2,-tactWidth/2,0]) cube([tactWidth,tactWidth,4]);
+    translate([0,0,4-nudge]) cylinder(d=tactWidth * 0.7, h=tactHeight-4);
+}
+
 if (demo) {
     %spread() well();
     translate([0,0,wellBase+tactHeight+moveTolerance]) spread() plunger();
     %translate([0,0,wellDepth+crownTopHeight]) rotate([180,0,0]) crowns();
+    color("black") spread() translate([0,0,wellBase]) tactButton();
 }
 else {
     if(includeWell) spread() well();
     if (includePlunger) translate([wellOD/2+plungerDiameter/2 + 5,0,0]) spread() plunger();
-    if (includeCrown) translate([-wellOD/2-crownDiameter/2 - 5,0,0]) crowns();
+    if (includeCrown) translate([-wellOD/2-crownDiameter/2 - 5,0,0]) rotate([0,0,180]) crowns();
 }
