@@ -1,7 +1,7 @@
 width_lock = 0.750000000;
 
-thickness = 1.75;
-tolerance = 0.2;
+thickness = 2.75;
+tolerance = 0.15;
 height = 6.1;
 
 center_lock_1 = [765.762441146,610.914145729];
