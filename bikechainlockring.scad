@@ -26,3 +26,4 @@ difference() {
     scale((w+tolerance+thickness*2)/w) polygon_lock_1();
     scale((w+tolerance*2)/w) polygon_lock_1();
 }
+translate([0,0,height/2]) rotate([0,0,-11]) translate([0,-w/2-0.7,0]) rotate([90,0,0]) sphere(d=3,$fn=16);
