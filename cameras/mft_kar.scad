@@ -1,3 +1,5 @@
+// not by me, some other license, maybe see mft.scad
+
 $fa=4;
 $fs=0.4;
 
