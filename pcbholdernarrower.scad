@@ -27,8 +27,8 @@ nudge = 0.001;
 h = wall+pcbOffsetFromBase+pcbThickness+ridge;
 
 echo("height", h);
-echo("screwSpacing", screwDistanceFromPCB*2 + pcbWidth);
-    
+echo("screwSpacingX", screwDistanceFromPCB*2 + pcbWidth);
+echo("screwSpacingY", screw2DistanceFromFront-screw1DistanceFromFront);
 function getHeight() = h;
 function getScrewSpacing() = screwDistanceFromPCB*2 + pcbWidth;
 function getFrontScrewDistance() = screw1DistanceFromFront;
