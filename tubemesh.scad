@@ -210,6 +210,15 @@ function arcPoints(r=10,d=undef,start=0,end=180,center=[0,0]) =
                     [for(i=[0:n])
                         let(angle=start+i*(end-start)/n) center+r*[cos(angle),sin(angle)]];
 
+function roundedRectPoints(wh,radius=5,n=60,$fn=30) =
+    [for(i=[0:$fn-1])
+        let(angle = i / $fn * 360,
+            s = angle <= 90 ? [1,1] :
+                angle <= 180 ? [-1,1] :
+                angle <= 270 ? [-1,-1] :
+                [1,-1])
+            [s[0]*(wh[0]/2-radius)+radius*cos(angle),s[1]*(wh[1]/2-radius)+radius*sin(angle)]];
+
 function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)
             z==undef ?
