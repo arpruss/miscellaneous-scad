@@ -1,6 +1,6 @@
 n1=0;
 spacing1 = 7;
-n2=10;
+n2=13;
 spacing2 = 15;
 n3=0;
 spacing3 = 10;
