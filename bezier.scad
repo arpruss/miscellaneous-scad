@@ -217,7 +217,7 @@ function BezierSmoothPoints(points,tension=0.5,closed=false)
             points[i],
             i==n-1 ? 2*points[n-1]-points[n-2] : points[(i+1)%n],tension=tension,includeLeftCP=i>0,includeRightCP=i<n-1  ) ]);
 
-module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1) {
+module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLineThickness=0.125,nodeSize=1,scale=1) {
     $fn = 16;
     dim = len(p[0]);
     module point(size) {
@@ -230,20 +230,20 @@ module BezierVisualize(p,precision=0.05,eps=0.00001,lineThickness=0.25,controlLi
     l = Bezier(p1,precision=precision,eps=eps);
     for (i=[0:len(l)-2]) {
         hull() {
-            translate(l[i]) point(lineThickness);
-            translate(l[i+1]) point(lineThickness);
+            translate(scale*l[i]) point(lineThickness);
+            translate(scale*l[i+1]) point(lineThickness);
         }
     }
     for (i=[0:len(p1)-1]) {
         if (i%3 == 0) {
-            color("black") translate(p1[i]) point(nodeSize);
+            color("black") translate(scale*p1[i]) point(nodeSize);
         }
         else {
             node = i%3 == 1 ? i-1 : i+1;
-            color("red") translate(p1[i]) point(nodeSize);
+            color("red") translate(scale*p1[i]) point(nodeSize);
             color("red") hull() {
-                translate(p1[node]) point(controlLineThickness);
-                translate(p1[i]) point(controlLineThickness);
+                translate(scale*p1[node]) point(controlLineThickness);
+                translate(scale*p1[i]) point(controlLineThickness);
             }
         }
     }

@@ -1,12 +1,11 @@
 stalkLength = 14.6;
 stalkDiameter = 12.7;
 depth = 16;
-
 shaftDiameter = 6.2;
 shaftIncut = 1.1;
-tolerance = 0.3;
+tolerance = 0.5;
 
-height_hole = 10.000000000;
+module dummy() {}
 
 center_hole_1 = [-1.693493055,1.973164604];
 size_hole_1 = [13.288683985,44.844631333];

@@ -1,5 +1,6 @@
 use <tubeMesh.scad>;
 
+//<params>
 height = 15;
 r1 = 18;
 r2 = 36;
@@ -7,7 +8,8 @@ lobes = 3;
 nutFlatToFlat = 15.32;
 nutHeight = 8.5;
 nutTolerance = 0.18;
-upperHoleDiameter = 13;
+holeDiameter = 13;
+//</params>
 
 module dummy() {}
 
@@ -27,8 +29,8 @@ function point(z, angle, r1, r2, t, lobes) =
 
 function tprofile(t) = let (u=2*(t-0.5)/sqrt(2)) 1-sqrt(1-u*u);
 
-function profile(z, r1, r2, t, lobes, delta=2) =
-    [for(a=[0:delta:360-delta]) point(z,a,r1,r2,t,lobes)];
+function profile(z, r1, r2, t, lobes, delta=6) =
+    [for(a=[0:delta/lobes:360-delta]) point(z,a,r1,r2,t,lobes)];
     
 module basic() {    
 tubeMesh([for (t=[0:.025:1])
@@ -41,5 +43,5 @@ difference() {
     translate([0,0,height-nutHeight+nudge]) 
         cylinder(d=nutDiameter+nutTolerance*2,h=nutHeight,$fn=6);
     translate([0,0,-nudge])
-    cylinder(d=upperHoleDiameter,h=height+2*nudge,$fn=64);
+    cylinder(d=holeDiameter,h=height+2*nudge,$fn=64);
 }
