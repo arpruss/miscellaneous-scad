@@ -218,6 +218,16 @@ function roundedRectPoints(wh,radius=5,n=60,$fn=30) =
                 angle <= 270 ? [-1,-1] :
                 [1,-1])
             [s[0]*(wh[0]/2-radius)+radius*cos(angle),s[1]*(wh[1]/2-radius)+radius*sin(angle)]];
+    
+function interpolateSection(pp,n=32) =
+        n<=len(pp) ? pp :
+        let(count=1+ceil((n-len(pp))/len(pp)))
+        echo(count)
+        [for(i=[0:len(pp)-1])
+            for(j=[0:count-1])
+                let(t=j/count,p1=pp[i],p2=pp[(i+1)%len(pp)])
+                    (1-t)*p1+t*p2];                    
+    
 
 function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)
