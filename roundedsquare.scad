@@ -14,6 +14,10 @@ module roundedSquare(size=[10,10], radius=1, center=false, $fn=16) {
     }
 }
 
+module roundedSquareTrace(size=[10,10], radius=1, center=false, $fn=16) {
+    
+}
+
 module roundedCube(size=[10,10,10], radius=1, center=false, $fn=16) {
     linear_extrude(height=size[2])
     roundedSquare(size=[size[0],size[1]], radius=radius, center=center);

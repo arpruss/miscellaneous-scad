@@ -227,7 +227,18 @@ function interpolateSection(pp,n=32) =
             for(j=[0:count-1])
                 let(t=j/count,p1=pp[i],p2=pp[(i+1)%len(pp)])
                     (1-t)*p1+t*p2];                    
-    
+function roundedSquarePoints(wh=[10,10],radius=1,center=false,$fn=16) =
+    let(dx = center ? 0 : wh[0]/2,
+        dy = center ? 0 : wh[1]/2)
+    [
+    for (segment=[
+        [wh[0]/2-corner,wh[1]/2-corner,0],
+        [-wh[0]/2+corner,wh[1]/2-corner,90],
+        [-wh[0]/2+corner,-wh[1]/2+corner,180],
+        [wh[0]/2-corner,-wh[1]/2+corner,270] ])
+        for (i=[0:$fn/4]) 
+            let(angle=i/($fn/4)*90+segment[2])
+                [dx+segment[0]+corner*cos(angle),dy+segment[1]+corner*sin(angle)]  ];
 
 function ngonPoints(n=4,r=10,d=undef,rotate=0,z=undef) =
             let(r=d==undef?r:d/2)

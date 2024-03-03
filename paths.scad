@@ -92,6 +92,14 @@ function insetPath(path=[], distance=2, closed=true) =
     let(path=_removeDuplicates(path, closed=true))
     _insetPath(path=path,distance=distance,closed=closed);
     
+module tracePath(path=[], closed=true) {
+    for (i=[0:len(path)-(closed?1:2)])
+        hull() {
+            translate(path[i]) children();
+            translate(path[(i+1)%len(path)]) children();            
+        }
+}    
+    
 //<skip>
 n = 10;
 demo = [for(i=[0:n-1]) 10*[cos(360*i/n),sin(360*i/n)]];

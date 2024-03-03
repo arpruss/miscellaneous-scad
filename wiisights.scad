@@ -96,5 +96,5 @@ module frontSight() {
     wiiFront();
 }
 
-rearSight();
+//rearSight();
 translate([0,21+2*wall+sightHeight,0]) frontSight();
