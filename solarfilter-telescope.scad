@@ -9,6 +9,8 @@ $fn = 64;
 
 id = filter - innerRim*2;
 
+echo(id);
+
 module screws() {
     for (angle=[45,135,-45,-135]) rotate(angle) translate([(id+tubeID)/4,0,0]) circle(d=screw);
 }
