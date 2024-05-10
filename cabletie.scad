@@ -35,7 +35,7 @@ intersection() {
     translate([0,0,tieWidth/2])
     rotate([90,0,0])
     translate([0,0,-(tieThickness+cableDiameter)*2])
-    linear_extrude(h=(tieThickness+cableDiameter)*4)
+    linear_extrude(height=(tieThickness+cableDiameter)*4)
     hull() {
         translate([-tieLength/2+tieWidth/2,0]) circle(d=tieWidth);
         translate([tieLength/2-tieWidth/2,0]) circle(d=tieWidth);        

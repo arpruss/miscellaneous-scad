@@ -43,7 +43,7 @@ module main() {
 module tongueShape(thickness) {
     intersection() {
         hull() {
-            translate([0,0,thickness/2/sqrt(2)]) sphere(d=thickness);
+            translate([0,0,thickness/2/sqrt(2)]) sphere(d=thickness,$fn=16);
             translate([0,0,tongueWidth-thickness/2/sqrt(2)]) sphere(d=thickness,$fn=16);
         }
         cylinder(d=thickness*4,h=tongueWidth,$fn=3);
@@ -61,21 +61,31 @@ module tongue() {
     h1 = h + (thickThickness-thinThickness)/2;
     dx = thinThickness/2;
     l1 = l + thickThickness/2-tongueThickness/2; 
-    bez = [ [l1,0], LINE(), LINE(), [l1-thickThickness,0], POLAR(h*.8,180), POLAR(h*.8,0), [l1*.5,-h*.3], SYMMETRIC(), POLAR(h*.8,0), [0,0],
+    bez = [ [l1,0], LINE(), LINE(), [l1-thickThickness*.5,0], POLAR(h*.5,180), POLAR(h*.8,0), [l1*.6,-h*.4], SYMMETRIC(), POLAR(h*.8,0), [0,0],
         POLAR(h*.7,180), POLAR(h*.7,180),
         [0,-h1], POLAR(h*.5,0), POLAR(h*.5,180), [h*1.1,-h1+tongueLock] ];
     
     path = Bezier(bez);
     
     lengths = pathLengths(path);
-    for (i=[0:len(path)-2]) {
-        length = lengths[i+1];
-        attenuate = length < l ? 1 :
-            length >= l + h1 ? tongueAttenuation :
-            let(t=(length-l)/h1) (1-t)*1+t*tongueAttenuation;
+    function attenuate(length) = length < l ? 1 :
+        length >= l + h1 ? tongueAttenuation :
+        let(t=(length-l)/h1) (1-t)*1+t*tongueAttenuation;
+
+    intersection() {
+        union() {
+            for (i=[0:len(path)-2]) {
+                hull() {
+                    translate(path[i]) tongueShape(tongueThickness*attenuate(lengths[i]));
+                    translate(path[i+1]) tongueShape(tongueThickness*attenuate(lengths[i+1]));
+                }
+            }
+        }
+        rotate([0,0,-90]) 
+       translate([0,0,tongueWidth/2])
         hull() {
-            translate(path[i]) tongueShape(tongueThickness*attenuate);
-            translate(path[i+1]) tongueShape(tongueThickness*attenuate);
+        translate([0, -l1-20*maxHeight, 0]) rotate([0,90,0]) cylinder(d=tongueWidth*sqrt(2),h=20*maxHeight,center=true);
+        translate([0, l1-tongueWidth/sqrt(2)+tongueThickness/2, 0]) rotate([0,90,0]) cylinder(d=tongueWidth*sqrt(2),h=20*maxHeight,center=true,$fn=24); 
         }
     }
     

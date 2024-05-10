@@ -1,5 +1,6 @@
 import sys
 import re
+import os
 
 output = []
 params = []
@@ -34,10 +35,19 @@ def process(name,level=0):
                 else:
                     current.append(line.rstrip())
  
-print("""// This file was processed by resolve-include.py [https://github.com/arpruss/miscellaneous-scad/blob/master/scripts/resolve-include.py] 
+
+name = sys.argv[1]
+
+process(name)
+base, ext = os.path.splitext(name)
+
+with open(base+"-standalone"+ext, "w") as f:
+    f.write("""// This file was processed by resolve-include.py [https://github.com/arpruss/miscellaneous-scad/blob/master/scripts/resolve-include.py] 
 // to include  all the dependencies inside one file.
+
 """)
-process(sys.argv[1])
-if params:
-    params.append("\nmodule end_of_parameters_dummy() {}\n")
-print("\n".join(params+output))
+
+    if params:
+        params.append("\nmodule end_of_parameters_dummy() {}\n")
+
+    f.write("\n".join(params+output))
