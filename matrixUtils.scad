@@ -33,6 +33,6 @@ function translateMatrix(v) =
       [ 0,0,1,v[2] ],
       [ 0,0,0,1 ] ];
       
-function multmatrixPath(m,p) = 
-    [ for(q=p) let(p1=m*[for (i=[0:3]) i<len(q) ? q[i]: 0 ]) [for (i=[0:2]) p1[i] ] ];
+function multmatrixPoints(m,p) = 
+    [ for(q=p) let(p1=m*[for (i=[0:3]) i<len(q) ? q[i]: i<3 ? 0 : 1 ]) [for (i=[0:2]) p1[i] ] ];
 

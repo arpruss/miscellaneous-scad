@@ -209,11 +209,17 @@ function arcPoints(r=10,d=undef,start=0,end=180,center=[0,0]) =
                 n=getPointsAround(abs(end-start)))
                     [for(i=[0:n])
                         let(angle=start+i*(end-start)/n) center+r*[cos(angle),sin(angle)]];
+
+function _segment(z0,z1,count) =
+    [for(i=[0:count-1]) let(t=i/count) (1-t)*z0+t*z1];
                     
-function squarePoints(s) = 
-    let(xy = is_list(s) ? s : [s,s])
-        [ [xy[0]/2,xy[1]/2], [-xy[0]/2,xy[1]/2],
-          [-xy[0]/2,-xy[1]/2], [xy[0]/2,-xy[1]/2] ];
+function squarePoints(s,n=4) = 
+    let(xy = is_list(s) ? s : [s,s],
+        perSide = n < 4 ? 1 : floor((n+2)/4))
+        concat( _segment( [xy[0]/2,xy[1]/2], [-xy[0]/2,xy[1]/2], perSide),
+    _segment( [-xy[0]/2,xy[1]/2], [-xy[0]/2,-xy[1]/2], perSide),
+    _segment( [-xy[0]/2,-xy[1]/2], [xy[0]/2,-xy[1]/2], perSide),
+    _segment( [xy[0]/2,-xy[1]/2], [xy[0]/2,xy[1]/2], perSide));
 
 function roundedRectPoints(wh,radius=5,n=60,$fn=30) =
     [for(i=[0:$fn-1])
