@@ -18,7 +18,7 @@ mainTubeLength = 140;
 
 nudge = 0.001;
 
-$fn = 80;
+$fn = 74;
 
 module slit(length) {
     difference() {
