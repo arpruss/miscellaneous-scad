@@ -1,6 +1,9 @@
 use <paths.scad>;
 
 //<params>
+hexFlats = 11.4;
+hexDepth = 5;
+hexShaft = 6.6;
 b1 = 79.5-.4;
 b1a = 85.0-.5-.9;
 b2 = 86.8-.5-.9;
@@ -66,11 +69,23 @@ module slit(nubFromBase,nubSlitThickness,nubSlitLength,nubSlitDepth) {
     cube([nubSlitDepth+nudge,nubSlitThickness,nubSlitLength]);
 }
 
+module hexHole() {
+    translate([0,max(leftNubFromBase,rightNubFromBase)+fromNubsToPhone-phoneNarrowerWidthInset+nudge,holderWidth/2])
+    rotate([90,0,0]) {
+        rotate([0,0,30])
+        cylinder(d=hexFlats/cos(180/6),h=hexDepth,$fn=6);
+        cylinder(d=hexShaft,h=50,$fn=32);
+    }
+}
+
 render(convexity=2)
 difference() {
     mainHolder();
     slit(rightNubFromBase,rightNubSlitThickness,rightNubSlitLength,rightNubSlitDepth);
     mirror([1,0,0]) slit(leftNubFromBase,leftNubSlitThickness,leftNubSlitLength,leftNubSlitDepth);
     translate([b1/2,max(leftNubFromBase,rightNubFromBase)+fromNubsToPhone,(holderWidth-buttonSlotLength)/2]) cube([15,buttonSlotThickness,buttonSlotLength]);
+    if (hexFlats) {
+        hexHole();
+    }
 }
 
