@@ -3,9 +3,9 @@ use <roundedSquare.scad>;
 //include <stealthsquatoriginal.scad>
 
 //<params>
-handleWidth = 40;
+handleWidth = 35.5;
 handleLength = 140;
-width = 600;
+width = 591;
 height = 325;
 handleSlant = 9;
 phoneHole = 6.4;
