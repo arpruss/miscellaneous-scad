@@ -3,14 +3,14 @@ use <paths.scad>;
 //<params>
 holderHeight = 38;
 
-// If you have a Garmin Nuvi 1400 holder and want this to fit inside this, set this to true. Otherwise, set it to false and everything will look a bit better
-fitIntoGarminHolder = false;
-// If phoneWidth is above 85, it won't work well with the Garmin holder mode
+// If you have a Garmin Nuvi holder and want this to fit inside it, set this to true. Otherwise, set it to false and everything will look a bit better
+fitIntoNuviHolder = 1; //[0:No, 1:Yes]
+// If phoneWidth is above 85, it won't work well with the Nuvi holder mode
 phoneWidth = 83.8; 
 // This is a little bit less than the thickness of the phone, to take into account phone/case rounding
 phoneThickness = 11;
 
-// This has to be sufficiently thick to accommodate the Garmin holder slits (if desired) and the hex bolt head (if desired). With all the current parameters, it is not recommended to make this less than 7
+// This has to be sufficiently thick to accommodate the Nuvi holder slits (if desired) and the hex bolt head (if desired). With all the current parameters, it is not recommended to make this less than 7
 baseThickness = 13.4;
 
 // set to zero if we don't need a slot on the right right side for buttons to fit inside
@@ -38,22 +38,22 @@ hexBoltDepthOfHeadInset = 5;
 // shaft diameter
 hexBoltShaftDiameter = 6.6;
 
-// The following parameters are for fitting into my Garmin GPS holder
-garmin_b1 = 79.1;
-garmin_b1a = 83.6;
-garmin_b2 = 85.4;
-garmin_h1a = 2.5;
-garmin_hDelta = 4;
-garmin_rightNubFromBase = 5.6;
-garmin_rightNubSlitThickness = 3.3;
-garmin_rightNubSlitLength = 22.5;;
-garmin_rightNubSlitDepth = 2.7;
-garmin_leftNubFromBase = 6.9;
-garmin_leftNubSlitThickness = 2.2;
-garmin_leftNubSlitLength = 15;
-garmin_leftNubSlitDepth = 1.5;
+// The following parameters are for fitting into my Nuvi GPS holder
+Nuvi_b1 = 79.1;
+Nuvi_b1a = 83.6;
+Nuvi_b2 = 85.4;
+Nuvi_h1a = 2.5;
+Nuvi_hDelta = 4;
+Nuvi_rightNubFromBase = 5.6;
+Nuvi_rightNubSlitThickness = 3.3;
+Nuvi_rightNubSlitLength = 22.5;;
+Nuvi_rightNubSlitDepth = 2.7;
+Nuvi_leftNubFromBase = 6.9;
+Nuvi_leftNubSlitThickness = 2.2;
+Nuvi_leftNubSlitLength = 15;
+Nuvi_leftNubSlitDepth = 1.5;
 
-// No-Garmin parameters
+// No-Nuvi parameters
 b1_inset = 2.35;
 b1a_inset = 0.1;
 b2_offset = 0.8;
@@ -61,19 +61,19 @@ b2_offset = 0.8;
 
 module dummy() {}
 
-b1 = fitIntoGarminHolder ? garmin_b1 : phoneWidth - 2 * b1_inset;
-b1a = fitIntoGarminHolder ? garmin_b1a : phoneWidth - 2 * b1a_inset;
-b2 = fitIntoGarminHolder ? garmin_b2 : phoneWidth + 2 * b2_offset;
-h1a = garmin_h1a;
-hDelta = garmin_hDelta;
-rightNubFromBase = garmin_rightNubFromBase;
-rightNubSlitThickness = garmin_rightNubSlitThickness;
-rightNubSlitLength = garmin_rightNubSlitLength;
-rightNubSlitDepth = garmin_rightNubSlitDepth;
-leftNubFromBase = garmin_leftNubFromBase;
-leftNubSlitThickness = garmin_leftNubSlitThickness;
-leftNubSlitLength = garmin_leftNubSlitLength;
-leftNubSlitDepth = garmin_leftNubSlitDepth;
+b1 = fitIntoNuviHolder ? Nuvi_b1 : phoneWidth - 2 * b1_inset;
+b1a = fitIntoNuviHolder ? Nuvi_b1a : phoneWidth - 2 * b1a_inset;
+b2 = fitIntoNuviHolder ? Nuvi_b2 : phoneWidth + 2 * b2_offset;
+h1a = Nuvi_h1a;
+hDelta = Nuvi_hDelta;
+rightNubFromBase = Nuvi_rightNubFromBase;
+rightNubSlitThickness = Nuvi_rightNubSlitThickness;
+rightNubSlitLength = Nuvi_rightNubSlitLength;
+rightNubSlitDepth = Nuvi_rightNubSlitDepth;
+leftNubFromBase = Nuvi_leftNubFromBase;
+leftNubSlitThickness = Nuvi_leftNubSlitThickness;
+leftNubSlitLength = Nuvi_leftNubSlitLength;
+leftNubSlitDepth = Nuvi_leftNubSlitDepth;
 
 b3 = phoneWidth + 2 * strengtheningBumpOffset;
 narrowerWidth = phoneWidth - 2 * narrowingAmount;
@@ -125,7 +125,7 @@ module hexHole() {
 render(convexity=2)
 difference() {
     mainHolder();
-    if (fitIntoGarminHolder) {
+    if (fitIntoNuviHolder) {
         slit(rightNubFromBase,rightNubSlitThickness,rightNubSlitLength,rightNubSlitDepth);
         mirror([1,0,0]) slit(leftNubFromBase,leftNubSlitThickness,leftNubSlitLength,leftNubSlitDepth);
     }
