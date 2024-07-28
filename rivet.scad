@@ -4,7 +4,7 @@ use <Bezier.scad>;
 stemLength = 6.65;
 stemDiameter = 5;
 stemExtra = 3;
-holeTolerance = 0.25;
+holeTolerance = 0.35;
 flangeDiameter = 13.5;
 flangeThickness = 2.25;
 indentDepth = 0.7;

@@ -61,9 +61,9 @@ b2_offset = 0.8;
 
 module dummy() {}
 
-b1 = fitIntoNuviHolder ? Nuvi_b1 : phoneWidth - 2 * b1_inset;
-b1a = fitIntoNuviHolder ? Nuvi_b1a : phoneWidth - 2 * b1a_inset;
-b2 = fitIntoNuviHolder ? Nuvi_b2 : phoneWidth + 2 * b2_offset;
+b1 = fitIntoNuviHolder != 0 ? Nuvi_b1 : phoneWidth - 2 * b1_inset;
+b1a = fitIntoNuviHolder != 0 ? Nuvi_b1a : phoneWidth - 2 * b1a_inset;
+b2 = fitIntoNuviHolder != 0 ? Nuvi_b2 : phoneWidth + 2 * b2_offset;
 h1a = Nuvi_h1a;
 hDelta = Nuvi_hDelta;
 rightNubFromBase = Nuvi_rightNubFromBase;
@@ -110,7 +110,7 @@ offset(r=-rounding) offset(r=rounding) polygon(points=path);
 
 module slit(nubFromBase,nubSlitThickness,nubSlitLength,nubSlitDepth) {
     translate([b2/2+nudge-nubSlitDepth,nubFromBase-nubSlitThickness/2,holderHeight/2-nubSlitLength/2])
-    cube([nubSlitDepth+nudge,nubSlitThickness,nubSlitLength]);
+    cube([nubSlitDepth+nudge+10,nubSlitThickness,nubSlitLength]);
 }
 
 module hexHole() {
@@ -125,7 +125,7 @@ module hexHole() {
 render(convexity=2)
 difference() {
     mainHolder();
-    if (fitIntoNuviHolder) {
+    if (fitIntoNuviHolder != 0) {
         slit(rightNubFromBase,rightNubSlitThickness,rightNubSlitLength,rightNubSlitDepth);
         mirror([1,0,0]) slit(leftNubFromBase,leftNubSlitThickness,leftNubSlitLength,leftNubSlitDepth);
     }
