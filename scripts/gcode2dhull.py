@@ -140,11 +140,14 @@ def moveXY(x,y):
 
 
 print('G90')
-print('M03 S24000')
+#print('M03 S24000') # don't turn on spindle
 print('G92 X0 Y0 Z0')
+print('G00 Z5')
 
 for v in ConvexHull(points2D).vertices:
     moveXY(*points2D [v])
+
+print('G00 Z0')
 
 #for p in ConvexHull(points2D).points:
 #    moveXY(*p)
