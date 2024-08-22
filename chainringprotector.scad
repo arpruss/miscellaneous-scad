@@ -6,13 +6,13 @@ screwHoleDiameter = 3;
 outsideExtra = 1.5;
 // distance from edge to curved wall
 outerInset = 10;
-standoffLength = 5.5-1;
+standoffLength = 4.5;
 standoffDiameter = 6;
 standoffConnectionHeight = 3;
 chamfer = 1;
-flatWallThickness = 2+.5;
-curvedWallHeight = 5-1.5;
-curvedWallThickness = 2+.5;
+flatWallThickness = 2.5;
+curvedWallHeight = 3.5;
+curvedWallThickness = 2.5;
 
 module dummy() {}
 
