@@ -134,4 +134,6 @@ module sideTab(
       mirror([1,0,0]) main();
 }
 
+//<skip>
 sideTab();
+//</skip>
