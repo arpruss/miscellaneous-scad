@@ -1,3 +1,4 @@
+//<params>
 left = true;
 // oem is 35.5
 tabWidth = 39.5;
@@ -21,8 +22,9 @@ bottomToothHeight = 11;
 blockerLength = 1;
 blockerChamfer = 3;
 outerChamfer = 4;
+//</params>
 
-module dumm() {}
+module dummy() {}
 
 nudge = 0.01;
 vaneThickness1 = vaneThickness + 2 * vaneTolerance;
@@ -105,6 +107,4 @@ if (left)
     main();
 else
     mirror([1,0,0]) main();
-//toothProfile();
-
-
+}
