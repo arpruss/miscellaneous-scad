@@ -1,4 +1,4 @@
-left = false;
+left = true;
 // oem is 35.5
 tabWidth = 39.5;
 tabThickness = 8.4;
@@ -12,12 +12,15 @@ maxFrontOfVaneToGear = 26.16;
 minFrontOfVaneToGear = 23.9;
 axleFromFrontOfVane = 6;
 gearTolerance = 0.2;
+// 0=left, 0.5=center, 1=right (assuming left=true; otherwise, mirrored)
+toothPositioning = 0;
 toothSpacing = 5;
 numberOfTeeth = 5; 
 topToothHeight = 6;
 bottomToothHeight = 11;
 blockerLength = 1;
 blockerChamfer = 3;
+outerChamfer = 4;
 
 module dumm() {}
 
@@ -29,11 +32,23 @@ toothEndAngle = atan2(bottomToothHeight,(minFrontOfVaneToGear-axleFromFrontOfVan
 toothStartAngle = -atan2(topToothHeight,(minFrontOfVaneToGear-axleFromFrontOfVane));
 
 // 0,0 = front of vane, centered
+
+module outerChamfer() {
+    d = outerChamfer;
+    x = tabThickness/2+extraInFrontOfVane;
+    rotate([90,0,0])
+    linear_extrude(center=true,height=tabThickness) polygon([[-100,0],[x-d,0],[x,d],[x,tabWidth-d],[x-d,tabWidth],[-100,tabWidth]]);
+}
+
 module outerProfile() {
-    translate([-vaneDepth1,0])
-    hull() {
-        translate([-extraBehindVane,-tabThickness/2]) square([1,tabThickness]);
-        translate([vaneDepth1+extraInFrontOfVane,0]) circle(d=tabThickness);
+    intersection() {
+        outerChamfer();
+        linear_extrude(height=tabWidth)
+            translate([-vaneDepth1,0])
+            hull() {
+                translate([-extraBehindVane,-tabThickness/2]) square([1,tabThickness]);
+                translate([vaneDepth1+extraInFrontOfVane,0]) circle(d=tabThickness);
+            }
     }
 }
 
@@ -43,15 +58,14 @@ function doubleProfile(polyHalf) =
         [polyHalf[n-1-i][0],-polyHalf[n-1-i][1]]]);
     
 module toothProfile() {
-    short = minFrontOfVaneToGear;//-axleFromFrontOfVane;
-    long = maxFrontOfVaneToGear;//-axleFromFrontOfVane;
-    echo(short,long);
+    short = minFrontOfVaneToGear;
+    long = maxFrontOfVaneToGear;
     teethSize = toothSpacing*numberOfTeeth;
     spine = [ [ axleFromFrontOfVane, teethSize ], [ axleFromFrontOfVane, 0 ] ];
     n = 2*numberOfTeeth+1;
     teeth = [ for(i=[0:n-1]) 
          [ i % 2 == 0 ? short : long, teethSize*i/(n-1) ]  ];
-    //translate([0,tabWidth/2-teethSize/2]) 
+    translate([0,toothPositioning*(tabWidth-teethSize)])
     polygon(concat(teeth,spine)); 
 }
 
@@ -62,8 +76,6 @@ module innerProfile() {
         [ 0, -vaneThickness1/2 ],
         [ vaneDepth1, -vaneThickness1/2 ],
     ];
-    //echo(doubleProfile(bottom));
-    echo(bottom);
     translate([-vaneDepth1,0]) polygon(doubleProfile(bottom));
 }
 
@@ -77,11 +89,10 @@ module blocker() {
 module main() {
     difference() {
         union() {
-            linear_extrude(height=tabWidth)
-                outerProfile();
+            outerProfile();
             translate([-axleFromFrontOfVane,0]) 
             rotate([0,0,180+toothStartAngle])
-            rotate_extrude(angle=toothEndAngle-toothStartAngle)  translate([-axleFromFrontOfVane,0]) toothProfile();
+            rotate_extrude(angle=toothEndAngle-toothStartAngle)  translate([nudge-axleFromFrontOfVane,0]) toothProfile();
         }
         translate([0,0,-nudge]) linear_extrude(height=tabWidth+2*nudge) innerProfile();
     }
@@ -89,8 +100,11 @@ module main() {
     translate([0,0,tabWidth-blockerLength]) blocker();
 }
 
+
 if (left) 
     main();
 else
     mirror([1,0,0]) main();
 //toothProfile();
+
+
