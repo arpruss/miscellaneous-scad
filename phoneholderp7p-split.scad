@@ -57,6 +57,12 @@ Nuvi_leftNubSlitDepth = 1.5;
 b1_inset = 2.35;
 b1a_inset = 0.1;
 b2_offset = 0.8;
+
+// These are if you want a thingy for putting into a CD player or the like.
+slotThickness = 0*1.5;
+slotDepth = 50;
+slotWidth = 50;
+slotChamfer = 3.5;
 //</params>
 
 module dummy() {}
@@ -137,3 +143,14 @@ difference() {
     }
 }
 
+if (slotThickness && slotDepth && slotWidth) {
+    intersection() {
+        union() {
+            scale([1,2*slotDepth/slotWidth,1]) cylinder(d=slotWidth,h=slotThickness,$fn=128);
+            translate([0,0,slotThickness])
+            rotate([90,0,90]) cylinder(r=slotChamfer,$fn=4,center=true,h=slotWidth);
+        }
+        translate([-500,-1000+nudge,0]) cube([1000,1000,1000]);
+    }
+    
+}
