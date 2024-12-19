@@ -1,3 +1,5 @@
+//todo: bottom slit
+
 use <Bezier.scad>;
 
 //<params>
@@ -10,20 +12,23 @@ includePlunger = 1; // [0:no,1:yes]
 includeWell = 1; // [0:no,1:yes]
 
 buttonTopDiameter = 12;
-cutoutDiameter = 18;
+//cutoutDiameter = 18;
+cutoutDiameter = 19;
 buttonHeightPastCrown = 1.4;
 buttonExtraHeight = 1.25; // make negative for dent
 crownDiameter = 22;
 crownSleeveHeight = 3;
 crownTopHeight = 2;
-plungerHeight = 9;
+//plungerHeight = 9;
+plungerHeight = 6;
 plungerThinning = 1.25;
 plungerRadialExtra = 1;
 plungerThinningAngle = 50;
 
 verticalTolerance = 1.3;
-moveTolerance = 0.3;
-fitTolerance = 0.1;
+//moveTolerance = 0.4;
+moveTolerance = 0.4;
+fitTolerance = .15;
 tactTolerance = 0.12;
 tactWidth = 6;
 tactHeight = 5;
