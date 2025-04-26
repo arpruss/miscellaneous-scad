@@ -24,9 +24,10 @@ R = H/2+W*W/(8*H);
 center = H-R;
 echo(R);
 echo(norm([W/2,H-R]));
+$fn = 200;
 
 module profile() {
-    polygon(Bezier([[0,0],LINE(),LINE(),[leverLength-leverHeight/4,0],POLAR(leverHeight/4,45),POLAR(leverHeight/4,-90),[leverLength,leverHeight/2],REPEAT_MIRRORED([0,1])]));
+    polygon(Bezier([[0,0],LINE(),LINE(),[leverLength-leverHeight/4,0],POLAR(leverHeight/4,45),POLAR(leverHeight/4,-90),[leverLength,leverHeight/2],REPEAT_MIRRORED([0,1])],precision=0.02));
 }
 
 module baseShape(delta=0) {
@@ -55,7 +56,7 @@ x = width/2+minimumThickness;
 y = flatLength/2+minimumThickness;
 x0 = leverThickness/2;
 y1 = leverLength;
-edge = Bezier([[x,0],POLAR(length/4,90),POLAR(y/2,-90),[x,y],SMOOTH_ABS(y/2),POLAR(3*y,-90), [x0,y1-x0],SMOOTH_ABS(x0/2),POLAR(x0/2,0),[0,y1],REPEAT_MIRRORED([1,0])]);
+edge = Bezier([[x,0],POLAR(length/4,90),POLAR(y/2,-90),[x,y],SMOOTH_ABS(y/2),POLAR(3*y,-90), [x0,y1-x0],SMOOTH_ABS(x0/2),POLAR(x0/2,0),[0,y1],REPEAT_MIRRORED([1,0])],precision=0.01);
 
 module section() {
     difference() {

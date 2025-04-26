@@ -42,7 +42,9 @@ module box(width, height, depth, thickness,
            kerf = 0.0,
            labels = false,
            explode = 0,
-           spacing = 0)
+           spacing = 0,
+           two_by_three = false,
+           )
 {
   vlayers = (open ? 0 : 1) + (open_bottom ? 0 : 1);
   w = inner ? width + 2 * thickness : width;
@@ -249,9 +251,10 @@ module box(width, height, depth, thickness,
     translate([x1,0]) compkerf() back() if ($children > BOX_CHILD_BACK) children(BOX_CHILD_BACK);
     x2 = x1 + w + 2 * kc + e + ears_radius + spacing;
     translate([x2,0]) compkerf() left() if ($children > BOX_CHILD_LEFT) children(BOX_CHILD_LEFT);
-    x3 = x2 + d + 2 * kc + e + spacing;
-    translate([x3,0]) compkerf() right() if ($children > BOX_CHILD_RIGHT) children(BOX_CHILD_RIGHT);
     y1 = h + kc * 2 + e + ears_radius + spacing;
+    y3 = two_by_three ? y1 : 0;
+    x3 = two_by_three ? x2 : x2 + d + 2 * kc + e + spacing;
+    translate([x3,y3]) compkerf() right() if ($children > BOX_CHILD_RIGHT) children(BOX_CHILD_RIGHT);
     if (keep_bottom) {
       x4 = 0;
       translate([x4,y1]) compkerf() bottom() if ($children > BOX_CHILD_BOTTOM) children(BOX_CHILD_BOTTOM);

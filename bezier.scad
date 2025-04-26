@@ -37,6 +37,8 @@ function d2BEZ03(u) = 6*(1-u);
 function d2BEZ13(u) = 18*u-12;
 function d2BEZ23(u) = -18*u+6;
 function d2BEZ33(u) = 6*u;
+
+function arc90Tension() = .551915024494;
     
 function worstCase2ndDerivative(p0, p1, p2, p3, u1, u2)
     = norm([
@@ -130,6 +132,20 @@ function DecodeMirrored(path,start=0) =
     path[start][0] == "m" ? _mirrorPaths([for(i=[0:1:start-1]) path[i]], path, start) : 
         DecodeMirrored(path,start=start+1);
 
+function _insertBefore(vector,pos,value) 
+    = pos >= len(vector) ? concat(vector, [value,]) :
+      pos <= 0 ? concat([value,], vector) :
+      concat(
+        [for(i=[0:pos-1]) vector[i]], [value,],
+            [for(i=[pos:len(vector)-1]) vector[i]]);
+
+// replace a single LINE() with LINE(),LINE()
+function _DoubleLines(p,pos=0) = 
+    pos >= len(p) ? p :
+    (p[pos][0] == "l" && pos+1<len(p) && p[pos+1][0] == "l") ? _DoubleLines(p,pos+2) :
+    (p[pos][0] == "l" && pos+1<len(p) && p[pos+1][0] != "l") ? _DoubleLines(_insertBefore(p,pos+1,LINE()),pos+2) :
+    _DoubleLines(p,pos+1);
+
 function DecodeLines(p) = [for (i=[0:len(p)-1]) 
     i%3==0 || p[i][0] != "l" ? p[i] :
     i%3 == 1 ? (p[i-1]*2+p[i+2])/3 :
@@ -137,12 +153,13 @@ function DecodeLines(p) = [for (i=[0:len(p)-1])
 
 function DecodeSpecialBezierPoints(p0) = 
     let(
-        l = _correctLength(p0),
-        doMirror = len(p0)>l && p0[l][0] == "m",
-        p1=DecodeLines(p0),
-        p=DecodeBezierOffsets(p1),
+        p1 = _DoubleLines(p0),
+        l = _correctLength(p1),
+        doMirror = len(p1)>l && p1[l][0] == "m",
+        p2=DecodeLines(p1),
+        p=DecodeBezierOffsets(p2),
         basePath = [for (i=[0:l-1]) i%3==0?p[i]:(i%3==1?getControlPoint(p[i],p[i-1],p[i-2],p[i-4],p[i+2]):getControlPoint(p[i],p[i+1],p[i+2],p[i+4],p[i-2]))])
-        doMirror ? _mirrorPaths(basePath, p0, l) : basePath;
+        doMirror ? _mirrorPaths(basePath, p1, l) : basePath;
 
 function Distance2D(a,b) = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));
 

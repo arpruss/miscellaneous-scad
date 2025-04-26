@@ -1,15 +1,21 @@
-module roundedSquare(size=[10,10], radius=1, center=false, $fn=16) {
+module roundedSquare(size=[10,10], radius=1, selection=undef, center=false, $fn=16) {
     size1 = !is_list(size) ? [size,size] : size;
+    module corner(which) {
+        if (selection==undef || is_num(search([which,],selection)[0]))
+            circle(r=radius);
+        else
+            square(radius*2,center=true);
+    }
     if (radius <= 0) {
         square(size1, center=center);
     }
     else {
         translate(center ? -size1/2 : [0,0])
         hull() {
-            translate([radius,radius]) circle(r=radius);
-            translate([size1[0]-radius,radius]) circle(r=radius);
-            translate([size1[0]-radius,size1[1]-radius]) circle(r=radius);
-            translate([radius,size1[1]-radius]) circle(r=radius);
+            translate([radius,radius]) corner("frontLeft");
+            translate([size1[0]-radius,radius]) corner("frontRight");
+            translate([size1[0]-radius,size1[1]-radius]) corner("rearRight");
+            translate([radius,size1[1]-radius]) corner("rearLeft");
         }
     }
 }

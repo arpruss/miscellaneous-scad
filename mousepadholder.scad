@@ -3,8 +3,8 @@ use <Bezier.scad>;
 //<params>
 length = 59;
 width = 63.5;
-wTolerance = 0.2;
-hTolerance = -.2;
+wTolerance = 0.05;//0.2;
+hTolerance = -.35;//-.2;
 height = 23.5;
 minThickness = 3.5;
 typicalThickness = 6;
