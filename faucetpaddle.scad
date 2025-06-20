@@ -11,7 +11,7 @@ width = 37.32;
 flatLength = 23.71;
 // distance from center of rotation to end of lever
 leverLength = 80;
-tolerance = 0.18;
+tolerance = 0.12;
 minimumThickness = 2.5;
 leverThickness = 8;
 inset = 3.5;
