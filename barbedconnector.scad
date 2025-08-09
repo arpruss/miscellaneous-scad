@@ -2,10 +2,11 @@ use <tubeMesh.scad>;
 
 //<params>
 hoopDiameter_millimeters = 0; // set to zero to use inches; set both millimeters and inches to zero for straight
-hoopDiameter_inches = 33.5; // set to zero to use millimeters 
+hoopDiameter_inches = 36; // set to zero to use millimeters 
 sleeveDiameter = 18.8; // should match the outer diameter of the tubing
 barbOuterDiameter = 15.7; // should be a little bigger than the inner diameter of the tubing so it can bit into it
 reinforcementScrewHole = 3.8; // put a machine screw through the middle to reinforce 
+ reduceUpperBarbs = 0; // reduce barbs on one side for collapsible hoops (try 0.3)
 innerAreaThickening = 1;
 reinforcementScrewHolePostDiameter = 8;
 barbsPerSide = 7;
@@ -46,8 +47,9 @@ function ring(z,r) =
         [for(p=profile) 
             let(r1=hoopR+p[0]) [r1*cos(angle),p[1],r1*sin(angle)]];
 
-function barb(distance,direction=1,first=false) =
-    let(z=distance*direction)
+function barb(distance,direction=1,first=false,reduce=0) =
+    let(barbR=barbR-reduce,
+        z=distance*direction)
     [ ring(z,barbR-barbHeight+(first?innerAreaThickening:0)),
       ring(z,barbR),
       ring(z+direction*barbTipFlat,barbR),
@@ -65,13 +67,26 @@ screwR = sqrt(pow(screwDX + hoopR,2)+pow(halfLength,2));
 farPostR = screwR+reinforcementScrewHolePostDiameter/2;
 postLength = 2*farPostR*sin(endAngle);
 
+function makeHalf(reduce=0) = 
+    let(
+        barbR=barbR-reduce,
+        barbs = [for(i=[0:barbsPerSide-1])
+        barb(barbZ(i),first=(i==0),reduce=reduce)],
+        basic = concat([ring(sleeveLength/2,sleeveDiameter/2),ring(sleeveLength/2,barbR+innerAreaThickening)],merge(barbs))) 
+    hoopR<=0 || reinforcementScrewHole<= 0 || reinforcementScrewHole <= 0 ? basic : concat(basic,[[for (p=ngonPoints(n=smoothness,d=reinforcementScrewHolePostDiameter)) [hoopR+screwDX+p[0],p[1],postLength/2]],]);
+        
+
 module full() {
+    /*
     barbs = [for(i=[0:barbsPerSide-1])
         barb(barbZ(i),first=(i==0))];
     basic = concat([ring(sleeveLength/2,sleeveDiameter/2),ring(sleeveLength/2,barbR-barbHeight+innerAreaThickening)],merge(barbs));
-    half = hoopR<=0 || reinforcementScrewHole<= 0 || reinforcementScrewHole <= 0 ? basic : concat(basic,[[for (p=ngonPoints(n=smoothness,d=reinforcementScrewHolePostDiameter)) [hoopR+screwDX+p[0],p[1],postLength/2]],]);
+    half = hoopR<=0 || reinforcementScrewHole<= 0 || reinforcementScrewHole <= 0 ? basic : concat(basic,[[for (p=ngonPoints(n=smoothness,d=reinforcementScrewHolePostDiameter)) [hoopR+screwDX+p[0],p[1],postLength/2]],]); */
+    
+    upperHalf = makeHalf(reduceUpperBarbs);
+    lowerHalf = makeHalf(0);
     function revZ(section)=[for(p=section) [p[0],p[1],-p[2]]];
-    full = concat([for(i=[0:len(half)-1]) revZ(half[len(half)-1-i])],half);
+    full = concat([for(i=[0:len(lowerHalf)-1]) revZ(lowerHalf[len(lowerHalf)-1-i])],upperHalf);
     rotate([-90,0,0])
     tubeMesh(full);
  }
