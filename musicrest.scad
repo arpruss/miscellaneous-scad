@@ -1,30 +1,54 @@
 use <roundedSquare.scad>;
+use <laserTeeth.scad>;
+
+item = 0; // 0: full laser back, 1: partial laser back, 2: 3D print tray, 3: bottom clip, 4: top clip
 
 holeSpacing = 525;
 
-height = 525 * 36/90 + 20;
+height = 230;
+echo(height);
 rounding = 20;
-hmargin = 35;
+innerRounding = 10;
 bottomExtra = 10;
 shelfThickness = 2.5;
-shelfFront = 20;
+shelfFront = 26;
 shelfSupports = 3;
 shelfExtraAngle = 8;
+
+
 wireHole = 5.4;
-wireHolderLength = 90;
-wireHolderRim = 5;
-wireHolderThickness = 2;
+clipScrewDiameter = 3.5;
+clipScrewLength = 12.5;
+clipScrewOffset = 3;
+clipScrewPlasticExtra = 0.5;
+clipClosureSize = 2;
+clipScrewWoodThickness = 0.5;
 
-wireHolderWidth = wireHole+2*wireHolderThickness+2*wireHolderRim;
-beyondHoles = wireHolderWidth/2;
-hmargin = wireHolderWidth;
+woodThickness = 6;
+numTeeth = 8;
+kerf = .12;
 
-//TODO: shelf screw holes
+module dummy() {}
 
-$fn = 128;
 nudge = 0.01;
 
+clipHeight = clipScrewDiameter+2*clipScrewOffset;
+clipWidth = wireHole+2*clipScrewDiameter+2*clipScrewOffset+2*clipScrewPlasticExtra;
+
+beyondHoles = clipWidth / 2;
+hmargin = clipWidth;
+vmargin = 15;
+stripHeight = 10;
+bigHoles = 3;
+width = holeSpacing+2*beyondHoles;
+
+
+$fn = 128;
+
 module back() {
+    h = height-2*vmargin;
+    //(h1+stripHeight) * bigHoles = h+stripHeight;
+    h1 = (h+stripHeight)/bigHoles-stripHeight;
 	difference() {
 		hull() {
 			translate([0,-bottomExtra]) square(10);
@@ -32,11 +56,18 @@ module back() {
 			translate([rounding,height-rounding]) circle(rounding);
 			translate([width-rounding,height-rounding]) circle(rounding);
 		}
-        translate([hmargin,vmargin]) 
-        roundedSquare([width-2*hmargin,(height-3*vmargin)/2]);
-	    translate([hmargin,2*vmargin+(height-3*vmargin)/2]) 
-        roundedSquare([width-2*hmargin,(height-3*vmargin)/2]);
+        for (i=[0:bigHoles-1]) {
+            translate([hmargin,vmargin+(h1+stripHeight)*i]) roundedSquare([width-2*hmargin,h1],radius=innerRounding);
+        }
 	}
+    hull() {
+        translate([hmargin,height-vmargin-stripHeight/2]) circle(d=stripHeight+.01);
+        translate([width/2,vmargin-stripHeight/2]) circle(d=stripHeight+.01);
+    }
+    hull() {
+        translate([width-hmargin,height-vmargin-stripHeight/2]) circle(d=stripHeight+.01);
+        translate([width/2,vmargin-stripHeight/2]) circle(d=stripHeight+.01);
+    }
 }
 
 module shelfHalf() {
@@ -53,28 +84,55 @@ module shelfHalf() {
         }
 }
 
-module wireHolder() {
-    linear_extrude(h=wireHolderLength) 
-    {
-        difference() {
-            union() {
-                hull() {
-                    intersection() {
-                    translate([0,wireHole/2]) circle(d=wireHole+wireHolderThickness*2);
-                    translate([-wireHole/2-wireHolderThickness,0]) square([wireHole+2*wireHolderThickness,wireHole+wireHolderThickness]);
-                        }
-                    translate([-wireHole/2-wireHolderThickness,0]) square([wireHole+2*wireHolderThickness,wireHole/2]);
-                }
-               translate([-wireHolderWidth/2,0]) square([wireHolderWidth,wireHolderThickness]);
-            }
-            hull() {
-                    translate([0,wireHole/2]) circle(d=wireHole);
-                translate([-wireHole/2,-nudge]) square([wireHole,wireHole/2+nudge]);
-            }
-                }
+
+module laserBack() {
+    difference() {
+        back();
+        toothSockets(thickness=woodThickness,length=width,numTeeth=numTeeth,kerf=kerf);
     }
 }
 
-//back();
-//shelfHalf();
-wireHolder();
+module clip(closed=false) {
+    clipThickness = clipScrewWoodThickness+clipScrewLength-woodThickness;
+    
+    rotate([180,0,0]) 
+    difference() {
+        linear_extrude(height=clipThickness) {
+            difference() {
+                hull() {
+                for(s=[-1,1]) translate([s*(wireHole/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2+clipScrewOffset);
+                }
+                for(s=[-1,1]) translate([s*(wireHole/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2);
+                }
+            }
+        
+        rotate([90,0,0]) translate([0,0,-clipHeight/2+(closed?clipClosureSize:-nudge)]) linear_extrude(height=3*clipThickness) hull() {
+            translate([0,wireHole/2]) circle(d=wireHole);
+            translate([-wireHole/2,-nudge]) square([wireHole,wireHole/2]);
+        }
+            
+    }
+    
+}
+
+module laserShelf() {
+    square([width,shelfFront]);
+    teeth(thickness=woodThickness,length=width,numTeeth=numTeeth,kerf=kerf);
+}
+
+if (item == 0) {
+    laserBack();
+    translate([0,-bottomExtra-5-shelfFront]) laserShelf();
+}
+else if (item == 1) {
+    back();
+}
+else if (item == 2) {
+    shelfHalf();
+}
+else if (item == 3) {
+    clip(closed=false);
+}
+else if (item == 4) {
+    clip(closed=true);
+}
