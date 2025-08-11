@@ -1,7 +1,7 @@
 use <roundedSquare.scad>;
 use <laserTeeth.scad>;
 
-item = 0; // 0: full laser back, 1: partial laser back, 2: 3D print tray, 3: bottom clip, 4: top clip
+item = 3; // 0: full laser back, 1: partial laser back, 2: 3D print tray, 3: bottom clip, 4: top clip
 
 holeSpacing = 525;
 
@@ -16,12 +16,14 @@ shelfSupports = 3;
 shelfExtraAngle = 8;
 
 
-wireHole = 5.4;
-clipScrewDiameter = 3.5;
+wireSize = 4.85;
+wireTolerance = .08;
+clipMinimumPlastic = 1.75;
+clipScrewDiameter = 3.9;
 clipScrewLength = 12.5;
 clipScrewOffset = 3;
 clipScrewPlasticExtra = 0.5;
-clipClosureSize = 2;
+clipClosureSize = 1.5;
 clipScrewWoodThickness = 0.5;
 
 woodThickness = 6;
@@ -32,8 +34,10 @@ module dummy() {}
 
 nudge = 0.01;
 
+wireHoleV = wireSize+wireTolerance;
+wireHoleH = wireSize+2*wireTolerance;
 clipHeight = clipScrewDiameter+2*clipScrewOffset;
-clipWidth = wireHole+2*clipScrewDiameter+2*clipScrewOffset+2*clipScrewPlasticExtra;
+clipWidth = wireHoleH+2*clipScrewDiameter+2*clipScrewOffset+2*clipScrewPlasticExtra;
 
 beyondHoles = clipWidth / 2;
 hmargin = clipWidth;
@@ -93,22 +97,22 @@ module laserBack() {
 }
 
 module clip(closed=false) {
-    clipThickness = clipScrewWoodThickness+clipScrewLength-woodThickness;
+    clipThickness = max(clipMinimumPlastic+wireHoleV, clipScrewWoodThickness+clipScrewLength-woodThickness);
     
     rotate([180,0,0]) 
     difference() {
         linear_extrude(height=clipThickness) {
             difference() {
                 hull() {
-                for(s=[-1,1]) translate([s*(wireHole/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2+clipScrewOffset);
+                for(s=[-1,1]) translate([s*(wireHoleH/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2+clipScrewOffset);
                 }
-                for(s=[-1,1]) translate([s*(wireHole/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2);
+                for(s=[-1,1]) translate([s*(wireHoleH/2+clipScrewDiameter/2+clipScrewPlasticExtra),0]) circle(r=clipScrewDiameter/2);
                 }
             }
         
         rotate([90,0,0]) translate([0,0,-clipHeight/2+(closed?clipClosureSize:-nudge)]) linear_extrude(height=3*clipThickness) hull() {
-            translate([0,wireHole/2]) circle(d=wireHole);
-            translate([-wireHole/2,-nudge]) square([wireHole,wireHole/2]);
+            translate([0,wireHoleV/2]) scale([wireHoleH/wireSize,wireHoleV/wireSize])  circle(d=wireSize);
+            translate([-wireHoleH/2,-nudge]) square([wireHoleH,wireHoleV/2]);
         }
             
     }
