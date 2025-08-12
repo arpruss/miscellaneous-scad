@@ -1,12 +1,13 @@
 use <roundedSquare.scad>;
 use <laserTeeth.scad>;
 
-item = 3; // 0: full laser back, 1: partial laser back, 2: 3D print tray, 3: bottom clip, 4: top clip
+//<params>
+item = 7; // 0: laser back, 1: laser half back, 2: 3D print tray, 3: bottom clip, 4: top clip, 5: laser shelf, 6: laser half joints, 7: laser half shelf
+flip = 1; //0:no, 1:yes
 
 holeSpacing = 525;
 
 height = 230;
-echo(height);
 rounding = 20;
 innerRounding = 10;
 bottomExtra = 10;
@@ -14,6 +15,8 @@ shelfThickness = 2.5;
 shelfFront = 26;
 shelfSupports = 3;
 shelfExtraAngle = 8;
+
+divider = 20;
 
 
 wireSize = 4.85;
@@ -26,9 +29,10 @@ clipScrewPlasticExtra = 0.5;
 clipClosureSize = 1.5;
 clipScrewWoodThickness = 0.5;
 
-woodThickness = 6;
+woodThickness = 6.1;
 numTeeth = 8;
-kerf = .12;
+kerf = .1;
+//</params>
 
 module dummy() {}
 
@@ -124,19 +128,40 @@ module laserShelf() {
     teeth(thickness=woodThickness,length=width,numTeeth=numTeeth,kerf=kerf);
 }
 
-if (item == 0) {
-    laserBack();
-    translate([0,-bottomExtra-5-shelfFront]) laserShelf();
-}
-else if (item == 1) {
-    back();
-}
-else if (item == 2) {
-    shelfHalf();
-}
-else if (item == 3) {
-    clip(closed=false);
-}
-else if (item == 4) {
-    clip(closed=true);
+mirror([flip?1:0,0]) {
+    if (item == 0) {
+        laserBack();
+    }
+    else if (item == 1) {
+        intersection() {
+            laserBack();
+            translate([0,-bottomExtra]) square([width/2,height+bottomExtra]);
+        }
+        translate([width/2-divider/2,0]) square([divider/2,height]);
+    }
+    else if (item == 2) {
+        shelfHalf();
+    }
+    else if (item == 3) {
+        clip(closed=false);
+    }
+    else if (item == 4) {
+        clip(closed=true);
+    }
+    else if (item == 5) {
+        echo("ls");
+            laserShelf();
+    }
+    else if (item == 6) {
+    //    square([width/2,bottomExtra+vmargin]);
+        //translate([0,bottomExtra+vmargin+5]) 
+        square([height-vmargin*2,divider]);
+        translate([0,-vmargin-5]) square([width/2,vmargin]);
+    }
+    else if (item == 7) {
+        intersection(){
+            translate([0,-50]) square([width/2,shelfFront+woodThickness+100]);
+            translate([0,-bottomExtra-5-shelfFront]) laserShelf();
+        }
+    }
 }
