@@ -1,4 +1,4 @@
-use <roundedSquare.scad>;
+use <roundedsquare.scad>;
 use <laserTeeth.scad>;
 
 //<params>
@@ -32,6 +32,9 @@ clipScrewWoodThickness = 0.5;
 woodThickness = 6.1;
 numTeeth = 8;
 kerf = .1;
+vmargin = 15;
+stripHeight = 10;
+bigHoles = 3;
 //</params>
 
 module dummy() {}
@@ -45,10 +48,9 @@ clipWidth = wireHoleH+2*clipScrewDiameter+2*clipScrewOffset+2*clipScrewPlasticEx
 
 beyondHoles = clipWidth / 2;
 hmargin = clipWidth;
-vmargin = 15;
-stripHeight = 10;
-bigHoles = 3;
 width = holeSpacing+2*beyondHoles;
+
+echo(width,height);
 
 
 $fn = 128;
