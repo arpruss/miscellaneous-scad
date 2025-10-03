@@ -1,3 +1,4 @@
+//<params>
 outerDiameter = 36;
 innerDiameter = 27.2;
 jointThickness = 1.5;
@@ -5,6 +6,10 @@ jointLength = 1;
 numberOfPieces = 6;
 openingAngle = 40;
 height = 41;
+
+//</params>
+
+module dummy(){}
 
 circlePerimeter = PI* innerDiameter; 
 perimeter = (360-openingAngle) * circlePerimeter / 360;
