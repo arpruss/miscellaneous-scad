@@ -1,8 +1,8 @@
 use <tubeMesh.scad>;
 
 //<params>
-hoopDiameter_millimeters = 0; // set to zero to use inches; set both millimeters and inches to zero for straight
-hoopDiameter_inches = 36; // set to zero to use millimeters 
+hoopDiameter_millimeters = 255+.5*25.4; // set to zero to use inches; set both millimeters and inches to zero for straight
+hoopDiameter_inches = 0*36; // set to zero to use millimeters 
 sleeveDiameter = 18.8; // should match the outer diameter of the tubing
 barbOuterDiameter = 15.7; // should be a little bigger than the inner diameter of the tubing so it can bit into it
 reinforcementScrewHole = 3.8; // put a machine screw through the middle to reinforce 
