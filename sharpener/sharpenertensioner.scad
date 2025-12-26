@@ -1,4 +1,4 @@
-use <roundedSquare.scad>;
+use <../roundedSquare.scad>;
 
 //<params>
 

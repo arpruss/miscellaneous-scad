@@ -1,13 +1,13 @@
 shaft = 14.65;
 wellDiameter = 20.33;
 wellDepth = 9.82;
-metalLinerLength = 10;
+metalLinerLength = 0*10;
 
 height = 34;
 
 shaftDiameter = 7;
 shaftIncut = 1;
-shaftHoleConstrict = 0.65;
+shaftHoleConstrict = 0*0.65;
 
 generousTolerance = 1.5;
 tolerance = 0.22; 
