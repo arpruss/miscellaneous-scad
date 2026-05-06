@@ -18,6 +18,7 @@ screwOffsetFromEnd = 5;
 width = 15;
 rounding = 5;
 knobExtraHeight = 5;
+strengtheningPositionAngle = 62;
 //</params>
 
 $fn = 32;
@@ -39,6 +40,21 @@ module snapProfile() {
     translate([0,r+snapThickness/2]) {
         ribbon(full) circle(d=snapThickness);
     }
+    module strengthener() {
+        a = strengtheningPositionAngle - 90;
+        topAnchor = r*[cos(a),sin(a)+1];
+        echo(topAnchor);
+        slope = cos(a)/(-sin(a));
+        // (xIntercept-topAnchor[0])/(0-topAnchor[1]) = 1/slope
+        x0 = -topAnchor[1] / slope + topAnchor[0];
+        d = norm([x0,0]-topAnchor);
+        x1 = x0 + d;
+        prof = Bezier([topAnchor,POLAR(d/2.5,a-90),POLAR(d/2.5,180),[x1,0]]);
+        translate([0,snapThickness/2]) ribbon(prof) circle(d=snapThickness);
+    }
+    
+    strengthener();
+    mirror([1,0]) strengthener();
 }
 
 
@@ -64,4 +80,4 @@ module knob() {
 }
 
 snap();
-translate([0,-screwHeadDiameter/2-10,0]) knob();
+//translate([0,-screwHeadDiameter/2-10,0]) knob();

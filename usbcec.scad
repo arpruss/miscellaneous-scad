@@ -169,4 +169,4 @@ difference() {
     hdmiCutout();
 }
 
-//translate([width+wall+5,0,0]) lid();
+translate([width+wall+5,0,0]) lid();
