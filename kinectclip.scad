@@ -1,12 +1,14 @@
 tvTolerance = .07;
-tvThickness = 13.2;
+tvThickness = 13;
 bezelHeight = 12;
 baseWidth = 86.7;
 baseDepth = 72.9;
-baseTolerance = .2;
-wallHeight = 15;
-wallThickness = 1.75;
-braceThickness = 1.5;
+baseTolerance = .5;
+wallHeight = 17;
+wallThickness = 2;
+braceThickness = 1.25;
+cableHoleWidth = 8.1;
+cableHoleOffset = 5;
 
 w1 = baseDepth+baseTolerance+2*wallThickness;
 w2 = tvThickness+tvTolerance;
@@ -43,6 +45,12 @@ module main() {
     translate([0,0,w3+2*wallThickness-braceThickness]) linear_extrude(height=braceThickness) braces();
     for (x=[-w1/2,w1/2-wallThickness]) translate([x,0,0]) cube([wallThickness,wallHeight+wallThickness,w3+2*wallThickness]);
     for (z=[0,w3+wallThickness]) translate([-w1/2,0,z]) cube([w1,wallHeight+wallThickness,wallThickness]);
-
 }
-main();
+
+
+difference() {
+    main();
+    translate([baseDepth/2,wallThickness+cableHoleOffset,baseWidth/2+wallThickness])
+    translate([-1.5*wallThickness,0,-.5*cableHoleWidth])
+    cube([3*wallThickness,wallHeight-(cableHoleOffset+1),cableHoleWidth]);
+}
