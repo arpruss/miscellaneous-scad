@@ -80,4 +80,4 @@ module knob() {
 }
 
 snap();
-//translate([0,-screwHeadDiameter/2-10,0]) knob();
+translate([0,-screwHeadDiameter/2-10,0]) knob();

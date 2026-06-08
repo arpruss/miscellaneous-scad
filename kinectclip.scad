@@ -1,6 +1,8 @@
-tvTolerance = .07;
+//<params>
 tvThickness = 13;
 bezelHeight = 12;
+
+tvTolerance = .07;
 baseWidth = 86.7;
 baseDepth = 72.9;
 baseTolerance = .5;
@@ -9,6 +11,9 @@ wallThickness = 2;
 braceThickness = 1.25;
 cableHoleWidth = 8.1;
 cableHoleOffset = 5;
+//</params>
+
+module dummy(){}
 
 w1 = baseDepth+baseTolerance+2*wallThickness;
 w2 = tvThickness+tvTolerance;
