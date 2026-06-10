@@ -1,20 +1,21 @@
+needsSupport = 1;
 strapBarLength = 26.3;
 strapSlitThickness = 3.45; // orig: 3.77
 strapBarTopWidth = 4.06;
-strapBarHeight = 8.5; // orig: 8.77
+strapBarHeight = 9; // orig: 8.77
 sideMinimum = 5;
 toothWidth = 1.2;
 toothDepth = .6;
-rearSupportHeight = 6;
-rearSupportWidth = 9;
+rearBarHeight = 6;
+rearBarWidth = 9;
 
-attachmentOffset = 10;
+attachmentOffset = 5;
 
 bigHole = 21.5;
 smallHole = 11.5;
 smallHoleOffset = 10.5;
-bigThickness = 8.5; // orig: 8
-smallThickness = 5;
+bigThickness = 9.8; 
+smallThickness = 6.85;
 outerCircleOffset = 6.5;
 frontBackOffset = 16;
 rounding = 3;
@@ -41,10 +42,10 @@ module strapHolderBasic() {
     }
     
     function supportProfile(incut) = 
-    [ [ strapBarTopWidth+strapSlitThickness, 0] , [ strapBarTopWidth+strapSlitThickness + rearSupportWidth-incut, 0],
-    [ strapBarTopWidth+strapSlitThickness + rearSupportWidth, incut],
-    [ strapBarTopWidth+strapSlitThickness + rearSupportWidth, rearSupportHeight],
-    [ strapBarTopWidth+strapSlitThickness+rearSupportHeight,rearSupportHeight] ];
+    [ [ strapBarTopWidth+strapSlitThickness, 0] , [ strapBarTopWidth+strapSlitThickness + rearBarWidth-incut, 0],
+    [ strapBarTopWidth+strapSlitThickness + rearBarWidth, incut],
+    [ strapBarTopWidth+strapSlitThickness + rearBarWidth, rearBarHeight],
+    [ strapBarTopWidth+strapSlitThickness+rearBarHeight,rearBarHeight] ];
     translate([0,0,-sideMinimum])
     linear_extrude(height=strapBarLength+2*sideMinimum)
         polygon(supportProfile(bottomIncut));
@@ -94,6 +95,13 @@ module attachment() {
     }
 }
 
-attachment();
+    if (!needsSupport) {
+    attachment();
+}
+else {
+    translate([0,0,bigThickness])
+    mirror([0,0,1]) 
+    attachment();
+}
 
 strapHolder();
