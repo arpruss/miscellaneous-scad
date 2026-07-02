@@ -1,11 +1,13 @@
-needsSupport = 1;
+needsSupport = 1; // [0:No, 1:Yes]
+seatBungeeClip = 2; // [0:No, 1:Left, 2:Right]
+
 strapBarLength = 26.3;
 strapSlitThickness = 3.45; // orig: 3.77
 strapBarTopWidth = 4.06;
 strapBarHeight = 9; // orig: 8.77
 sideMinimum = 5;
 toothWidth = 1.2;
-toothDepth = .6;
+toothDepth = 0.6;
 rearBarHeight = 6;
 rearBarWidth = 9;
 
@@ -21,6 +23,9 @@ frontBackOffset = 16;
 rounding = 3;
 bottomIncut = 3.5;
 bottomSmallIncut = 1.5;
+
+fingerSpacing = 6;
+fingerWidth = 8;
 
 module dummy() {}
 
@@ -49,6 +54,7 @@ module strapHolderBasic() {
     translate([0,0,-sideMinimum])
     linear_extrude(height=strapBarLength+2*sideMinimum)
         polygon(supportProfile(bottomIncut));
+    
     for (z=[-sideMinimum,strapBarLength]) 
         translate([0,0,z]) linear_extrude(height=sideMinimum) hull() {
         translate([0,0]) polygon(supportProfile(bottomSmallIncut));
@@ -75,17 +81,44 @@ module strapHolder() {
 
 module attachment() {
     $fn = 120;
-    translate([frontBackOffset,0,0]) 
-    difference() {
-        linear_extrude(height=bigThickness)
+    
+    module finger() {
+        intersection() {
+            r = fingerSpacing+fingerWidth;
+            difference() {
+                translate([r*.2,0]) circle(r=r);
+                translate([0,fingerSpacing/2]) {
+                    circle(d=fingerSpacing);
+                    translate([0,-fingerSpacing]) 
+                    square([r*5,fingerSpacing*1.5]);
+                }
+            }
+        translate([-50,-.001]) square([100,100]);
+        }
+    }
+    
+    module main() {
         difference() {
-            hull() {
-                translate([outerCircleOffset,0]) circle(d=outerDiameter);
-                translate([-frontBackOffset,-outerDiameter/2]) square([1,outerDiameter]); 
+            union() {
+                hull() {
+                    translate([outerCircleOffset,0]) circle(d=outerDiameter);
+                    translate([-frontBackOffset,-outerDiameter/2]) square([1,outerDiameter]); 
+                }
+                if (seatBungeeClip) {
+                translate([-6,outerDiameter/2]) finger();
+                }
             }
             circle(d=bigHole);
             translate([smallHoleOffset,0]) circle(d=smallHole);
         }
+    }
+    translate([frontBackOffset,0,0]) 
+    difference() {
+        linear_extrude(height=bigThickness) 
+            if (!seatBungeeClip || 
+                (!needsSupport && seatBungeeClip==1) ||
+                (needsSupport && seatBungeeClip==2)) main(); 
+            else mirror([0,1]) main();
         hull() {
             translate([0,0,smallThickness])
             cylinder(d=bigHole,h=bigThickness);
