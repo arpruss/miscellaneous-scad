@@ -1,7 +1,7 @@
 include <hershey.scad>;
 
 //<params>
-name = "NAME";
+name = "LiveOak";
 font=3; // [0:GothicEnglish, 1:GothicGerman, 2:GothicItalian, 3:Sans, 4:SansBold, 5:SansBoldOblique, 6:Script, 7:ScriptBold, 8:Serif, 9:SerifBold, 10:SerifBoldItalic, 11:SerifItalic]
 textSize = 30;
 // how thick the letters are
@@ -15,7 +15,7 @@ smartOverlap = 1; // [1:yes, 0:no]
 // increase to make letters be more squashed together; in smart overlap mode, this is the number of millimeters letters overlap by
 letterSquish = 3.5;
 ringCrossSection=0; // [0:rectangular, 1:one-sided round, 2:two-sided round, 3:no ring]
-ringOuterDiameter = 14; 
+ringOuterDiameter = 0*14; 
 ringLineWidth = 3.5;
 ringHeight = 5;
 // 0.5 is vertically centered; 0 is at the bottom and 1 is at the top
