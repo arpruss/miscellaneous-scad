@@ -4,7 +4,7 @@ use <pointHull.scad>;
 use <overhang.scad>;
 
 //<params>
-numberOfNESSlots=2;
+numberOfNESSlots=1;
 includeLid=1; // [0:no,1:yes]
 includeMain=1; // [0:no,1:yes]
 pcbAreaWidth = 55;

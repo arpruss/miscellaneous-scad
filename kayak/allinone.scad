@@ -1,38 +1,48 @@
 needsSupport = 1; // [0:No, 1:Yes]
-seatBungeeClip = 2; // [0:No, 1:Left, 2:Right]
+seatBungeeClip = 1; // [0:No, 1:Left, 2:Right]
+sideReinforce = 3;
 
 strapBarLength = 26.3;
 strapSlitThickness = 3.45; // orig: 3.77
 strapBarTopWidth = 4.06;
 strapBarHeight = 9; // orig: 8.77
-sideMinimum = 5;
+sideMinimum = 8.5;
 toothWidth = 1.2;
 toothDepth = 0.6;
 rearBarHeight = 6;
 rearBarWidth = 9;
+outerMinorDiameter = 36.3;
 
 attachmentOffset = 5;
 
 bigHole = 21.5;
 smallHole = 11.5;
 smallHoleOffset = 10.5;
-bigThickness = 9.8; 
+bigThickness = 11; 
 smallThickness = 6.85;
 outerCircleOffset = 6.5;
 frontBackOffset = 16;
 rounding = 3;
-bottomIncut = 3.5;
+bottomIncut = 1.5;
 bottomSmallIncut = 1.5;
 
 fingerSpacing = 6;
-fingerWidth = 8;
+fingerWidth = 5.5;
+fingerSizeAdjust = 1;
+fingerInset = 4;
+fingerForwardShift = 1;
+fingerInsideForwardShift = 1;
+rearBungeeKeeperStickout = 7;
 
 module dummy() {}
 
+outerDiameter = strapBarLength + 2 * sideMinimum;
+rearThickness = bigThickness;//was strapBarHeight
+
 nudge = .01;
-outerDiameter = 2*sideMinimum+strapBarLength; //37;
 
 module strapHolderBasic() {
+    
     strapBarProfile = [[0,0],[strapBarTopWidth,0],
         [strapBarTopWidth+strapBarHeight,strapBarHeight],[strapBarHeight,strapBarHeight]];
     toothCount0 = floor(strapBarLength / (2*toothWidth));
@@ -59,6 +69,7 @@ module strapHolderBasic() {
         translate([0,0,z]) linear_extrude(height=sideMinimum) hull() {
         translate([0,0]) polygon(supportProfile(bottomSmallIncut));
         translate([0,0]) polygon(strapBarProfile);
+        translate([0,rearThickness-strapBarHeight]) polygon(strapBarProfile);
         translate([-attachmentOffset,0]) polygon([[0,0],[0,bigThickness],[1,bigThickness],[1,0]]);
     }
     
@@ -69,10 +80,21 @@ module strapHolder() {
         translate([-attachmentOffset+nudge, strapBarLength/2,0]) 
         mirror([1,0,0]) 
         rotate([90,0,0]) strapHolderBasic();
+        
         linear_extrude(height=strapBarHeight+bigThickness) hull() {
             square([1,outerDiameter],center=true);
             for (s=[-1,1])
                 translate([-attachmentOffset-strapBarHeight-strapBarTopWidth-strapSlitThickness+rounding,s*outerDiameter/2-s*rounding]) circle(r=rounding,$fn=36);
+        }
+    }
+    if (seatBungeeClip && rearBungeeKeeperStickout>0)  {
+        translate([-attachmentOffset-strapBarTopWidth-nudge,0,0]) 
+        linear_extrude(height=rearBarHeight) for(s=[-1,1]) translate([-10,s*(fingerWidth/2+fingerSpacing/2)]) hull() {
+            square([nudge,fingerSpacing],center=true);
+            translate([-rearBungeeKeeperStickout-3+fingerSpacing/2,0,0]) {
+                circle(d=fingerSpacing,$fn=36);
+                translate([-fingerSpacing/4,-s*fingerSpacing/4]) square(fingerSpacing/2,center=true);
+            }
         }
     }
 }
@@ -82,18 +104,21 @@ module strapHolder() {
 module attachment() {
     $fn = 120;
     
-    module finger() {
-        intersection() {
-            r = fingerSpacing+fingerWidth;
-            difference() {
-                translate([r*.2,0]) circle(r=r);
-                translate([0,fingerSpacing/2]) {
+    module finger(inside=false) {
+        translate([fingerForwardShift,0,0]) {
+            r = fingerSpacing+fingerWidth+fingerSizeAdjust;
+            if (!inside)
+            translate([r*.2,-fingerInset]) intersection() {
+                circle(r=r);
+                square([2*r,2*r-2*fingerSizeAdjust],center=true);
+            }
+            else
+            translate([0,fingerSpacing/2]) {
+                translate([fingerInsideForwardShift,-fingerInset]) hull() {
                     circle(d=fingerSpacing);
-                    translate([0,-fingerSpacing]) 
-                    square([r*5,fingerSpacing*1.5]);
+                    translate([100,0]) circle(d=fingerSpacing);
                 }
             }
-        translate([-50,-.001]) square([100,100]);
         }
     }
     
@@ -101,12 +126,15 @@ module attachment() {
         difference() {
             union() {
                 hull() {
-                    translate([outerCircleOffset,0]) circle(d=outerDiameter);
+                    translate([outerCircleOffset,0]) scale([outerMinorDiameter/outerDiameter,1]) circle(d=outerDiameter);
                     translate([-frontBackOffset,-outerDiameter/2]) square([1,outerDiameter]); 
                 }
                 if (seatBungeeClip) {
-                translate([-6,outerDiameter/2]) finger();
+                    translate([-6,outerDiameter/2]) finger(false);
                 }
+            }
+            if (seatBungeeClip) {
+                    translate([-6,outerDiameter/2]) finger(true);
             }
             circle(d=bigHole);
             translate([smallHoleOffset,0]) circle(d=smallHole);
@@ -128,7 +156,7 @@ module attachment() {
     }
 }
 
-    if (!needsSupport) {
+if (!needsSupport) {
     attachment();
 }
 else {
