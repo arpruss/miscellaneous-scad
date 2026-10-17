@@ -1,24 +1,25 @@
-needsSupport = 1; // [0:No, 1:Yes]
-seatBungeeClip = 1; // [0:No, 1:Left, 2:Right]
+needsSupport = 0; // [0:No, 1:Yes]
+seatBungeeClip = 0; // [0:No, 1:Left, 2:Right]
 sideReinforce = 3;
 
 strapBarLength = 26.3;
 strapSlitThickness = 3.45; // orig: 3.77
 strapBarTopWidth = 4.06;
-strapBarHeight = 9; // orig: 8.77
-sideMinimum = 8.5;
+strapBarHeight = 9; 
+sideMin=5;
+sideMax=7.5;
 toothWidth = 1.2;
 toothDepth = 0.6;
 rearBarHeight = 6;
 rearBarWidth = 9;
 outerMinorDiameter = 36.3;
 
-attachmentOffset = 5;
+attachmentOffset = 3;
 
 bigHole = 21.5;
 smallHole = 11.5;
 smallHoleOffset = 10.5;
-bigThickness = 11; 
+bigThickness = 12; 
 smallThickness = 6.85;
 outerCircleOffset = 6.5;
 frontBackOffset = 16;
@@ -29,14 +30,14 @@ bottomSmallIncut = 1.5;
 fingerSpacing = 6;
 fingerWidth = 5.5;
 fingerSizeAdjust = 1;
-fingerInset = 4;
+fingerInset = 6;
 fingerForwardShift = 1;
 fingerInsideForwardShift = 1;
 rearBungeeKeeperStickout = 7;
 
 module dummy() {}
 
-outerDiameter = strapBarLength + 2 * sideMinimum;
+outerDiameter = strapBarLength + 2 * sideMax;
 rearThickness = bigThickness;//was strapBarHeight
 
 nudge = .01;
@@ -61,12 +62,12 @@ module strapHolderBasic() {
     [ strapBarTopWidth+strapSlitThickness + rearBarWidth, incut],
     [ strapBarTopWidth+strapSlitThickness + rearBarWidth, rearBarHeight],
     [ strapBarTopWidth+strapSlitThickness+rearBarHeight,rearBarHeight] ];
-    translate([0,0,-sideMinimum])
-    linear_extrude(height=strapBarLength+2*sideMinimum)
+    translate([0,0,-sideMax])
+    linear_extrude(height=strapBarLength+2*sideMax)
         polygon(supportProfile(bottomIncut));
     
-    for (z=[-sideMinimum,strapBarLength]) 
-        translate([0,0,z]) linear_extrude(height=sideMinimum) hull() {
+    for (z=[-sideMax,strapBarLength]) 
+        translate([0,0,z]) linear_extrude(height=sideMax) hull() {
         translate([0,0]) polygon(supportProfile(bottomSmallIncut));
         translate([0,0]) polygon(strapBarProfile);
         translate([0,rearThickness-strapBarHeight]) polygon(strapBarProfile);
@@ -84,22 +85,20 @@ module strapHolder() {
         linear_extrude(height=strapBarHeight+bigThickness) hull() {
             square([1,outerDiameter],center=true);
             for (s=[-1,1])
-                translate([-attachmentOffset-strapBarHeight-strapBarTopWidth-strapSlitThickness+rounding,s*outerDiameter/2-s*rounding]) circle(r=rounding,$fn=36);
+                translate([-attachmentOffset-strapBarHeight-strapBarTopWidth-strapSlitThickness+rounding,s*(strapBarLength/2 + sideMin-rounding)]) circle(r=rounding,$fn=36);
         }
     }
     if (seatBungeeClip && rearBungeeKeeperStickout>0)  {
         translate([-attachmentOffset-strapBarTopWidth-nudge,0,0]) 
         linear_extrude(height=rearBarHeight) for(s=[-1,1]) translate([-10,s*(fingerWidth/2+fingerSpacing/2)]) hull() {
-            square([nudge,fingerSpacing],center=true);
-            translate([-rearBungeeKeeperStickout-3+fingerSpacing/2,0,0]) {
-                circle(d=fingerSpacing,$fn=36);
-                translate([-fingerSpacing/4,-s*fingerSpacing/4]) square(fingerSpacing/2,center=true);
+            square([nudge,fingerWidth],center=true);
+            translate([-rearBungeeKeeperStickout-3+fingerWidth/2,0,0]) {
+                circle(d=fingerWidth,$fn=36);
+                translate([-fingerWidth/4,-s*fingerWidth/4]) square(fingerWidth/2,center=true);
             }
         }
     }
 }
-
-//strapHolder();
 
 module attachment() {
     $fn = 120;

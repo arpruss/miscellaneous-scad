@@ -2,9 +2,9 @@ use <Bezier.scad>;
 use <pointhull.scad>;
 
 //<params>
-includeGrip = true;
-tolerance = 0.18;
-wallThicknesss = 2.5;
+includeGrip = false;
+tolerance = .12; //0.18;
+wallThickness = 2.5;
 tabSize = 3.5;
 gripLength = 39;
 gripWidth = 17.53;
@@ -15,10 +15,11 @@ gripAngle = 20;
 gripBevel = 4;
 
 // the following only apply if you don't include the grip
-extrawallThicknesss = 3;
+extrawallThickness = 3.5;
 screwHoleDiameter = 4;
 screwHoleInsetDepth = 3;
 screwHoleInsetDiameter = 9;
+tripodScrewHole = 5.89; // 0
 //</params>
 
 module dummy() {}
@@ -47,12 +48,12 @@ module outline() {
     w  = size_xsect_1[0]+2*tolerance-2*tabSize;
     difference() {
         union() {
-            xsect(delta=tolerance+wallThicknesss);
+            xsect(delta=tolerance+wallThickness);
             w1 = gripWidth;
-            if (!includeGrip) translate([-w1/2,-size_xsect_1[1]/2-extrawallThicknesss-tolerance-wallThicknesss]) square([w1,extrawallThicknesss+wallThicknesss+nudge]);
+            if (!includeGrip) translate([-w1/2,-size_xsect_1[1]/2-extrawallThickness-tolerance-wallThickness]) square([w1,extrawallThickness+wallThickness+nudge]);
         }
         xsect(delta=tolerance);
-        translate([-w/2,0]) square([w,size_xsect_1[1]+tolerance+wallThicknesss]);
+        translate([-w/2,0]) square([w,size_xsect_1[1]+tolerance+wallThickness]);
     }
 }
 
@@ -63,6 +64,8 @@ module screwHoles() {
         translate([0,0,-100+nudge]) cylinder(d=screwHoleDiameter,h=100);
         translate([0,0,-screwHoleInsetDepth+2*nudge]) cylinder(d1=screwHoleDiameter,d2=screwHoleInsetDiameter,h=screwHoleInsetDepth);
     }
+    translate([0,-size_xsect_1[1]/2-tolerance,0.5*gripLength])
+        rotate([90,0,0]) cylinder(d=tripodScrewHole,h=100,center=true);
 }
 
 module gripless() {
@@ -76,7 +79,7 @@ module gripless() {
 gripOffset = gripHeight*tan(gripAngle);    
 
 gripOutlineSideView = let(dx = sin(gripAngle) * gripBevel, 
-    dy = cos(gripAngle) * gripBevel, h = size_xsect_1[1]+2*wallThicknesss+2*tolerance) Bezier(
+    dy = cos(gripAngle) * gripBevel, h = size_xsect_1[1]+2*wallThickness+2*tolerance) Bezier(
     [[h*tan(gripAngle),h],LINE(),LINE(),[h*tan(gripAngle)+gripLength,h],LINE(),LINE(),[gripLength-gripOffset+dx,-gripHeight+dy],OFFSET([-dx,-dy]*0.5),OFFSET([gripBevel*0.5,0]),[gripLength-gripOffset-gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+gripBevel,-gripHeight],LINE(),LINE(),[-gripOffset+dx,-gripHeight+dy]]);
 
 gripOutlineBottomView = Bezier([[-nudge,gripWidth/2],LINE(),LINE(),[-nudge,gripBevel],LINE(),LINE(),[gripBevel,0],LINE(),LINE(),[gripLength-gripBevel,0],SMOOTH_ABS(gripBevel*0.5),SMOOTH_ABS(gripBevel*0.5),[gripLength,gripBevel],LINE(),LINE(),[gripLength,gripWidth/2],REPEAT_MIRRORED([0,1])]);
@@ -89,8 +92,8 @@ module grip() {
     rotate([0,0,gripAngle])
     intersection() {
         union() {
-            pointHull(concat(atXY(gripOutlineBottomView,wallThicknesss/2*tan(gripAngle),wallThicknesss/2),atXY(gripOutlineBottomView,-gripOffset,-gripHeight)));
-           translate([0,0,gripWidth/2]) rotate([0,90,0]) translate([0,size_xsect_1[1]/2-nudge+tolerance+wallThicknesss,0]) linear_extrude(height=gripLength+tan(gripAngle)*(2*tolerance+2*wallThicknesss+size_xsect_1[1])) outline();
+            pointHull(concat(atXY(gripOutlineBottomView,wallThickness/2*tan(gripAngle),wallThickness/2),atXY(gripOutlineBottomView,-gripOffset,-gripHeight)));
+           translate([0,0,gripWidth/2]) rotate([0,90,0]) translate([0,size_xsect_1[1]/2-nudge+tolerance+wallThickness,0]) linear_extrude(height=gripLength+tan(gripAngle)*(2*tolerance+2*wallThickness+size_xsect_1[1])) outline();
         }
         linear_extrude(height=3*gripWidth+size_xsect_1[1]*3,center=true) polygon(gripOutlineSideView);
     }
