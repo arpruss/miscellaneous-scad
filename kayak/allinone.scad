@@ -1,4 +1,4 @@
-needsSupport = 0; // [0:No, 1:Yes]
+needsSupport = 1; // [0:No, 1:Yes]
 seatBungeeClip = 0; // [0:No, 1:Left, 2:Right]
 sideReinforce = 3;
 
@@ -20,7 +20,7 @@ bigHole = 21.5;
 smallHole = 11.5;
 smallHoleOffset = 10.5;
 bigThickness = 12; 
-smallThickness = 6.85;
+smallThickness = 6.5;
 outerCircleOffset = 6.5;
 frontBackOffset = 16;
 rounding = 3;
